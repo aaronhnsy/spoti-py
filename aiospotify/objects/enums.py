@@ -5,6 +5,15 @@ from __future__ import annotations
 import enum
 
 
+__all__ = (
+    "IncludeGroups",
+    "Key",
+    "Mode",
+    "SearchType",
+    "CopyrightType"
+)
+
+
 class IncludeGroups(enum.Enum):
     ALBUM = 'album'
     SINGLE = 'single'

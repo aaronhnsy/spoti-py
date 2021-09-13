@@ -5,6 +5,12 @@ from __future__ import annotations
 from aiospotify import objects
 
 
+__all__ = (
+    "ExplicitContentSettings",
+    "User"
+)
+
+
 class ExplicitContentSettings:
 
     def __init__(self, data: dict) -> None:

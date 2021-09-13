@@ -5,7 +5,11 @@ from __future__ import annotations
 from aiospotify import objects
 
 
-# noinspection PyArgumentList
+__all__ = (
+    "AudioFeatures",
+)
+
+
 class AudioFeatures:
 
     def __init__(self, data: dict) -> None:

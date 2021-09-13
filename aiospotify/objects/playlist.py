@@ -5,6 +5,12 @@ from __future__ import annotations
 from aiospotify import objects
 
 
+__all__ = (
+    "SimplePlaylist",
+    "Playlist"
+)
+
+
 class SimplePlaylist(objects.BaseObject):
 
     def __init__(self, data: dict) -> None:

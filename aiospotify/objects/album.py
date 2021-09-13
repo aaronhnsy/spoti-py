@@ -8,6 +8,13 @@ from typing import Literal
 from aiospotify import objects
 
 
+__all__ = (
+    "AlbumRestriction",
+    "SimpleAlbum",
+    "Album"
+)
+
+
 class AlbumRestriction:
 
     def __init__(self, data: dict) -> None:

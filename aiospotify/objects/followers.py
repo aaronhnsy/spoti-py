@@ -2,6 +2,11 @@
 from __future__ import annotations
 
 
+__all__ = (
+    "Followers",
+)
+
+
 class Followers:
 
     def __init__(self, data: dict) -> None:

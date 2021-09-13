@@ -5,6 +5,11 @@ from __future__ import annotations
 from aiospotify import objects
 
 
+__all__ = (
+    "SearchResult",
+)
+
+
 class SearchResult:
 
     def __init__(self, data: dict) -> None:

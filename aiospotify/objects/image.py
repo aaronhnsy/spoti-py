@@ -2,6 +2,11 @@
 from __future__ import annotations
 
 
+__all__ = (
+    "Image",
+)
+
+
 class Image:
 
     def __init__(self, data: dict) -> None:

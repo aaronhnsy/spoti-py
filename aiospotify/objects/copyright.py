@@ -5,7 +5,11 @@ from __future__ import annotations
 from aiospotify import objects
 
 
-# noinspection PyArgumentList
+__all__ = (
+    "Copyright",
+)
+
+
 class Copyright:
 
     def __init__(self, data: dict) -> None:

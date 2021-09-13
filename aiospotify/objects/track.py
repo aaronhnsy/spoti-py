@@ -5,7 +5,15 @@ from __future__ import annotations
 from typing import Literal
 
 # My stuff
-from aiospotify.objects import album, artist, base, image, user
+from aiospotify.objects import BaseObject, Image, SimpleAlbum, SimpleArtist, User
+
+
+__all__ = (
+    "TrackRestriction",
+    "SimpleTrack",
+    "Track",
+    "PlaylistTrack"
+)
 
 
 class TrackRestriction:
@@ -20,12 +28,12 @@ class TrackRestriction:
         return f'spotify.TrackRestriction reason=\'{self.reason}\''
 
 
-class SimpleTrack(base.BaseObject):
+class SimpleTrack(BaseObject):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
-        self.artists: list[artist.SimpleArtist | None] = [artist.SimpleArtist(artist_data) for artist_data in data.get('artists', [])]
+        self.artists: list[SimpleArtist | None] = [SimpleArtist(artist_data) for artist_data in data.get('artists', [])]
         self.available_markets: list[str | None] = data.get('available_markets', [])
         self.disc_number: int = data.get('disc_number', 0)
         self.duration: int = data.get('duration_ms', 0)
@@ -50,13 +58,13 @@ class SimpleTrack(base.BaseObject):
         return TrackRestriction(restriction)
 
 
-class Track(base.BaseObject):
+class Track(BaseObject):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
-        self.album: album.SimpleAlbum = album.SimpleAlbum(data.get('album'))
-        self.artists: list[artist.SimpleArtist | None] = [artist.SimpleArtist(artist_data) for artist_data in data.get('artists', [])]
+        self.album: SimpleAlbum = SimpleAlbum(data.get('album'))
+        self.artists: list[SimpleArtist | None] = [SimpleArtist(artist_data) for artist_data in data.get('artists', [])]
         self.available_markets: list[str | None] = data.get('available_markets', [])
         self.disc_number: int = data.get('disc_number', 0)
         self.duration: int = data.get('duration_ms', 0)
@@ -76,7 +84,7 @@ class Track(base.BaseObject):
         return self.external_urls.get('spotify')
 
     @property
-    def images(self) -> list[image.Image | None]:
+    def images(self) -> list[Image | None]:
         return getattr(self.album, 'images', [])
 
     @property
@@ -87,20 +95,20 @@ class Track(base.BaseObject):
         return TrackRestriction(restriction)
 
 
-class PlaylistTrack(base.BaseObject):
+class PlaylistTrack(BaseObject):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
         self.added_at: str | None = data.get('added_at')
-        self.added_by: user.User = user.User(data.get('added_by'))
+        self.added_by: User = User(data.get('added_by'))
         self.is_local: bool = data.get('is_local', False)
         self.primary_colour: str | None = data.get('primary_color')
         self.video_thumbnail: str | None = data.get('video_thumbnail', {}).get('url', None)
 
         track = data.get('track')
-        self.album: album.SimpleAlbum | None = album.SimpleAlbum(track.get('album')) if track.get('album') else None
-        self.artists: list[artist.SimpleArtist] | None = [artist.SimpleArtist(artist_data) for artist_data in track.get('artists', [])] if track.get('artists') else None
+        self.album: SimpleAlbum | None = SimpleAlbum(track.get('album')) if track.get('album') else None
+        self.artists: list[SimpleArtist] | None = [SimpleArtist(artist_data) for artist_data in track.get('artists', [])] if track.get('artists') else None
         self.available_markets: list[str | None] | None = track.get('available_markets', None)
         self.disc_number: int | None = track.get('disc_number', None)
         self.duration: int | None = track.get('duration_ms', None)
@@ -122,7 +130,7 @@ class PlaylistTrack(base.BaseObject):
         return self.external_urls.get('spotify')
 
     @property
-    def images(self) -> list[image.Image | None]:
+    def images(self) -> list[Image | None]:
         return getattr(self.album, 'images', [])
 
     @property

@@ -5,6 +5,13 @@ from __future__ import annotations
 from aiospotify import objects
 
 
+__all__ = (
+    "Seed",
+    "RecommendationSeed",
+    "Recommendation"
+)
+
+
 VALID_KWARGS = [
     'min_acousticness',
     'max_acousticness',
