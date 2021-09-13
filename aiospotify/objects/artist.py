@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
+from aiospotify.objects import BaseObject, Followers, Image
 
 
-class SimpleArtist(objects.BaseObject):
+class SimpleArtist(BaseObject):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
@@ -20,15 +20,15 @@ class SimpleArtist(objects.BaseObject):
         return self.external_urls.get('spotify')
 
 
-class Artist(objects.BaseObject):
+class Artist(BaseObject):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
         self.external_urls: dict[str | None, str | None] = data.get('external_urls', {})
-        self.followers: objects.Followers = objects.Followers(data.get('followers'))
+        self.followers: Followers = Followers(data.get('followers'))
         self.genres: list[str | None] = data.get('genres', [])
-        self.images: list[objects.Image | None] = [objects.Image(image_data) for image_data in data.get('images', [])]
+        self.images: list[Image | None] = [Image(image_data) for image_data in data.get('images', [])]
         self.popularity: int = data.get('popularity', 0)
 
     def __repr__(self) -> str:

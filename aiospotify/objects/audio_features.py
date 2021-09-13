@@ -2,10 +2,9 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
+from aiospotify.objects import Key, Mode
 
 
-# noinspection PyArgumentList
 class AudioFeatures:
 
     def __init__(self, data: dict) -> None:
@@ -18,10 +17,10 @@ class AudioFeatures:
         self.energy: float = data.get('energy', 0)
         self.id: str | None = data.get('id')
         self.instrumentalness: float = data.get('instrumentalness', 0)
-        self.key: objects.Key = objects.Key(data.get('key', 0))
+        self.key: Key = Key(data.get('key', 0))
         self.liveness: float = data.get('liveness', 0)
         self.loudness: float = data.get('loudness', 0)
-        self.mode: objects.Mode = objects.Mode(data.get('mode', 0))
+        self.mode: Mode = Mode(data.get('mode', 0))
         self.speechiness: float = data.get('speechiness', 0)
         self.tempo: float = data.get('tempo', 0)
         self.time_signature: int = data.get('time_signature', 0)
