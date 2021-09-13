@@ -15,11 +15,11 @@ __all__ = (
 
 
 class IncludeGroups(enum.Enum):
-    ALBUM = 'album'
-    SINGLE = 'single'
-    APPEARS_ON = 'appears_on'
-    COMPILATION = 'compilation'
-    ALL = 'album,single,appears_on,compilation'
+    ALBUM = "album"
+    SINGLE = "single"
+    APPEARS_ON = "appears_on"
+    COMPILATION = "compilation"
+    ALL = "album,single,appears_on,compilation"
 
 
 class Key(enum.Enum):
@@ -43,16 +43,16 @@ class Mode(enum.Enum):
 
 
 class SearchType(enum.Enum):
-    ALBUM = 'album'
-    ARTIST = 'artist'
-    PLAYLIST = 'playlist'
-    TRACK = 'track'
-    SHOW = 'show'
-    EPISODE = 'episode'
+    ALBUM = "album"
+    ARTIST = "artist"
+    PLAYLIST = "playlist"
+    TRACK = "track"
+    SHOW = "show"
+    EPISODE = "episode"
 
-    ALL = 'album,artist,playlist,track,show,episode'
+    ALL = "album,artist,playlist,track,show,episode"
 
 
 class CopyrightType(enum.Enum):
-    NORMAL = 'C'
-    PERFORMANCE = 'P'
+    NORMAL = "C"
+    PERFORMANCE = "P"

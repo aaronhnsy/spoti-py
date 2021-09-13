@@ -62,7 +62,7 @@ setuptools.setup(
     name="aiospotify",
     packages=["aiospotify", "aiospotify.objects", "typings", "typings.objects"],
     project_urls=PROJECT_URLS,
-    python_requires='>=3.9',
+    python_requires=">=3.9",
     url="https://github.com/Axelancerr/aiospotify",
     version=VERSION,
     long_description=LONG_DESCRIPTION,

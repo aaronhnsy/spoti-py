@@ -32,7 +32,7 @@ class ClientCredentials:
         self._time_last_authorized: float = time.time()
 
     def __repr__(self) -> str:
-        return f'<spotify.ClientCredentials>'
+        return f"<spotify.ClientCredentials>"
 
     @property
     def access_token(self) -> str:
