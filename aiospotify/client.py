@@ -108,8 +108,8 @@ class Client:
                         await asyncio.sleep(1 + tries * 2)
                         continue
 
-                    if data.get("error"):
-                        raise values.EXCEPTION_MAPPING.get(response.status)(data)
+                    if error := data.get("error"):
+                        raise values.EXCEPTION_MAPPING.get(response.status)(error)
 
             except OSError as e:
                 if tries < 4 and e.errno in (54, 10054):
