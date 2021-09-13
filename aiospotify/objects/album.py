@@ -10,8 +10,6 @@ from aiospotify import objects
 
 class AlbumRestriction:
 
-    __slots__ = 'data', 'reason'
-
     def __init__(self, data: dict) -> None:
         self.data = data
 
@@ -22,8 +20,6 @@ class AlbumRestriction:
 
 
 class SimpleAlbum(objects.BaseObject):
-
-    __slots__ = 'album_type', 'artists', 'available_markets', 'external_urls', 'images', 'release_date', 'release_data_precision', 'total_tracks'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
@@ -52,9 +48,6 @@ class SimpleAlbum(objects.BaseObject):
 
 
 class Album(objects.BaseObject):
-
-    __slots__ = 'album_type', 'artists', 'available_markets', 'copyrights', 'external_ids', 'external_urls', 'genres', 'images', 'label', 'popularity', 'release_date', \
-                'release_data_precision', 'total_tracks', '_tracks_paging', 'tracks'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)

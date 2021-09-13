@@ -7,8 +7,6 @@ from typing import Optional
 
 class Image:
 
-    __slots__ = 'data', 'url', 'width', 'height'
-
     def __init__(self, data: dict) -> None:
         self.data = data
 

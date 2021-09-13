@@ -10,8 +10,6 @@ from aiospotify import objects
 
 class SimplePlaylist(objects.BaseObject):
 
-    __slots__ = 'collaborative', 'description', 'external_urls', 'images', 'owner', 'primary_colour', 'is_public', 'snapshot_id', 'total_tracks'
-
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
@@ -34,9 +32,6 @@ class SimplePlaylist(objects.BaseObject):
 
 
 class Playlist(objects.BaseObject):
-
-    __slots__ = 'collaborative', 'description', 'external_urls', 'followers', 'images', 'owner', 'primary_colour', 'is_public', 'snapshot_id', 'total_tracks', '_tracks_paging', \
-                'tracks'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)

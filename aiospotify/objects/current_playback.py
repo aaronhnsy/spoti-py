@@ -10,8 +10,6 @@ from aiospotify import objects
 
 class Context:
 
-    __slots__ = 'data', 'external_urls', 'href', 'type', 'uri'
-
     def __init__(self, data: dict) -> None:
         self.data = data
 
@@ -29,9 +27,6 @@ class Context:
 
 
 class Disallows:
-
-    __slots__ = 'data', 'interrupting_playback', 'pausing', 'resuming', 'seeking', 'skipping_next', 'skipping_previous', 'toggling_repeat_context', 'toggling_repeat_track', \
-                'toggling_shuffle', 'transferring_playback'
 
     def __init__(self, data: dict) -> None:
         self.data = data
@@ -53,8 +48,6 @@ class Disallows:
 
 class Device:
 
-    __slots__ = 'data', 'id', 'is_active', 'is_private_session', 'is_restricted', 'name', 'type', 'volume_percent'
-
     def __init__(self, data: dict) -> None:
         self.data = data
 
@@ -71,8 +64,6 @@ class Device:
 
 
 class CurrentlyPlaying:
-
-    __slots__ = 'data', 'context', 'item', 'currently_playing_type', 'is_playing', 'progress', 'timestamp'
 
     def __init__(self, data: dict) -> None:
         self.data = data
@@ -94,8 +85,6 @@ class CurrentlyPlaying:
 
 
 class CurrentlyPlayingContext(CurrentlyPlaying):
-
-    __slots__ = 'actions', 'device', 'repeat_state', 'shuffle_state'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)

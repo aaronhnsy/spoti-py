@@ -11,9 +11,6 @@ from aiospotify import objects
 # noinspection PyArgumentList
 class AudioFeatures:
 
-    __slots__ = 'data', 'acousticness', 'analysis_url', 'danceability', 'duration_ms', 'energy', 'id', 'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'speechiness', \
-                'tempo', 'time_signature', 'track_href', 'type', 'uri', 'valence'
-
     def __init__(self, data: dict) -> None:
         self.data = data
 

@@ -10,8 +10,6 @@ from aiospotify import objects
 
 class ExplicitContentSettings:
 
-    __slots__ = 'data', 'filter_enabled', 'filter_locked'
-
     def __init__(self, data: dict) -> None:
         self.data = data
 
@@ -23,8 +21,6 @@ class ExplicitContentSettings:
 
 
 class User(objects.BaseObject):
-
-    __slots__ = 'country', 'email', 'explicit_content_settings', 'external_urls', 'followers', 'images', 'has_premium'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)

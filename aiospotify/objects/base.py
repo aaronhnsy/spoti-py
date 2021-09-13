@@ -1,9 +1,11 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
 from typing import Optional
 
 
 class BaseObject:
-
-    __slots__ = 'data', 'href', 'id', 'name', 'type', 'uri'
 
     def __init__(self, data: dict) -> None:
         self.data = data
@@ -22,8 +24,6 @@ class BaseObject:
 
 
 class PagingObject:
-
-    __slots__ = 'data', 'href', 'items', 'limit', 'next', 'offset', 'previous', 'total'
 
     def __init__(self, data: dict) -> None:
         self.data = data

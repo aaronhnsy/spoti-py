@@ -10,8 +10,6 @@ from aiospotify import objects
 
 class SimpleArtist(objects.BaseObject):
 
-    __slots__ = ('external_urls', )
-
     def __init__(self, data: dict) -> None:
         super().__init__(data)
 
@@ -27,7 +25,6 @@ class SimpleArtist(objects.BaseObject):
 
 class Artist(objects.BaseObject):
 
-    __slots__ = 'external_urls', 'followers', 'genres', 'images', 'popularity'
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)

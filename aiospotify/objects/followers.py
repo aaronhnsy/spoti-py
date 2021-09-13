@@ -1,8 +1,10 @@
 
 
-class Followers:
+# Future
+from __future__ import annotations
 
-    __slots__ = 'data', 'href', 'total'
+
+class Followers:
 
     def __init__(self, data: dict) -> None:
         self.data = data
