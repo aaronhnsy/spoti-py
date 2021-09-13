@@ -17,8 +17,8 @@ __all__ = (
 )
 
 
-def to_json(obj: Any) -> str:
-    return json.dumps(obj, separators=(",", ":"))
+def to_json(obj: Any, indent: int | None = None) -> str:
+    return json.dumps(obj, separators=(",", ":"), indent=indent)
 
 
 from_json = json.loads
