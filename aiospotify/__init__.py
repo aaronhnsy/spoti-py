@@ -29,5 +29,6 @@ __copyright__: Final[str] = "Copyright 2021-present Axelancerr"
 __license__: Final[str] = "MIT"
 __version__: Final[str] = "2021.09.13"
 __maintainer__: Final[str] = "Aaron Hennessey"
+__source__: Final[str] = "https://github.com/Axelancerr/aiospotify"
 
 logging.getLogger("aiospotify")
