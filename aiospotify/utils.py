@@ -1,0 +1,44 @@
+# Future
+from __future__ import annotations
+
+# Standard Library
+import json
+from typing import Any, Literal
+
+# Packages
+import aiohttp
+
+
+def to_json(obj: Any) -> str:
+    return json.dumps(obj, separators=(',', ':'))
+
+
+from_json = json.loads
+
+
+async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str:
+
+    text = await response.text(encoding='utf-8')
+
+    try:
+        if response.headers['content-type'] == 'application/json':
+            return from_json(text)
+    except KeyError:
+        pass
+
+    return text
+
+
+class _MissingSentinel:
+
+    def __eq__(self, other: Any) -> Literal[False]:
+        return False
+
+    def __bool__(self) -> Literal[False]:
+        return False
+
+    def __repr__(self) -> str:
+        return "..."
+
+
+MISSING: Any = _MissingSentinel()
