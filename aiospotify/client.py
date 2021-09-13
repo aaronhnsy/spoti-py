@@ -15,6 +15,12 @@ import aiohttp
 from aiospotify import objects, utils, values
 
 
+__all__ = (
+    "Route",
+    "Client"
+)
+
+
 class Route:
 
     BASE: ClassVar[str] = f"{values.API_BASE}/v1"

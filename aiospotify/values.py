@@ -5,6 +5,13 @@ from __future__ import annotations
 from aiospotify import exceptions
 
 
+__all__ = (
+    "API_BASE",
+    "ACCOUNTS_BASE",
+    "SCOPES",
+)
+
+
 API_BASE = "https://api.spotify.com"
 ACCOUNTS_BASE = "https://accounts.spotify.com"
 
