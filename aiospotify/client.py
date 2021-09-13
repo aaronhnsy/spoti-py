@@ -97,8 +97,9 @@ class Client:
                 async with self.session.request(method=route.method, url=route.url, headers=headers, params=parameters) as response:
                     data = await utils.json_or_text(response)
 
+                    print(json.dumps(data, indent=4))
+
                     if 300 > response.status >= 200:
-                        print(json.dumps(data, indent=4))
                         return data
 
                     # TODO: Implement some kind of ratelimit handling.
