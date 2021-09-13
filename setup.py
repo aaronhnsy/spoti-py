@@ -60,7 +60,7 @@ setuptools.setup(
     install_requires=INSTALL_REQUIRES,
     license="MIT",
     name="aiospotify",
-    packages=["aiospotify", "typings"],
+    packages=["aiospotify", "aiospotify.objects", "typings", "typings.objects"],
     project_urls=PROJECT_URLS,
     python_requires='>=3.9',
     url="https://github.com/Axelancerr/aiospotify",
