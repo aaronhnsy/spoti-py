@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.objects import Track
+from aiospotify import objects
 
 
 VALID_KWARGS = [
@@ -99,8 +99,8 @@ class Recommendation:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-        self.seeds = [RecommendationSeed(data) for data in data.get('seeds', [])]
-        self.tracks = [Track(data) for data in data.get('tracks', [])]
+        self.seeds = [objects.RecommendationSeed(data) for data in data.get('seeds', [])]
+        self.tracks = [objects.Track(data) for data in data.get('tracks', [])]
 
     def __repr__(self) -> str:
         return f'<spotify.Recommendation tracks={len(self.tracks)} seeds={len(self.seeds)}>'

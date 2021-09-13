@@ -7,9 +7,10 @@ from typing import Literal
 
 # Packages
 import aiohttp
+import values
 
 # My stuff
-from aiospotify import exceptions, values
+from aiospotify import exceptions
 from typings.objects.tokens import ClientCredentialsData
 
 

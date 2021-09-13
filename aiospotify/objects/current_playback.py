@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Literal
 
 # My stuff
-from aiospotify.objects import Track
+from aiospotify import objects
 
 
 class Context:
@@ -72,7 +72,7 @@ class CurrentlyPlaying:
         self.context: Context | None = Context(context) if context else None
 
         item = data.get('item')
-        self.item: Track | None = Track(item) if item else None
+        self.item: objects.Track | None = objects.Track(item) if item else None
 
         self.currently_playing_type: Literal['track', 'episode', 'ad', 'unknown'] = data.get('currently_playing_type', 'unknown')
         self.is_playing: bool = data.get('is_playing', True)

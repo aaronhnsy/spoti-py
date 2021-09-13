@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.objects import BaseObject, Followers, Image
+from aiospotify import objects
 
 
 class ExplicitContentSettings:
@@ -17,7 +17,7 @@ class ExplicitContentSettings:
         return f'<spotify.ExplicitContentSettings filter_enabled={self.filter_enabled} filter_locked={self.filter_locked}'
 
 
-class User(BaseObject):
+class User(objects.BaseObject):
 
     def __init__(self, data: dict) -> None:
         super().__init__(data)
@@ -27,8 +27,8 @@ class User(BaseObject):
         self.email: str | None = data.get('email')
         self.explicit_content_settings: ExplicitContentSettings | None = ExplicitContentSettings(data.get('explicit_content')) if data.get('explicit_content') else None
         self.external_urls: dict[str | None, str | None] = data.get('external_urls', {})
-        self.followers: Followers = Followers(data.get('followers')) if data.get('followers') else None
-        self.images: list[Image | None] | None = [Image(image_data) for image_data in data.get('images')] if data.get('images') else None
+        self.followers: objects.Followers = objects.Followers(data.get('followers')) if data.get('followers') else None
+        self.images: list[objects.Image | None] | None = [objects.Image(image_data) for image_data in data.get('images')] if data.get('images') else None
         self.has_premium: bool | None = data.get('product') == 'premium' if data.get('product') else None
 
     def __repr__(self) -> str:

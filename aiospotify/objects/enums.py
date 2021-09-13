@@ -40,6 +40,7 @@ class SearchType(enum.Enum):
     TRACK = 'track'
     SHOW = 'show'
     EPISODE = 'episode'
+
     ALL = 'album,artist,playlist,track,show,episode'
 
 
