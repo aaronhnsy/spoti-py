@@ -1,9 +1,6 @@
 # Future
 from __future__ import annotations
 
-# Standard Library
-from typing import Optional
-
 
 class BaseObject:
 
@@ -31,9 +28,9 @@ class PagingObject:
         self.href: str = data.get('href')
         self.items: list[dict] = data.get('items')
         self.limit: int = data.get('limit')
-        self.next: Optional[str] = data.get('next')
+        self.next: str | None = data.get('next')
         self.offset: int = data.get('offset')
-        self.previous: Optional[str] = data.get('previous')
+        self.previous: str | None = data.get('previous')
         self.total: int = data.get('total')
 
     def __repr__(self) -> str:

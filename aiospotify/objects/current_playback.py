@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Standard Library
-from typing import Literal, Optional
+from typing import Literal
 
 # My stuff
 from aiospotify import objects
@@ -13,7 +13,7 @@ class Context:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-        self.external_urls: dict[Optional[str], Optional[str]] = data.get('external_urls', {})
+        self.external_urls: dict[str | None, str | None] = data.get('external_urls', {})
         self.href: str = data.get('href')
         self.type: str = data.get('type')
         self.uri: str = data.get('uri')
@@ -22,7 +22,7 @@ class Context:
         return f'<spotify.Context uri=\'{self.uri}\''
 
     @property
-    def url(self) -> Optional[str]:
+    def url(self) -> str | None:
         return self.external_urls.get('spotify', None)
 
 
@@ -69,10 +69,10 @@ class CurrentlyPlaying:
         self.data = data
 
         context = data.get('context')
-        self.context: Optional[Context] = Context(context) if context else None
+        self.context: Context | None = Context(context) if context else None
 
         item = data.get('item')
-        self.item: Optional[objects.Track] = objects.Track(item) if item else None
+        self.item: objects.Track | None = objects.Track(item) if item else None
 
         self.currently_playing_type: Literal['track', 'episode', 'ad', 'unknown'] = data.get('currently_playing_type', 'unknown')
         self.is_playing: bool = data.get('is_playing', True)
@@ -90,10 +90,10 @@ class CurrentlyPlayingContext(CurrentlyPlaying):
         super().__init__(data)
 
         actions = data.get('actions', {}).get('disallows')
-        self.actions: Optional[Disallows] = Disallows(actions) if actions else None
+        self.actions: Disallows | None = Disallows(actions) if actions else None
 
         device = data.get('device')
-        self.device: Optional[Device] = Device(device) if device else None
+        self.device: Device | None = Device(device) if device else None
 
         self.repeat_state: Literal['off', 'track', 'context', 'unknown'] = data.get('repeat_state', 'unknown')
         self.shuffle_state: bool = data.get('shuffle_state', False)

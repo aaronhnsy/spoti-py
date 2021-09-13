@@ -1,9 +1,6 @@
 # Future
 from __future__ import annotations
 
-# Standard Library
-from typing import Optional
-
 # My stuff
 from aiospotify import objects
 
@@ -14,7 +11,7 @@ class Copyright:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-        self.text: Optional[str] = data.get('text')
+        self.text: str | None = data.get('text')
         self.type: objects.CopyrightType = objects.CopyrightType(data.get('type', 'C'))
 
     def __repr__(self) -> str:

@@ -1,9 +1,6 @@
 # Future
 from __future__ import annotations
 
-# Standard Library
-from typing import Optional
-
 
 class Image:
 
@@ -11,8 +8,8 @@ class Image:
         self.data = data
 
         self.url: str = data.get('url')
-        self.width: Optional[int] = data.get('width')
-        self.height: Optional[int] = data.get('height')
+        self.width: int | None = data.get('width')
+        self.height: int | None = data.get('height')
 
     def __repr__(self) -> str:
         return f'<spotify.Image url=\'<{self.url}>\' width=\'{self.width}\' height=\'{self.height}\'>'
