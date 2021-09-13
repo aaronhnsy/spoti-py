@@ -18,7 +18,7 @@ __all__ = (
 
 
 def to_json(obj: Any) -> str:
-    return json.dumps(obj, separators=(',', ':'))
+    return json.dumps(obj, separators=(",", ":"))
 
 
 from_json = json.loads
@@ -26,10 +26,10 @@ from_json = json.loads
 
 async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str:
 
-    text = await response.text(encoding='utf-8')
+    text = await response.text(encoding="utf-8")
 
     try:
-        if response.headers['content-type'] == 'application/json':
+        if response.headers["content-type"] == "application/json; charset=utf-8":
             return from_json(text)
     except KeyError:
         pass
