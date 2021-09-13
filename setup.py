@@ -59,7 +59,7 @@ setuptools.setup(
     extras_require=EXTRAS_REQUIRE,
     install_requires=INSTALL_REQUIRES,
     license="MIT",
-    name="Slate",
+    name="aiospotify",
     packages=["aiospotify", "typings"],
     project_urls=PROJECT_URLS,
     python_requires='>=3.9',
