@@ -402,7 +402,47 @@ class HTTPClient:
     # PLAYLISTS API #
     #################
 
-    ...
+    async def get_playlist(
+        self,
+        _id: str,
+        /,
+        *, 
+        market: str | None,
+        fields: str | None,
+    ) -> dict[str, Any]:
+        
+        parameters = {"additional_types": "track"}
+        if market:
+            parameters["market"] = market
+        if fields:
+            parameters["fields"] = fields
+
+        return await self.request(Route("GET", "/playlists/{id}", id=_id), parameters=parameters)
+    
+    async def get_playlist_items(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None,
+        fiels: str | None
+        limit: int | None,
+        offset: int | None,
+    ) -> dict[str, Any]:
+
+        parameters = {"additional_types": "track"}
+        if market:
+            parameters["market"] = market
+        if fields:
+            parameters["fields"] = fields
+        if limit:
+            if limit < 1 or limit > 100:
+                raise ValueError("'limit' must be between 1 and 100 inclusive.")
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route('GET', '/playlists/{id}/tracks', id=_id), parameters=parameters)
 
     ##############
     # SEARCH API #
