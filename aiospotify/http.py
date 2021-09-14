@@ -3,7 +3,6 @@ from __future__ import annotations
 
 # Standard Library
 import asyncio
-import platform
 import urllib.parse
 from typing import Any, ClassVar, Literal
 
@@ -406,11 +405,11 @@ class HTTPClient:
         self,
         _id: str,
         /,
-        *, 
+        *,
         market: str | None,
         fields: str | None,
     ) -> dict[str, Any]:
-        
+
         parameters = {"additional_types": "track"}
         if market:
             parameters["market"] = market
@@ -418,14 +417,14 @@ class HTTPClient:
             parameters["fields"] = fields
 
         return await self.request(Route("GET", "/playlists/{id}", id=_id), parameters=parameters)
-    
+
     async def get_playlist_items(
         self,
         _id: str,
         /,
         *,
         market: str | None,
-        fiels: str | None
+        fields: str | None,
         limit: int | None,
         offset: int | None,
     ) -> dict[str, Any]:
