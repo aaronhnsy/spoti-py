@@ -21,25 +21,30 @@ __all__ = (
 
 class Route:
 
-    BASE: ClassVar[str] = f"{values.API_BASE}/v1"
+    BASE_URL: ClassVar[str] = f"https://api.spotify.com/v1"
 
-    def __init__(self, method: Literal["GET", "POST", "DELETE", "PATCH", "PUT"], path: str, /, **parameters):
+    def __init__(
+        self,
+        method: Literal["GET", "POST", "DELETE", "PATCH", "PUT"],
+        path: str,
+        /,
+        **parameters
+    ) -> None:
 
         self.method = method
         self.path = path
 
-        url = self.BASE + self.path
+        url = self.BASE_URL + self.path
         if parameters:
             url = url.format_map({key: urllib.parse.quote(value) if isinstance(value, str) else value for key, value in parameters.items()})
 
         self.url: str = url
 
+    def __repr__(self) -> str:
+        return f"<aiospotify.Route method={self.method} url={self.url}>"
+
 
 class HTTPClient:
-
-    HEADERS = {
-        "Content-Type": "application/json",
-    }
 
     def __init__(
         self,
@@ -60,17 +65,6 @@ class HTTPClient:
 
     #
 
-    async def get_token(self) -> objects.ClientCredentials:
-
-        if not self._client_credentials:
-            self._client_credentials = await objects.ClientCredentials.create(self._session, client_id=self._client_id, client_secret=self._client_secret)
-
-        token = self._client_credentials
-        if token.has_expired:
-            await token.refresh(self._session, client_id=self._client_id, client_secret=self._client_secret)
-
-        return self._client_credentials
-
     async def request(
         self,
         route: Route,
@@ -83,14 +77,28 @@ class HTTPClient:
         if self._session is None:
             self._session = aiohttp.ClientSession()
 
-        token = await self.get_token()
-        self.HEADERS["Authorization"] = f"Bearer {token.access_token}"
+        if self._client_credentials is None:
+            self._client_credentials = await objects.ClientCredentials.create(self._client_id, self._client_secret, session=self._session)
+
+        if self._client_credentials.is_expired() is True:
+            await self._client_credentials.refresh(session=self._session)
+
+        headers = {
+            "Content-Type":  "application/json",
+            "Authorization": f"Bearer {self._client_credentials.access_token}"
+        }
 
         for tries in range(5):
 
             try:
 
-                async with self._session.request(method=route.method, url=route.url, headers=self.HEADERS, params=parameters, data=data) as response:
+                async with self._session.request(
+                        method=route.method,
+                        url=route.url,
+                        headers=headers,
+                        params=parameters,
+                        data=data
+                ) as response:
 
                     response_data = await utils.json_or_text(response)
 
@@ -275,7 +283,18 @@ class HTTPClient:
         limit: int | None,
         offset: int | None
     ) -> dict[str, Any]:
-        raise NotImplementedError
+
+        parameters = {}
+        if country:
+            parameters["country"] = country
+        if limit:
+            if limit < 1 or limit > 50:
+                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/browse/new-releases"), parameters=parameters)
 
     # Get all featured playlists
     async def get_featured_playlists(
@@ -287,7 +306,22 @@ class HTTPClient:
         limit: int | None,
         offset: int | None
     ) -> dict[str, Any]:
-        raise NotImplementedError
+
+        parameters = {}
+        if country:
+            parameters["country"] = country
+        if locale:
+            parameters["locale"] = locale
+        if timestamp:
+            parameters["timestamp"] = timestamp
+        if limit:
+            if limit < 1 or limit > 50:
+                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/browse/featured-playlists"), parameters=parameters)
 
     # Get all categories
     async def get_categories(
@@ -298,7 +332,20 @@ class HTTPClient:
         limit: int | None,
         offset: int | None
     ) -> dict[str, Any]:
-        raise NotImplementedError
+
+        parameters = {}
+        if country:
+            parameters["country"] = country
+        if locale:
+            parameters["locale"] = locale
+        if limit:
+            if limit < 1 or limit > 50:
+                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/browse/categories"), parameters=parameters)
 
     # Get a category
     async def get_category(
@@ -309,7 +356,14 @@ class HTTPClient:
         country: str | None,
         locale: str | None,
     ) -> dict[str, Any]:
-        raise NotImplementedError
+
+        parameters = {}
+        if country:
+            parameters["country"] = country
+        if locale:
+            parameters["locale"] = locale
+
+        return await self.request(Route("GET", "/browse/categories/{id}", id=_id), parameters=parameters)
 
     # Get a category playlists
     async def get_category_playlists(
@@ -318,11 +372,21 @@ class HTTPClient:
         /,
         *,
         country: str | None,
-        locale: str | None,
         limit: int | None,
         offset: int | None
     ) -> dict[str, Any]:
-        raise NotImplementedError
+
+        parameters = {}
+        if country:
+            parameters["country"] = country
+        if limit:
+            if limit < 1 or limit > 50:
+                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/browse/categories/{id}/playlists", id=_id), parameters=parameters)
 
     # Get recommendations
     async def get_recommendations(
@@ -400,7 +464,47 @@ class HTTPClient:
     # PERSONALIZATION API #
     #######################
 
-    ...
+    # Get a users top artists
+    async def get_current_users_top_artists(
+        self,
+        *,
+        time_range: objects.TimeRange | None,
+        limit: int | None,
+        offset: int | None
+    ) -> dict[str, None]:
+
+        parameters = {}
+        if time_range:
+            parameters["time_range"] = time_range.value
+        if limit:
+            if limit < 1 or limit > 50:
+                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/me/top/artists"), parameters=parameters)
+
+    # Get a users top tracks
+    async def get_current_users_top_tracks(
+        self,
+        *,
+        time_range: objects.TimeRange | None,
+        limit: int | None,
+        offset: int | None
+    ) -> dict[str, None]:
+
+        parameters = {}
+        if time_range:
+            parameters["time_range"] = time_range.value
+        if limit:
+            if limit < 1 or limit > 50:
+                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/me/top/tracks"), parameters=parameters)
 
     ##############
     # PLAYER API #

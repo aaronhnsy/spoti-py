@@ -11,7 +11,8 @@ __all__ = (
     "Mode",
     "SearchType",
     "CopyrightType",
-    "RepeatMode"
+    "RepeatMode",
+    "TimeRange"
 )
 
 
@@ -63,3 +64,9 @@ class RepeatMode(enum.Enum):
     TRACK = "track"
     CONTEXT = "context"
     OFF = "off"
+
+
+class TimeRange(enum.Enum):
+    LONG_TERM = "long_term"
+    MEDIUM_TERM = "medium_term"
+    SHORT_TERM = "short_term"
