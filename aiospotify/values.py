@@ -6,14 +6,10 @@ from aiospotify import exceptions
 
 
 __all__ = (
-    "API_BASE",
-    "ACCOUNTS_BASE",
+    "EXCEPTION_MAPPING",
     "SCOPES",
+    "VALID_SEED_KWARGS",
 )
-
-
-API_BASE = "https://api.spotify.com"
-ACCOUNTS_BASE = "https://accounts.spotify.com"
 
 
 EXCEPTION_MAPPING = {
