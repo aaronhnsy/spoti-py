@@ -92,21 +92,21 @@ class HTTPClient:
 
                 async with self._session.request(method=route.method, url=route.url, headers=self.HEADERS, params=parameters, data=data) as response:
 
-                    data = await utils.json_or_text(response)
+                    response_data = await utils.json_or_text(response)
 
-                    if isinstance(data, str):
+                    if isinstance(response_data, str):
                         raise exceptions.SpotifyException("Something went wrong, the Spotify API returned text.")
 
-                    print(utils.to_json(data, indent=4))
+                    print(utils.to_json(response_data, indent=4))
 
                     if 200 <= response.status < 300:
-                        return data
+                        return response_data
 
                     if response.status >= 500:
                         await asyncio.sleep(1 + tries * 2)
                         continue
 
-                    if error := data.get("error"):
+                    if error := response_data.get("error"):
                         raise values.EXCEPTION_MAPPING[response.status](error)
 
             except OSError as error:
@@ -116,7 +116,7 @@ class HTTPClient:
                 raise
 
         if response and response.status >= 500:
-            raise values.EXCEPTION_MAPPING[response.status](data["error"])
+            raise values.EXCEPTION_MAPPING[response.status](response_data["error"])
 
         raise RuntimeError("This shouldn't happen.")
 
@@ -409,7 +409,7 @@ class HTTPClient:
         play: bool | None
     ) -> None:
 
-        data = {"device_ids": [device_id]}
+        data: dict[str, Any] = {"device_ids": [device_id]}
         if play:
             data["play"] = play
 
@@ -480,7 +480,7 @@ class HTTPClient:
         device_id: str | None
     ) -> None:
 
-        parameters = {"position_ms": position_ms}
+        parameters: dict[str, Any] = {"position_ms": position_ms}
         if device_id:
             parameters["device_id"] = device_id
 
@@ -509,7 +509,7 @@ class HTTPClient:
         if volume_percent < 0 or volume_percent > 100:
             raise ValueError("'volume_percent' must between 1 and 100 inclusive.")
 
-        parameters = {"volume_percent": volume_percent}
+        parameters: dict[str, Any] = {"volume_percent": volume_percent}
         if device_id:
             parameters["device_id"] = device_id
 
@@ -522,7 +522,7 @@ class HTTPClient:
         device_id: str | None
     ) -> None:
 
-        parameters = {"state": state}
+        parameters: dict[str, Any] = {"state": state}
         if device_id:
             parameters["device_id"] = device_id
 
@@ -613,7 +613,7 @@ class HTTPClient:
         if collaborative and public:
             raise ValueError("collaborative playlists must not be public.")
 
-        data = {"name": name}
+        data: dict[str, Any] = {"name": name}
         if public:
             data["public"] = public
         if collaborative:
@@ -677,7 +677,7 @@ class HTTPClient:
         offset: int | None,
     ) -> dict[str, Any]:
 
-        parameters = {"additional_types": "track"}
+        parameters: dict[str, Any] = {"additional_types": "track"}
         if market:
             parameters["market"] = market
         if fields:
@@ -700,7 +700,7 @@ class HTTPClient:
         uris: list[str],
     ) -> dict[str, Any]:
 
-        data = {"uris": uris}
+        data: dict[str, Any] = {"uris": uris}
         if position:
             data["position"] = position
 
@@ -717,7 +717,7 @@ class HTTPClient:
         snapshot_id: str | None,
     ) -> dict[str, Any]:
 
-        data = {
+        data: dict[str, Any] = {
             "range_start": range_start,
             "insert_before": insert_before
         }
@@ -736,7 +736,7 @@ class HTTPClient:
         uris: list[str] | None
     ) -> None:
 
-        data = {"uris": None}
+        data: dict[str, Any] = {"uris": None}
         if uris:
             if len(uris) > 100:
                 raise ValueError("'uris' must be less than 100 uris.")
@@ -753,7 +753,7 @@ class HTTPClient:
         snapshot_id: str | None,
     ) -> dict[str, Any]:
 
-        data = {"tracks": [{"uri": uri} for uri in uris]}
+        data: dict[str, Any] = {"tracks": [{"uri": uri} for uri in uris]}
         if snapshot_id:
             data["snapshot_id"] = snapshot_id
 
