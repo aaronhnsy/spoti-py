@@ -105,8 +105,6 @@ class HTTPClient:
                     if isinstance(response_data, str):
                         raise exceptions.SpotifyException("Something went wrong, the Spotify API returned text.")
 
-                    print(utils.to_json(response_data, indent=4))
-
                     if 200 <= response.status < 300:
                         return response_data
 
@@ -252,7 +250,7 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        include_groups: list[objects.IncludeGroups] | None,
+        include_groups: list[objects.IncludeGroup] | None,
         limit: int | None,
         offset: int | None
     ) -> dict[str, Any]:
@@ -923,12 +921,17 @@ class HTTPClient:
     async def search(
         self,
         query: str,
-        search_types: list[objects.SearchType],
+        /,
+        *,
+        search_types: list[objects.SearchType] | None,
         market: str | None,
         limit: int | None,
         offset: int | None,
         include_external: bool = False
     ) -> dict[str, Any]:
+
+        if not search_types:
+            search_types = objects.SearchType.ALL
 
         parameters: dict[str, Any] = {
             "q": query.replace(" ", "+"),
@@ -1038,7 +1041,7 @@ class HTTPClient:
         return await self.request(Route("GET", "/tracks/{id}", id=_id), parameters=parameters)
 
     # Get audio features for several tracks.
-    async def get_several_track_audio_features(
+    async def get_several_tracks_audio_features(
         self,
         ids: list[str]
     ) -> dict[str, Any]:

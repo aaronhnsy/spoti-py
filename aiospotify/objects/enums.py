@@ -6,7 +6,7 @@ import enum
 
 
 __all__ = (
-    "IncludeGroups",
+    "IncludeGroup",
     "Key",
     "Mode",
     "SearchType",
@@ -16,7 +16,7 @@ __all__ = (
 )
 
 
-class IncludeGroups(enum.Enum):
+class IncludeGroup(enum.Enum):
     ALBUM = "album"
     SINGLE = "single"
     APPEARS_ON = "appears_on"
@@ -51,7 +51,6 @@ class SearchType(enum.Enum):
     TRACK = "track"
     SHOW = "show"
     EPISODE = "episode"
-
     ALL = "album,artist,playlist,track,show,episode"
 
 
