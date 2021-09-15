@@ -74,13 +74,13 @@ class HTTPClient:
         data: dict[str, Any] | None = None
     ) -> Any:
 
-        if self._session is None:
+        if not self._session:
             self._session = aiohttp.ClientSession()
 
-        if self._client_credentials is None:
+        if not self._client_credentials:
             self._client_credentials = await objects.ClientCredentials.create(self._client_id, self._client_secret, session=self._session)
 
-        if self._client_credentials.is_expired() is True:
+        if self._client_credentials.is_expired():
             await self._client_credentials.refresh(session=self._session)
 
         headers = {

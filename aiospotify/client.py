@@ -5,7 +5,7 @@ from __future__ import annotations
 import aiohttp
 
 # My stuff
-from aiospotify import http, objects, utils
+from aiospotify import http, utils
 
 
 __all__ = (
