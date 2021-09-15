@@ -23,7 +23,7 @@ class Route:
 
     BASE: ClassVar[str] = f"{values.API_BASE}/v1"
 
-    def __init__(self, method: Literal["GET", "POST", "DELETE", "PATCH"], path: str, /, **parameters):
+    def __init__(self, method: Literal["GET", "POST", "DELETE", "PATCH", "PUT"], path: str, /, **parameters):
 
         self.method = method
         self.path = path
@@ -71,7 +71,14 @@ class HTTPClient:
 
         return self._client_credentials
 
-    async def request(self, route: Route, parameters: dict[str, Any] | None = None) -> Any:
+    async def request(
+        self,
+        route: Route,
+        /,
+        *,
+        parameters: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None
+    ) -> Any:
 
         if self._session is None:
             self._session = aiohttp.ClientSession()
@@ -83,7 +90,7 @@ class HTTPClient:
 
             try:
 
-                async with self._session.request(method=route.method, url=route.url, headers=self.HEADERS, params=parameters) as response:
+                async with self._session.request(method=route.method, url=route.url, headers=self.HEADERS, params=parameters, data=data) as response:
 
                     data = await utils.json_or_text(response)
 
@@ -168,7 +175,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route('GET', '/albums/{id}/tracks', id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/albums/{id}/tracks", id=_id), parameters=parameters)
 
     ###############
     # ARTISTS API #
@@ -383,7 +390,7 @@ class HTTPClient:
     # PLAYER API #
     ##############
 
-    async def get_user_current_playback(
+    async def get_current_user_playback(
         self,
         *,
         market: str | None,
@@ -393,13 +400,228 @@ class HTTPClient:
         if market:
             parameters["market"] = market
 
-        return await self.request(Route('GET', '/me/player'), parameters=parameters)
+        return await self.request(Route("GET", "/me/player"), parameters=parameters)
+
+    async def transfer_current_user_playback(
+        self,
+        *,
+        device_id: str,
+        play: bool | None
+    ) -> None:
+
+        data = {"device_ids": [device_id]}
+        if play:
+            data["play"] = play
+
+        return await self.request(Route("PUT", "/me/player"), data=data)
+
+    async def get_current_user_available_devices(
+        self,
+    ) -> dict[str, Any]:
+        return await self.request(Route("GET", "/me/player/devices"))
+
+    async def get_current_user_playing_track(
+        self,
+        *,
+        market: str | None,
+    ) -> dict[str, Any]:
+
+        parameters = {"additional_types": "track"}
+        if market:
+            parameters["market"] = market
+
+        return await self.request(Route("GET", "/me/player/currently-playing"), parameters=parameters)
+
+    async def start_current_user_playback(
+        self,
+    ) -> ...:
+        raise NotImplementedError
+
+    async def pause_current_user_playback(
+        self,
+        *,
+        device_id: str | None
+    ) -> None:
+
+        parameters = {}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        return await self.request(Route("PUT", "/me/player/pause"), parameters=parameters)
+
+    async def skip_forward_current_user_playback(
+        self,
+        *,
+        device_id: str | None
+    ) -> None:
+
+        parameters = {}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        return await self.request(Route("POST", "/me/player/next"), parameters=parameters)
+
+    async def skip_backward_current_user_playback(
+        self,
+        *,
+        device_id: str | None
+    ) -> None:
+
+        parameters = {}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        return await self.request(Route("POST", "/me/player/previous"), parameters=parameters)
+
+    async def seek_current_user_playback(
+        self,
+        *,
+        position_ms: int,
+        device_id: str | None
+    ) -> None:
+
+        parameters = {"position_ms": position_ms}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        return await self.request(Route("PUT", "/me/player/seek"), parameters=parameters)
+
+    async def set_current_user_repeat_mode(
+        self,
+        *,
+        repeat_mode: objects.RepeatMode,
+        device_id: str | None
+    ) -> None:
+
+        parameters = {"state": repeat_mode.value}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        return await self.request(Route("PUT", "/me/player/repeat"), parameters=parameters)
+
+    async def set_current_user_volume(
+        self,
+        *,
+        volume_percent: int,
+        device_id: str | None
+    ) -> None:
+
+        if volume_percent < 0 or volume_percent > 100:
+            raise ValueError("'volume_percent' must between 1 and 100 inclusive.")
+
+        parameters = {"volume_percent": volume_percent}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        return await self.request(Route("PUT", "/me/player/volume"), parameters=parameters)
+
+    async def set_current_user_shuffle_state(
+        self,
+        *,
+        state: bool,
+        device_id: str | None
+    ) -> None:
+
+        parameters = {"state": state}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        return await self.request(Route("PUT", "/me/player/shuffle"), parameters=parameters)
+
+    async def get_current_users_recently_played_tracks(
+        self,
+        *,
+        limit: int | None,
+        before: int | None,
+        after: int | None,
+    ) -> dict[str, Any]:
+
+        if before and after:
+            raise ValueError("'before' and 'after' can not both be specified.")
+
+        parameters = {}
+        if limit:
+            parameters["limit"] = limit
+        if before:
+            parameters["before"] = before
+        if after:
+            parameters["after"] = after
+
+        return await self.request(Route("GET", "/me/player/recently-played"), parameters=parameters)
+
+    async def add_item_to_current_user_queue(
+        self,
+        *,
+        uri: str,
+        device_id: str | None
+    ) -> None:
+
+        parameters = {"uri": uri}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        return await self.request(Route("POST", "/me/player/queue"), parameters=parameters)
 
     ...
 
     #################
     # PLAYLISTS API #
     #################
+
+    async def get_current_user_playlists(
+        self,
+        *,
+        limit: int | None,
+        offset: int | None,
+    ) -> dict[str, Any]:
+
+        parameters = {}
+        if limit:
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/me/playlists"), parameters=parameters)
+
+    async def get_user_playlists(
+        self,
+        _id: str,
+        /,
+        *,
+        limit: int | None,
+        offset: int | None,
+    ) -> dict[str, Any]:
+
+        parameters = {}
+        if limit:
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/users/{id}/playlists", id=_id), parameters=parameters)
+
+    async def create_playlist(
+        self,
+        *,
+        user_id: str,
+        name: str,
+        public: bool | None,
+        collaborative: bool | None,
+        description: str | None
+    ) -> dict[str, Any]:
+
+        if collaborative and public:
+            raise ValueError("collaborative playlists must not be public.")
+
+        data = {"name": name}
+        if public:
+            data["public"] = public
+        if collaborative:
+            data["collaborative"] = collaborative
+        if description:
+            data["description"] = description
+
+        return await self.request(Route("POST", "/users/{user_id}/playlists", user_id=user_id), data=data)
 
     async def get_playlist(
         self,
@@ -417,6 +639,32 @@ class HTTPClient:
             parameters["fields"] = fields
 
         return await self.request(Route("GET", "/playlists/{id}", id=_id), parameters=parameters)
+
+    async def change_playlist_details(
+        self,
+        _id: str,
+        /,
+        *,
+        name: str | None,
+        public: bool | None,
+        collaborative: bool | None,
+        description: str | None
+    ) -> None:
+
+        if collaborative and public:
+            raise ValueError("collaborative playlists must not be public.")
+
+        data = {}
+        if name:
+            data["name"] = name
+        if public:
+            data["public"] = public
+        if collaborative:
+            data["collaborative"] = collaborative
+        if description:
+            data["description"] = description
+
+        return await self.request(Route("PUT", "/playlists/{id}", id=_id), data=data)
 
     async def get_playlist_items(
         self,
@@ -441,7 +689,82 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route('GET', '/playlists/{id}/tracks', id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/playlists/{id}/tracks", id=_id), parameters=parameters)
+
+    async def add_items_to_playlist(
+        self,
+        _id: str,
+        /,
+        *,
+        position: int | None,
+        uris: list[str],
+    ) -> dict[str, Any]:
+
+        data = {"uris": uris}
+        if position:
+            data["position"] = position
+
+        return await self.request(Route("POST", "/playlists/{id}/tracks", id=_id), data=data)
+
+    async def reorder_playlist_items(
+        self,
+        _id: str,
+        /,
+        *,
+        range_start: int,
+        insert_before: int,
+        range_length: int | None,
+        snapshot_id: str | None,
+    ) -> dict[str, Any]:
+
+        data = {
+            "range_start": range_start,
+            "insert_before": insert_before
+        }
+        if range_length:
+            data["range_length"] = range_length
+        if snapshot_id:
+            data["snapshot_id"] = snapshot_id
+
+        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data)
+
+    async def replace_playlist_items(
+        self,
+        _id: str,
+        /,
+        *,
+        uris: list[str] | None
+    ) -> None:
+
+        data = {"uris": None}
+        if uris:
+            if len(uris) > 100:
+                raise ValueError("'uris' must be less than 100 uris.")
+            data["uris"] = uris
+
+        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data)
+
+    async def remove_items_from_playlist(
+        self,
+        _id: str,
+        /,
+        *,
+        uris: list[str],
+        snapshot_id: str | None,
+    ) -> dict[str, Any]:
+
+        data = {"tracks": [{"uri": uri} for uri in uris]}
+        if snapshot_id:
+            data["snapshot_id"] = snapshot_id
+
+        return await self.request(Route("DELETE", "/playlists/{id}/tracks", id=_id), data=data)
+
+    async def get_playlist_cover_image(
+        self,
+        _id: str,
+        /,
+    ) -> list[dict[str, Any]]:
+        return await self.request(Route("GET", "/playlists/{id}/images", id=_id))
 
     ##############
     # SEARCH API #
@@ -479,7 +802,54 @@ class HTTPClient:
     # SHOWS API #
     #############
 
-    ...
+    async def get_shows(
+        self,
+        ids: list[str],
+        *,
+        market: str | None
+    ) -> dict[str, Any]:
+
+        if len(ids) > 50:
+            raise ValueError("'get_shows' can only take a maximum of 50 show ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        if market:
+            parameters["market"] = market
+
+        return await self.request(Route("GET", "/shows"), parameters=parameters)
+
+    async def get_show(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None
+    ) -> dict[str, Any]:
+
+        parameters = {"market": market} if market else None
+        return await self.request(Route("GET", "/shows/{id}", id=_id), parameters=parameters)
+
+    async def get_show_episodes(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None,
+        limit: int | None,
+        offset: int | None,
+    ) -> dict[str, Any]:
+
+        parameters = {}
+        if market:
+            parameters["market"] = market
+        if limit:
+            if limit < 1 or limit > 50:
+                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
+
+        return await self.request(Route("GET", "/shows/{id}/episodes", id=_id), parameters=parameters)
 
     ##############
     # TRACKS API #
@@ -540,4 +910,14 @@ class HTTPClient:
     # USERS API #
     #############
 
-    ...
+    async def get_current_user_profile(
+        self
+    ) -> dict[str, Any]:
+        return await self.request(Route("GET", "/me"))
+
+    async def get_user_profile(
+        self,
+        _id: str,
+        /,
+    ) -> dict[str, Any]:
+        return await self.request(Route("GET", "/users/{id}", id=_id))

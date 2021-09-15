@@ -10,7 +10,8 @@ __all__ = (
     "Key",
     "Mode",
     "SearchType",
-    "CopyrightType"
+    "CopyrightType",
+    "RepeatMode"
 )
 
 
@@ -56,3 +57,9 @@ class SearchType(enum.Enum):
 class CopyrightType(enum.Enum):
     NORMAL = "C"
     PERFORMANCE = "P"
+
+
+class RepeatMode(enum.Enum):
+    TRACK = "track"
+    CONTEXT = "context"
+    OFF = "off"
