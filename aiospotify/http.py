@@ -128,6 +128,7 @@ class HTTPClient:
     # ALBUMS API #
     ##############
 
+    # Get multiple albums
     async def get_albums(
         self,
         ids: list[str],
@@ -144,6 +145,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/albums"), parameters=parameters)
 
+    # Get an album
     async def get_album(
         self,
         _id: str,
@@ -155,6 +157,7 @@ class HTTPClient:
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/albums/{id}", id=_id), parameters=parameters)
 
+    # Get an albums tracks
     async def get_album_tracks(
         self,
         _id: str,
@@ -181,6 +184,7 @@ class HTTPClient:
     # ARTISTS API #
     ###############
 
+    # Get multiples artists
     async def get_artists(
         self,
         ids: list[str],
@@ -197,6 +201,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/artists"), parameters=parameters)
 
+    # Get an artist
     async def get_artist(
         self,
         _id: str,
@@ -208,6 +213,7 @@ class HTTPClient:
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/artists/{id}", id=_id), parameters=parameters)
 
+    # Get an artists top tracks
     async def get_artist_top_tracks(
         self,
         _id: str,
@@ -219,6 +225,7 @@ class HTTPClient:
         parameters = {"market": market}
         return await self.request(Route("GET", "/artists/{id}/top-tracks", id=_id), parameters=parameters)
 
+    # Get an artists related artists
     async def get_related_artists(
         self,
         _id: str,
@@ -230,6 +237,7 @@ class HTTPClient:
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/artists/{id}/related-artists", id=_id), parameters=parameters)
 
+    # Get an artists albums
     async def get_artist_albums(
         self,
         _id: str,
@@ -259,6 +267,7 @@ class HTTPClient:
     # BROWSE API #
     ##############
 
+    # Get all new releases
     async def get_new_releases(
         self,
         *,
@@ -268,6 +277,7 @@ class HTTPClient:
     ) -> dict[str, Any]:
         raise NotImplementedError
 
+    # Get all featured playlists
     async def get_featured_playlists(
         self,
         *,
@@ -279,7 +289,8 @@ class HTTPClient:
     ) -> dict[str, Any]:
         raise NotImplementedError
 
-    async def get_all_categories(
+    # Get all categories
+    async def get_categories(
         self,
         *,
         country: str | None,
@@ -289,6 +300,7 @@ class HTTPClient:
     ) -> dict[str, Any]:
         raise NotImplementedError
 
+    # Get a category
     async def get_category(
         self,
         _id: str,
@@ -299,6 +311,7 @@ class HTTPClient:
     ) -> dict[str, Any]:
         raise NotImplementedError
 
+    # Get a category playlists
     async def get_category_playlists(
         self,
         _id: str,
@@ -311,6 +324,7 @@ class HTTPClient:
     ) -> dict[str, Any]:
         raise NotImplementedError
 
+    # Get recommendations
     async def get_recommendations(
         self,
         *,
@@ -348,6 +362,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/recommendations"), parameters=parameters)
 
+    # Get recommendation genres
     async def get_recommendation_genres(
         self
     ) -> dict[str, Any]:
@@ -375,6 +390,7 @@ class HTTPClient:
     # MARKETS API #
     ###############
 
+    # Get available markets
     async def get_available_markets(
         self
     ) -> list[str]:
@@ -390,6 +406,7 @@ class HTTPClient:
     # PLAYER API #
     ##############
 
+    # Get information about the users current playback
     async def get_current_user_playback(
         self,
         *,
@@ -402,6 +419,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/me/player"), parameters=parameters)
 
+    # Transfer a users playback
     async def transfer_current_user_playback(
         self,
         *,
@@ -415,11 +433,13 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/me/player"), data=data)
 
+    # Get a users available devices
     async def get_current_user_available_devices(
         self,
     ) -> dict[str, Any]:
         return await self.request(Route("GET", "/me/player/devices"))
 
+    # Get the users currently playing track
     async def get_current_user_playing_track(
         self,
         *,
@@ -432,11 +452,13 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/me/player/currently-playing"), parameters=parameters)
 
+    # Start/resume a users playback
     async def start_current_user_playback(
         self,
     ) -> ...:
         raise NotImplementedError
 
+    # Pause a users playback
     async def pause_current_user_playback(
         self,
         *,
@@ -449,6 +471,7 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/me/player/pause"), parameters=parameters)
 
+    # Skips users playback to next track
     async def skip_forward_current_user_playback(
         self,
         *,
@@ -461,6 +484,7 @@ class HTTPClient:
 
         return await self.request(Route("POST", "/me/player/next"), parameters=parameters)
 
+    # Skips users playback to previous track
     async def skip_backward_current_user_playback(
         self,
         *,
@@ -473,6 +497,7 @@ class HTTPClient:
 
         return await self.request(Route("POST", "/me/player/previous"), parameters=parameters)
 
+    # Seek to position in currently playing track
     async def seek_current_user_playback(
         self,
         *,
@@ -486,6 +511,7 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/me/player/seek"), parameters=parameters)
 
+    # Set repeat mode on users playback
     async def set_current_user_repeat_mode(
         self,
         *,
@@ -499,6 +525,7 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/me/player/repeat"), parameters=parameters)
 
+    # Set volumes for users playback
     async def set_current_user_volume(
         self,
         *,
@@ -515,6 +542,7 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/me/player/volume"), parameters=parameters)
 
+    # Toggles shuffle for users playback
     async def set_current_user_shuffle_state(
         self,
         *,
@@ -528,6 +556,7 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/me/player/shuffle"), parameters=parameters)
 
+    # Get current users recently played tracks
     async def get_current_users_recently_played_tracks(
         self,
         *,
@@ -549,6 +578,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/me/player/recently-played"), parameters=parameters)
 
+    # Add an item to queue
     async def add_item_to_current_user_queue(
         self,
         *,
@@ -562,12 +592,11 @@ class HTTPClient:
 
         return await self.request(Route("POST", "/me/player/queue"), parameters=parameters)
 
-    ...
-
     #################
     # PLAYLISTS API #
     #################
 
+    # Get a list of current users playlists
     async def get_current_user_playlists(
         self,
         *,
@@ -583,6 +612,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/me/playlists"), parameters=parameters)
 
+    # Get a list of a users playlists
     async def get_user_playlists(
         self,
         _id: str,
@@ -600,6 +630,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/users/{id}/playlists", id=_id), parameters=parameters)
 
+    # Create a playlist
     async def create_playlist(
         self,
         *,
@@ -623,6 +654,7 @@ class HTTPClient:
 
         return await self.request(Route("POST", "/users/{user_id}/playlists", user_id=user_id), data=data)
 
+    # Get a playlist
     async def get_playlist(
         self,
         _id: str,
@@ -640,6 +672,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/playlists/{id}", id=_id), parameters=parameters)
 
+    # Change a playlists details
     async def change_playlist_details(
         self,
         _id: str,
@@ -666,6 +699,7 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/playlists/{id}", id=_id), data=data)
 
+    # Get a playlists items
     async def get_playlist_items(
         self,
         _id: str,
@@ -691,6 +725,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/playlists/{id}/tracks", id=_id), parameters=parameters)
 
+    # Add items to a playlists
     async def add_items_to_playlist(
         self,
         _id: str,
@@ -706,6 +741,7 @@ class HTTPClient:
 
         return await self.request(Route("POST", "/playlists/{id}/tracks", id=_id), data=data)
 
+    # Reorders a playlists items
     async def reorder_playlist_items(
         self,
         _id: str,
@@ -728,6 +764,7 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data)
 
+    # Replace a playlists items
     async def replace_playlist_items(
         self,
         _id: str,
@@ -744,6 +781,7 @@ class HTTPClient:
 
         return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data)
 
+    # Remove items from a playlist
     async def remove_items_from_playlist(
         self,
         _id: str,
@@ -759,6 +797,7 @@ class HTTPClient:
 
         return await self.request(Route("DELETE", "/playlists/{id}/tracks", id=_id), data=data)
 
+    # Get playlist cover image
     async def get_playlist_cover_image(
         self,
         _id: str,
@@ -766,10 +805,17 @@ class HTTPClient:
     ) -> list[dict[str, Any]]:
         return await self.request(Route("GET", "/playlists/{id}/images", id=_id))
 
+    # Upload a custom playlist cover image
+    async def upload_playlist_cover_image(
+        self
+    ) -> ...:
+        raise NotImplementedError
+
     ##############
     # SEARCH API #
     ##############
 
+    # Search for an item
     async def search(
         self,
         query: str,
@@ -802,6 +848,7 @@ class HTTPClient:
     # SHOWS API #
     #############
 
+    # Get multiple shows
     async def get_shows(
         self,
         ids: list[str],
@@ -818,6 +865,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/shows"), parameters=parameters)
 
+    # Get a show
     async def get_show(
         self,
         _id: str,
@@ -829,6 +877,7 @@ class HTTPClient:
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/shows/{id}", id=_id), parameters=parameters)
 
+    # Get a shows episodes
     async def get_show_episodes(
         self,
         _id: str,
@@ -855,6 +904,7 @@ class HTTPClient:
     # TRACKS API #
     ##############
 
+    # Get several tracks
     async def get_tracks(
         self,
         ids: list[str],
@@ -871,6 +921,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/tracks"), parameters=parameters)
 
+    # Get a track
     async def get_track(
         self,
         _id: str,
@@ -882,6 +933,7 @@ class HTTPClient:
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/tracks/{id}", id=_id), parameters=parameters)
 
+    # Get audio features for several tracks.
     async def get_several_track_audio_features(
         self,
         ids: list[str]
@@ -892,6 +944,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/audio-features"), parameters={"ids": ",".join(ids)})
 
+    # Get audio features for a track
     async def get_track_audio_features(
         self,
         _id: str,
@@ -899,6 +952,7 @@ class HTTPClient:
     ) -> dict[str, Any]:
         return await self.request(Route("GET", "/audio-features/{id}", id=_id))
 
+    # Get audio analysis for a track
     async def get_track_audio_analysis(
         self,
         _id: str,
@@ -910,11 +964,13 @@ class HTTPClient:
     # USERS API #
     #############
 
+    # Get current user's profile
     async def get_current_user_profile(
         self
     ) -> dict[str, Any]:
         return await self.request(Route("GET", "/me"))
 
+    # Get a user's profile
     async def get_user_profile(
         self,
         _id: str,
