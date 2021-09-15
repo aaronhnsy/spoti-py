@@ -127,8 +127,11 @@ class HTTPClient:
         raise RuntimeError("This shouldn't happen.")
 
     async def close(self) -> None:
-        if self._session:
-            await self._session.close()
+
+        if not self._session:
+            return
+
+        await self._session.close()
 
     ##############
     # ALBUMS API #

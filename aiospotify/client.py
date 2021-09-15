@@ -30,3 +30,10 @@ class Client:
 
     def __repr__(self) -> str:
         return "<aiospotify.Client>"
+
+    async def close(self) -> None:
+
+        if not self.http._session:
+            return
+
+        await self.http.close()
