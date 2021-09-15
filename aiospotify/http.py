@@ -4,7 +4,7 @@ from __future__ import annotations
 # Standard Library
 import asyncio
 import urllib.parse
-from collections import Sequence
+from collections.abc import Sequence
 from typing import Any, ClassVar, Literal
 
 # Packages
