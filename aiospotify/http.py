@@ -382,8 +382,9 @@ class HTTPClient:
         **kwargs
     ) -> dict[str, Any]:
 
-        if len([seed for seeds in [seed_artist_ids or [], seed_genres or [], seed_track_ids or []] for seed in seeds]) > 5:
-            raise ValueError("Too many seed values provided, maximum of 5.")
+        seeds = len([seed for seeds in [seed_artist_ids or [], seed_genres or [], seed_track_ids or []] for seed in seeds])
+        if seeds <= 0 or seeds > 5:
+            raise ValueError("Too many or no seed values provided. Minimum 1, Maximum 5.")
 
         parameters = {}
         if seed_artist_ids:
