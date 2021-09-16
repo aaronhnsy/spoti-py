@@ -430,7 +430,7 @@ class HTTPClient:
 
     async def get_available_markets(
         self
-    ) -> list[str]:
+    ) -> dict[str, Any]:
         return await self.request(Route("GET", "/markets"))
 
     # PERSONALIZATION API
@@ -868,7 +868,7 @@ class HTTPClient:
         include_external: bool = False
     ) -> dict[str, Any]:
 
-        if search_types is None:
+        if not search_types:
             search_types = [objects.SearchType.ALL]
 
         parameters: dict[str, Any] = {
