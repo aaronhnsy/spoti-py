@@ -124,3 +124,213 @@ class Client:
             album.tracks.extend([objects.SimpleTrack(data) for data in objects.PagingObject(response).items])
 
         return album
+
+    # ARTISTS API
+
+    async def get_artists(
+        self,
+        ids: Sequence[ID],
+        *,
+        market: str | None = None
+    ) -> dict[ID, objects.Artist | None]:
+
+        response = await self.http.get_artists(ids=ids, market=market)
+        return dict(zip(ids, [objects.Artist(data) if data else None for data in response["artists"]]))
+
+    async def get_artist(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None
+    ) -> objects.Artist:
+
+        response = await self.http.get_artist(_id, market=market)
+        return objects.Artist(response)
+
+    async def get_artist_top_tracks(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str = "GB"
+    ) -> list[objects.Track]:
+
+        response = await self.http.get_artist_top_tracks(_id, market=market)
+        return [objects.Track(data) for data in response["tracks"]]
+
+    async def get_related_artists(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None
+    ) -> list[objects.Artist]:
+
+        response = await self.http.get_related_artists(_id, market=market)
+        return [objects.Artist(data) for data in response["artists"]]
+
+    async def get_artist_albums(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        include_groups: Sequence[objects.IncludeGroup] | None = [objects.IncludeGroup.ALBUM],
+        limit: int | None = None,
+        offset: int | None = None
+    ) -> list[objects.SimpleAlbum]:
+
+        response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=limit, offset=offset)
+        return [objects.SimpleAlbum(data) for data in objects.PagingObject(response).items]
+
+    async def get_all_artist_albums(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        include_groups: Sequence[objects.IncludeGroup] | None = [objects.IncludeGroup.ALBUM],
+    ) -> list[objects.SimpleAlbum]:
+
+        response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=50, offset=0)
+        paging = objects.PagingObject(response)
+
+        albums = [objects.SimpleAlbum(data) for data in paging.items]
+
+        if paging.total <= 50:  # There are 50 or less tracks and we already have them so just return them
+            return albums
+
+        for _ in range(1, math.ceil(paging.total / 50)):
+            response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=50, offset=_ * 50)
+            albums.extend([objects.SimpleAlbum(data) for data in objects.PagingObject(response).items])
+
+        return albums
+
+    # BROWSE API
+
+    ...
+
+    async def get_recommendations(
+        self,
+        *,
+        seed_artist_ids: Sequence[str] | None = None,
+        seed_genres: Sequence[str] | None = None,
+        seed_track_ids: Sequence[str] | None = None,
+        limit: int | None = None,
+        market: str | None = None,
+        **kwargs
+    ) -> objects.Recommendation:
+
+        response = await self.http.get_recommendations(
+            seed_artist_ids=seed_artist_ids,
+            seed_genres=seed_genres,
+            seed_track_ids=seed_track_ids,
+            limit=limit,
+            market=market,
+            **kwargs
+        )
+        return objects.Recommendation(response)
+
+    async def get_recommendation_genres(
+        self
+    ) -> list[str]:
+
+        response = await self.http.get_recommendation_genres()
+        return response["genres"]
+
+    # EPISODE API
+
+    ...
+
+    # FOLLOW API
+
+    ...
+
+    # LIBRARY API
+
+    ...
+
+    # MARKETS API
+
+    async def get_available_markets(
+        self
+    ) -> list[str]:
+
+        response = await self.http.get_available_markets()
+        return response["markets"]
+
+    # PERSONALIZATION API
+
+    ...
+
+    # PLAYLISTS API
+
+    ...
+
+    # SEARCH API
+
+    async def search(
+        self,
+        query: str,
+        /,
+        *,
+        search_types: Sequence[objects.SearchType] | None = None,
+        market: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        include_external: bool = False
+    ) -> objects.SearchResult:
+
+        response = await self.http.search(query, search_types=search_types, market=market, limit=limit, offset=offset, include_external=include_external)
+        return objects.SearchResult(response)
+
+    # SHOWS API
+
+    ...
+
+    # TRACKS API #
+
+    async def get_tracks(
+        self,
+        ids: Sequence[ID],
+        *,
+        market: str | None = None,
+    ) -> dict[ID, objects.Track | None]:
+
+        response = await self.http.get_tracks(ids=ids, market=market)
+        return dict(zip(ids, [objects.Track(data) if data else None for data in response["tracks"]]))
+
+    async def get_track(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+    ) -> objects.Track:
+
+        response = await self.http.get_track(_id, market=market)
+        return objects.Track(response)
+
+    async def get_several_tracks_audio_features(
+        self,
+        ids: Sequence[ID]
+    ) -> dict[ID, Any]:
+
+        response = await self.http.get_several_tracks_audio_features(ids)
+        return dict(zip(ids, [objects.AudioFeatures(data) if data else None for data in response["audio_features"]]))
+
+    async def get_track_audio_features(
+        self,
+        _id: str,
+        /
+    ) -> objects.AudioFeatures:
+
+        response = await self.http.get_track_audio_features(_id)
+        return objects.AudioFeatures(response)
+
+    ...
+
+    # USERS API
+
+    ...

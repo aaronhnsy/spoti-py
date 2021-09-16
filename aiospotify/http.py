@@ -242,7 +242,7 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        include_groups: Sequence[objects.IncludeGroup] | None,
+        include_groups: Sequence[objects.IncludeGroup] | None = [objects.IncludeGroup.ALBUM],
         limit: int | None,
         offset: int | None
     ) -> dict[str, Any]:
