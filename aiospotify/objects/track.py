@@ -110,7 +110,7 @@ class Track(base.BaseObject):
 class PlaylistTrack(base.BaseObject):
 
     def __init__(self, data: PlaylistTrackData) -> None:
-        super().__init__(data)
+        super().__init__(data["track"])
 
         self.added_at = data["added_at"]
         self.added_by = user.User(data["added_by"])
@@ -121,7 +121,7 @@ class PlaylistTrack(base.BaseObject):
         track = data["track"]
         self.album = album.SimpleAlbum(track["album"])
         self.artists = [artist.SimpleArtist(artist_data) for artist_data in track["artists"]]
-        self.available_markets = track["available_markets"]
+        self.available_markets = track.get("available_markets")
         self.disc_number = track["disc_number"]
         self.duration_ms = track["duration_ms"]
         self.explicit = track["explicit"]

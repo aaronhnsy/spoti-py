@@ -17,6 +17,7 @@ from typings.objects import (
     ArtistData,
     AudioFeaturesData,
     PagingObjectData,
+    PlaylistData,
     RecommendationData,
     SearchResultData,
     TrackData,
@@ -722,7 +723,7 @@ class HTTPClient:
         *,
         market: str | None,
         fields: str | None,
-    ) -> dict[str, Any]:
+    ) -> PlaylistData:
 
         parameters = {"additional_types": "track"}
         if market:
@@ -767,7 +768,7 @@ class HTTPClient:
         fields: str | None,
         limit: int | None,
         offset: int | None,
-    ) -> dict[str, Any]:
+    ) -> PagingObjectData:
 
         parameters: dict[str, Any] = {"additional_types": "track"}
         if market:

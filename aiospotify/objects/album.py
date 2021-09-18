@@ -36,7 +36,7 @@ class SimpleAlbum(objects.BaseObject):
         self.release_date = data["release_date"]
         self.release_data_precision = data["release_date_precision"]
         self.restriction = AlbumRestriction(restriction) if (restriction := data.get("restrictions")) else None
-        self.total_tracks = data["total_tracks"]
+        self.total_tracks = data.get("total_tracks")
 
     def __repr__(self) -> str:
         return f"<aiospotify.SimpleAlbum id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
