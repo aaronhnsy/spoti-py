@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from typings.exceptions import AuthenticationErrorData, RegularErrorData
+from aiospotify.typings.exceptions import AuthenticationErrorData, RegularErrorData
 
 
 __all__ = (

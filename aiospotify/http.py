@@ -12,7 +12,7 @@ import aiohttp
 
 # My stuff
 from aiospotify import exceptions, objects, utils, values
-from typings.objects import (
+from aiospotify.typings.objects import (
     AlbumData,
     ArtistData,
     AudioFeaturesData,
