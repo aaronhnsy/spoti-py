@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
+from typings.objects import PlaylistData, SimplePlaylistData
 
 
 __all__ = (
@@ -13,21 +14,24 @@ __all__ = (
 
 class SimplePlaylist(objects.BaseObject):
 
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: SimplePlaylistData) -> None:
         super().__init__(data)
 
-        self.collaborative: bool = data.get("collaborative", False)
-        self.description: str | None = data.get("description")
-        self.external_urls: dict[str | None, str | None] = data.get("external_urls", {})
-        self.images: list[objects.Image | None] = [objects.Image(image_data) for image_data in data.get("images", [])]
-        self.owner: objects.User = objects.User(data.get("owner", {}))
-        self.primary_colour: str | None = data.get("primary_color")
-        self.is_public: bool = data.get("public", False)
-        self.snapshot_id: str | None = data.get("snapshot_id")
-        self.total_tracks: int = data.get("tracks", {}).get("total", 0)
+        self.collaborative = data["collaborative"]
+        self.description = data["description"]
+        self.external_urls = data["external_urls"]
+        self.images = [objects.Image(image) for image in data["images"]]
+        self.owner = objects.User(data["owner"])
+        self.primary_color = data["primary_color"]
+        self.public = data["public"]
+        self.snapshot_id = data["snapshot_id"]
+        self.tracks_href = data["tracks"]["href"]
+        self.total_tracks = data["tracks"]["total"]
 
     def __repr__(self) -> str:
-        return f"<spotify.SimplePlaylist name=\"{self.name}\" id=\"{self.id}\" url=\"<{self.url}>\" total_tracks=\"{self.total_tracks}\">"
+        return f"<aiospotify.SimplePlaylist id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
+
+    #
 
     @property
     def url(self) -> str | None:
@@ -36,25 +40,27 @@ class SimplePlaylist(objects.BaseObject):
 
 class Playlist(objects.BaseObject):
 
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: PlaylistData) -> None:
         super().__init__(data)
 
-        self.collaborative: bool = data.get("collaborative", False)
-        self.description: str | None = data.get("description")
-        self.external_urls: dict[str | None, str | None] = data.get("external_urls", {})
-        self.followers: objects.Followers = objects.Followers(data.get("followers", {}))
-        self.images: list[objects.Image | None] = [objects.Image(image_data) for image_data in data.get("images", [])]
-        self.owner: objects.User = objects.User(data.get("owner", {}))
-        self.primary_colour: str | None = data.get("primary_color")
-        self.is_public: bool = data.get("public", False)
-        self.snapshot_id: str | None = data.get("snapshot_id")
-        self.total_tracks: int = data.get("tracks", {}).get("total", 0)
+        self.collaborative = data["collaborative"]
+        self.description = data["description"]
+        self.external_urls = data["external_urls"]
+        self.followers = objects.Followers(data["followers"])
+        self.images = [objects.Image(image) for image in data["images"]]
+        self.owner = objects.User(data["owner"])
+        self.primary_color = data["primary_color"]
+        self.public = data["public"]
+        self.snapshot_id = data["snapshot_id"]
+        self.total_tracks = data["tracks"]["total"]
 
-        self._tracks_paging = objects.PagingObject(data.get("tracks", []))
-        self.tracks: list[objects.PlaylistTrack | None] = [objects.PlaylistTrack(track_data) for track_data in self._tracks_paging.items]
+        self._tracks_paging = objects.PagingObject(data["tracks"])
+        self.tracks = [objects.PlaylistTrack(track) for track in self._tracks_paging.items]
 
     def __repr__(self) -> str:
-        return f"<spotify.Playlist name=\"{self.name}\" id=\"{self.id}\" url=\"<{self.url}>\" total_tracks=\"{self.total_tracks}\">"
+        return f"<aiospotify.Playlist id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
+
+    #
 
     @property
     def url(self) -> str | None:

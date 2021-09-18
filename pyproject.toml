@@ -1,6 +1,6 @@
 [tool.pyright]
 include = ["aiospotify"]
-exclude = ["aiospotify/objects/playlist.py", "aiospotify/objects/user.py"]
+exclude = []
 ignore = []
 strict = []
 venvPath = "venv"

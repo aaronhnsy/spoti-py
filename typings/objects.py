@@ -64,7 +64,7 @@ class ExplicitContentSettingsData(TypedDict):
 
 
 class FollowersData(TypedDict):
-    href: str
+    href: Optional[str]
     total: int
 
 
@@ -235,3 +235,33 @@ class PlaylistTrackData(BaseObjectData):
     primary_color: Any
     video_thumbnail: Any
     track: TrackData
+
+
+class PlaylistTrackRefData(TypedDict):
+    href: str
+    total: int
+
+
+class SimplePlaylistData(BaseObjectData):
+    collaborative: bool
+    description: Optional[str]
+    external_urls: dict[str, Any]
+    images: list[ImageData]
+    owner: dict[str, Any]
+    primary_color: Optional[str]
+    public: Optional[bool]
+    snapshot_id: str
+    tracks: PlaylistTrackRefData
+
+
+class PlaylistData(BaseObjectData):
+    collaborative: bool
+    description: Optional[str]
+    external_urls: dict[str, Any]
+    followers: FollowersData
+    images: list[ImageData]
+    owner: dict[str, Any]
+    primary_color: Optional[str]
+    public: Optional[bool]
+    snapshot_id: str
+    tracks: PagingObjectData
