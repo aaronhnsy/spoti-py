@@ -306,11 +306,11 @@ class Client:
 
         items = [objects.PlaylistTrack(data) for data in paging.items]
 
-        if paging.total <= 50:  # There are 50 or less tracks and we already have them so just return them
+        if paging.total <= 100:  # There are 50 or less tracks and we already have them so just return them
             return items
 
-        for _ in range(1, math.ceil(paging.total / 50)):
-            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=50, offset=_ * 50)
+        for _ in range(1, math.ceil(paging.total / 100)):
+            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100)
             items.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
 
         return items
@@ -326,11 +326,11 @@ class Client:
 
         playlist = await self.get_playlist(_id, market=market, fields=fields)
 
-        if playlist._tracks_paging.total <= 50:  # The playlist has 50 or less tracks already so we can just return it now.
+        if playlist._tracks_paging.total <= 100:  # The playlist has 50 or less tracks already so we can just return it now.
             return playlist
 
-        for _ in range(2, math.ceil(playlist._tracks_paging.total / 50)):
-            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=50, offset=_ * 50)
+        for _ in range(2, math.ceil(playlist._tracks_paging.total / 100)):
+            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=50, offset=_ * 100)
             playlist.tracks.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
 
         return playlist
