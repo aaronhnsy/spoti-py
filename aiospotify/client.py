@@ -329,7 +329,7 @@ class Client:
         if playlist._tracks_paging.total <= 100:  # The playlist has 100 or less tracks already so we can just return it now.
             return playlist
 
-        for _ in range(2, math.ceil(playlist._tracks_paging.total / 100)):
+        for _ in range(1, math.ceil(playlist._tracks_paging.total / 100)):
             response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100)
             playlist.tracks.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
 
