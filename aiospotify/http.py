@@ -12,7 +12,15 @@ import aiohttp
 
 # My stuff
 from aiospotify import exceptions, objects, utils, values
-from typings.objects import ArtistData, AudioFeaturesData, PagingObjectData, RecommendationData, SearchResultData
+from typings.objects import (
+    AlbumData,
+    ArtistData,
+    AudioFeaturesData,
+    PagingObjectData,
+    RecommendationData,
+    SearchResultData,
+    TrackData,
+)
 
 
 __all__ = (
@@ -159,7 +167,7 @@ class HTTPClient:
         /,
         *,
         market: str | None
-    ) -> dict[str, Any]:
+    ) -> AlbumData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/albums/{id}", id=_id), parameters=parameters)
@@ -965,7 +973,7 @@ class HTTPClient:
         /,
         *,
         market: str | None
-    ) -> dict[str, Any]:
+    ) -> TrackData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/tracks/{id}", id=_id), parameters=parameters)

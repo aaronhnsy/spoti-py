@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Standard Library
-from typing import Any, Literal, Optional, TypedDict
+from typing import Any, Optional, TypedDict
 
 
 class ClientCredentialsData(TypedDict):
@@ -48,7 +48,7 @@ class RecommendationSeedData(TypedDict):
 
 
 class RecommendationData(TypedDict):
-    tracks: list[dict[str, Any]]
+    tracks: list[TrackData]
     seeds: list[RecommendationSeedData]
 
 
@@ -104,7 +104,7 @@ class CurrentlyPlayingContextData(TypedDict):
     currently_playing_type: str
     device: DeviceData
     is_playing: bool
-    item: Optional[dict[str, Any]]
+    item: Optional[TrackData]
     progress_ms: int
     repeat_state: str
     shuffle_state: str
@@ -115,7 +115,7 @@ class CurrentlyPlayingData(TypedDict):
     context: ContextData
     currently_playing_type: str
     is_playing: bool
-    item: Optional[dict[str, Any]]
+    item: Optional[TrackData]
     progress_ms: int
     timestamp: int
 
@@ -155,3 +155,83 @@ class ArtistData(SimpleArtistData):
     genres: list[str]
     images: list[ImageData]
     popularity: int
+
+
+class AlbumRestrictionData(TypedDict):
+    reason: str
+
+
+class SimpleAlbumData(BaseObjectData):
+    album_type: str
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    external_urls: dict[str, Any]
+    images: list[ImageData]
+    release_date: str
+    release_date_precision: str
+    restrictions: AlbumRestrictionData
+    total_tracks: int
+
+
+class AlbumData(BaseObjectData):
+    album_type: str
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    copyrights: list[CopyrightData]
+    external_ids: dict[str, Any]
+    external_urls: dict[str, Any]
+    genres: list[str]
+    images: list[ImageData]
+    label: str
+    popularity: int
+    release_date: str
+    release_date_precision: str
+    restrictions: AlbumRestrictionData
+    total_tracks: int
+    tracks: PagingObjectData
+
+
+class TrackRestrictionData(TypedDict):
+    reason: str
+
+
+class SimpleTrackData(BaseObjectData):
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    disc_number: int
+    duration_ms: int
+    explicit: bool
+    external_urls: dict[str, Any]
+    is_local: bool
+    is_playable: bool
+    #  linked_from: LinkedTrackData
+    preview_url: str
+    restrictions: TrackRestrictionData
+    track_number: int
+
+
+class TrackData(BaseObjectData):
+    album: SimpleAlbumData
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    disc_number: int
+    duration_ms: int
+    explicit: bool
+    external_ids: dict[str, Any]
+    external_urls: dict[str, Any]
+    is_local: bool
+    is_playable: bool
+    #  linked_from: LinkedTrackData
+    popularity: int
+    preview_url: str
+    restrictions: TrackRestrictionData
+    track_number: int
+
+
+class PlaylistTrackData(BaseObjectData):
+    added_at: str
+    added_by: dict[str, Any]
+    is_local: bool
+    primary_color: Any
+    video_thumbnail: Any
+    track: TrackData

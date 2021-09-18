@@ -1,11 +1,9 @@
 # Future
 from __future__ import annotations
 
-# Standard Library
-from typing import Any, Literal
-
 # My stuff
 from aiospotify import objects
+from typings.objects import AlbumData, AlbumRestrictionData, SimpleAlbumData
 
 
 __all__ = (
@@ -17,67 +15,66 @@ __all__ = (
 
 class AlbumRestriction:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: AlbumRestrictionData) -> None:
 
-        self.reason: Literal["market", "product", "explicit"] = data.get("reason")
+        self.reason = data["reason"]
 
     def __repr__(self) -> str:
-        return f"<spotify.AlbumRestriction reason=\"{self.reason}\">"
+        return f"<aiospotify.AlbumRestriction reason='{self.reason}'>"
 
 
 class SimpleAlbum(objects.BaseObject):
 
-    def __init__(self, data: dict[str, Any]) -> None:
+    def __init__(self, data: SimpleAlbumData) -> None:
         super().__init__(data)
 
-        self.album_type: Literal["album", "single", "compilation", "unknown"] = data.get("album_type", "unknown")
-        self.artists: list[objects.SimpleArtist | None] = [objects.SimpleArtist(artist_data) for artist_data in data.get("artists", [])]
-        self.available_markets: list[str | None] = data.get("available_markets", [])
-        self.external_urls: dict[str | None, str | None] = data.get("external_urls", {})
-        self.images: list[objects.Image | None] = [objects.Image(image_data) for image_data in data.get("images", [])]
-        self.release_date: str | None = data.get("release_date")
-        self.release_data_precision: Literal["year", "month", "day", "unknown"] = data.get("release_date_precision", "unknown")
-        self.total_tracks: int = data.get("total_tracks", 0)
+        self.album_type = data["album_type"]
+        self.artists = [objects.SimpleArtist(artist) for artist in data["artists"]]
+        self.available_markets = data.get("available_markets")
+        self.external_urls = data["external_urls"]
+        self.images = [objects.Image(image) for image in data["images"]]
+        self.release_date = data["release_date"]
+        self.release_data_precision = data["release_date_precision"]
+        self.restriction = AlbumRestriction(restriction) if (restriction := data.get("restrictions")) else None
+        self.total_tracks = data["total_tracks"]
 
     def __repr__(self) -> str:
-        return f"<spotify.SimpleAlbum name=\"{self.name}\" id=\"{self.id}\" url=\"<{self.url}>\" total_tracks=\"{self.total_tracks}\">"
+        return f"<aiospotify.SimpleAlbum id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
+
+    #
 
     @property
     def url(self) -> str | None:
         return self.external_urls.get("spotify")
 
-    @property
-    def restriction(self) -> AlbumRestriction | None:
-        if (restriction_data := self.data.get("restrictions")) is None:
-            return None
-        return AlbumRestriction(restriction_data)
-
 
 class Album(objects.BaseObject):
 
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: AlbumData) -> None:
         super().__init__(data)
 
-        self.album_type: Literal["album", "single", "compilation", "unknown"] = data.get("album_type", "unknown")
-        self.artists: list[objects.SimpleArtist | None] = [objects.SimpleArtist(artist_data) for artist_data in data.get("artists", [])]
-        self.available_markets: list[str | None] = data.get("available_markets", [])
-        self.copyrights: list[objects.Copyright | None] = [objects.Copyright(copyright_data) for copyright_data in data.get("copyrights", {})]
-        self.external_ids: dict[str | None, str | None] = data.get("external_ids", {})
-        self.external_urls: dict[str | None, str | None] = data.get("external_urls", {})
-        self.genres: list[str | None] = data.get("genres", [])
-        self.images: list[objects.Image | None] = [objects.Image(image_data) for image_data in data.get("images", [])]
-        self.label: str | None = data.get("label")
-        self.popularity: int = data.get("popularity", 0)
-        self.release_date: str | None = data.get("release_date")
-        self.release_data_precision: Literal["year", "month", "day", "unknown"] = data.get("release_date_precision", "unknown")
-        self.total_tracks: int = data.get("total_tracks", 0)
+        self.album_type = data["album_type"]
+        self.artists = [objects.SimpleArtist(artist) for artist in data["artists"]]
+        self.available_markets = data.get("available_markets")
+        self.copyrights = [objects.Copyright(copyright) for copyright in data["copyrights"]]
+        self.external_ids = data["external_ids"]
+        self.external_urls = data["external_urls"]
+        self.genres = data["genres"]
+        self.images = [objects.Image(image) for image in data["images"]]
+        self.label = data["label"]
+        self.popularity = data["popularity"]
+        self.release_date = data["release_date"]
+        self.release_data_precision = data["release_date_precision"]
+        self.restriction = AlbumRestriction(restriction) if (restriction := data.get("restrictions")) else None
+        self.total_tracks = data["total_tracks"]
 
-        self._tracks_paging = objects.PagingObject(data.get("tracks", []))
-        self.tracks: list[objects.SimpleTrack | None] = [objects.SimpleTrack(track_data) for track_data in self._tracks_paging.items]
+        self._tracks_paging = objects.PagingObject(data["tracks"])
+        self.tracks = [objects.SimpleTrack(track) for track in self._tracks_paging.items]
 
     def __repr__(self) -> str:
-        return f"<spotify.Album name=\"{self.name}\" id=\"{self.id}\" url=\"<{self.url}>\" total_tracks=\"{self.total_tracks}\">"
+        return f"<aiospotify.Album id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
+
+    #
 
     @property
     def url(self) -> str | None:

@@ -20,7 +20,7 @@ class SimpleArtist(objects.BaseObject):
         self.external_urls = data["external_urls"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.SimpleArtist id='{self.id}' name='{self.name}'>"
+        return f"<aiospotify.SimpleArtist id='{self.id}', name='{self.name}'>"
 
     #
 
@@ -41,4 +41,4 @@ class Artist(SimpleArtist):
         self.popularity = data["popularity"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Artist id='{self.id}' name='{self.name}'>"
+        return f"<aiospotify.Artist id='{self.id}', name='{self.name}'>"

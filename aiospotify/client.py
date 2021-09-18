@@ -4,7 +4,7 @@ from __future__ import annotations
 # Standard Library
 import math
 from collections.abc import Sequence
-from typing import Any, TypeVar
+from typing import TypeVar
 
 # Packages
 import aiohttp
