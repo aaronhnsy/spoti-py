@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
+from typings.objects import ExplicitContentSettingsData
 
 
 __all__ = (
@@ -13,14 +14,13 @@ __all__ = (
 
 class ExplicitContentSettings:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: ExplicitContentSettingsData) -> None:
 
-        self.filter_enabled = data.get("filter_enabled")
-        self.filter_locked = data.get("filter_locked")
+        self.filter_enabled = data["filter_enabled"]
+        self.filter_locked = data["filter_locked"]
 
     def __repr__(self) -> str:
-        return f"<spotify.ExplicitContentSettings filter_enabled={self.filter_enabled} filter_locked={self.filter_locked}"
+        return f"<aiospotify.ExplicitContentSettings filter_enabled={self.filter_enabled}, filter_locked={self.filter_locked}"
 
 
 class User(objects.BaseObject):

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Standard Library
-from typing import Literal
+from typing import Any, Literal
 
 # My stuff
 from aiospotify.objects import album, artist, base, image, user
@@ -30,7 +30,7 @@ class TrackRestriction:
 
 class SimpleTrack(base.BaseObject):
 
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: dict[str, Any]) -> None:
         super().__init__(data)
 
         self.artists: list[artist.SimpleArtist | None] = [artist.SimpleArtist(artist_data) for artist_data in data.get("artists", [])]
@@ -60,7 +60,7 @@ class SimpleTrack(base.BaseObject):
 
 class Track(base.BaseObject):
 
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: dict[str, Any]) -> None:
         super().__init__(data)
 
         self.album: album.SimpleAlbum = album.SimpleAlbum(data.get("album"))

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # Standard Library
-from typing import Literal
+from typing import Any, Literal
 
 # My stuff
 from aiospotify import objects
@@ -28,7 +28,7 @@ class AlbumRestriction:
 
 class SimpleAlbum(objects.BaseObject):
 
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: dict[str, Any]) -> None:
         super().__init__(data)
 
         self.album_type: Literal["album", "single", "compilation", "unknown"] = data.get("album_type", "unknown")

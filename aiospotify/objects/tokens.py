@@ -10,7 +10,7 @@ import aiohttp
 
 # My stuff
 from aiospotify import exceptions
-from typings.objects.tokens import ClientCredentialsData
+from typings.objects import ClientCredentialsData
 
 
 __all__ = (
@@ -24,9 +24,9 @@ class ClientCredentials:
 
     def __init__(self, data: ClientCredentialsData, client_id: str, client_secret: str) -> None:
 
-        self._access_token: str = data["access_token"]
-        self._token_type: Literal["bearer"] = data["token_type"]
-        self._expires_in: int = data["expires_in"]
+        self._access_token = data["access_token"]
+        self._token_type = data["token_type"]
+        self._expires_in = data["expires_in"]
 
         self._client_id: str = client_id
         self._client_secret: str = client_secret
@@ -43,7 +43,7 @@ class ClientCredentials:
         return self._access_token
 
     @property
-    def token_type(self) -> Literal["bearer"]:
+    def token_type(self) -> str:
         return self._token_type
 
     @property

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
+from typings.objects import ArtistData, SimpleArtistData
 
 
 __all__ = (
@@ -13,33 +14,31 @@ __all__ = (
 
 class SimpleArtist(objects.BaseObject):
 
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: SimpleArtistData) -> None:
         super().__init__(data)
 
-        self.external_urls: dict[str | None, str | None] = data.get("external_urls", {})
+        self.external_urls = data["external_urls"]
 
     def __repr__(self) -> str:
-        return f"<spotify.SimpleArtist name=\"{self.name}\" id=\"{self.id}\" url=\"<{self.url}>\">"
+        return f"<aiospotify.SimpleArtist id='{self.id}' name='{self.name}'>"
+
+    #
 
     @property
     def url(self) -> str | None:
         return self.external_urls.get("spotify")
 
 
-class Artist(objects.BaseObject):
+class Artist(SimpleArtist):
 
-    def __init__(self, data: dict) -> None:
+    def __init__(self, data: ArtistData) -> None:
         super().__init__(data)
 
-        self.external_urls: dict[str | None, str | None] = data.get("external_urls", {})
-        self.followers: objects.Followers = objects.Followers(data.get("followers"))
-        self.genres: list[str | None] = data.get("genres", [])
-        self.images: list[objects.Image | None] = [objects.Image(image_data) for image_data in data.get("images", [])]
-        self.popularity: int = data.get("popularity", 0)
+        self.external_urls = data["external_urls"]
+        self.followers = objects.Followers(data["followers"])
+        self.genres = data["genres"]
+        self.images = [objects.Image(image) for image in data["images"]]
+        self.popularity = data["popularity"]
 
     def __repr__(self) -> str:
-        return f"<spotify.Artist name=\"{self.name}\" id=\"{self.id}\" url=\"<{self.url}>\">"
-
-    @property
-    def url(self) -> str | None:
-        return self.external_urls.get("spotify")
+        return f"<aiospotify.Artist id='{self.id}' name='{self.name}'>"

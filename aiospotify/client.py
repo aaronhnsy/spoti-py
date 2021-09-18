@@ -315,7 +315,7 @@ class Client:
     async def get_several_tracks_audio_features(
         self,
         ids: Sequence[ID]
-    ) -> dict[ID, Any]:
+    ) -> dict[ID, objects.AudioFeatures | None]:
 
         response = await self.http.get_several_tracks_audio_features(ids)
         return dict(zip(ids, [objects.AudioFeatures(data) if data else None for data in response["audio_features"]]))

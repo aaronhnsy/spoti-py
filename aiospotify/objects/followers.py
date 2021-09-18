@@ -1,6 +1,9 @@
 # Future
 from __future__ import annotations
 
+# My stuff
+from typings.objects import FollowersData
+
 
 __all__ = (
     "Followers",
@@ -9,11 +12,10 @@ __all__ = (
 
 class Followers:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: FollowersData) -> None:
 
-        self.href: str = data.get("href")
-        self.total: int = data.get("total")
+        self.href = data["href"]
+        self.total = data["total"]
 
     def __repr__(self) -> str:
-        return f"<spotify.Followers total={self.total}>"
+        return f"<aiospotify.Followers total={self.total}>"

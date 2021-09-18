@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
+from typings.objects import RecommendationData, RecommendationSeedData
 
 
 __all__ = (
@@ -13,27 +14,25 @@ __all__ = (
 
 class RecommendationSeed:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: RecommendationSeedData) -> None:
 
-        self.tracks_after_filters = data.get("afterFilteringSize", 0)
-        self.tracks_after_relinking = data.get("afterRelinkingSize", 0)
-        self.href = data.get("href")
-        self.id = data.get("id")
-        self.initial_pool_size = data.get("initialPoolSize", 0)
-        self.type = data.get("type")
+        self.initial_pool_size = data["initialPoolSize"]
+        self.after_filtering_size = data["afterFilteringSize"]
+        self.after_relinking_size = data["afterRelinkingSize"]
+        self.href = data["href"]
+        self.id = data["id"]
+        self.type = data["type"]
 
     def __repr__(self) -> str:
-        return f"<spotify.RecommendationSeed id=\"{self.id}\">"
+        return f"<aiospotify.RecommendationSeed id='{self.id}', type='{self.type}'>"
 
 
 class Recommendation:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: RecommendationData) -> None:
 
-        self.seeds = [objects.RecommendationSeed(data) for data in data.get("seeds", [])]
-        self.tracks = [objects.Track(data) for data in data.get("tracks", [])]
+        self.tracks = [objects.Track(data) for data in data["tracks"]]
+        self.seeds = [objects.RecommendationSeed(data) for data in data["seeds"]]
 
     def __repr__(self) -> str:
-        return f"<spotify.Recommendation tracks={len(self.tracks)} seeds={len(self.seeds)}>"
+        return f"<aiospotify.Recommendation tracks={len(self.tracks)}, seeds={len(self.seeds)}>"

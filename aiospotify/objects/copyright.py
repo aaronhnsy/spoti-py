@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
+from typings.objects import CopyrightData
 
 
 __all__ = (
@@ -12,11 +13,10 @@ __all__ = (
 
 class Copyright:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: CopyrightData) -> None:
 
-        self.text: str | None = data.get("text")
-        self.type: objects.CopyrightType = objects.CopyrightType(data.get("type", "C"))
+        self.text = data["text"]
+        self.type = objects.CopyrightType(data["type"])
 
     def __repr__(self) -> str:
-        return f"<spotify.Copyright type={self.type!r}>"
+        return f"<aiospotify.Copyright type={self.type!r}>"

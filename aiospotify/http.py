@@ -12,6 +12,7 @@ import aiohttp
 
 # My stuff
 from aiospotify import exceptions, objects, utils, values
+from typings.objects import ArtistData, AudioFeaturesData, PagingObjectData, RecommendationData, SearchResultData
 
 
 __all__ = (
@@ -171,7 +172,7 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-    ) -> dict[str, Any]:
+    ) -> PagingObjectData:
 
         parameters = {}
         if market:
@@ -209,7 +210,7 @@ class HTTPClient:
         /,
         *,
         market: str | None
-    ) -> dict[str, Any]:
+    ) -> ArtistData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/artists/{id}", id=_id), parameters=parameters)
@@ -245,7 +246,7 @@ class HTTPClient:
         include_groups: Sequence[objects.IncludeGroup] | None = [objects.IncludeGroup.ALBUM],
         limit: int | None,
         offset: int | None
-    ) -> dict[str, Any]:
+    ) -> PagingObjectData:
 
         parameters = {}
         if market:
@@ -380,7 +381,7 @@ class HTTPClient:
         limit: int | None,
         market: str | None,
         **kwargs
-    ) -> dict[str, Any]:
+    ) -> RecommendationData:
 
         seeds = len([seed for seeds in [seed_artist_ids or [], seed_genres or [], seed_track_ids or []] for seed in seeds])
         if seeds <= 0 or seeds > 5:
@@ -866,7 +867,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         include_external: bool = False
-    ) -> dict[str, Any]:
+    ) -> SearchResultData:
 
         if not search_types:
             search_types = [objects.SearchType.ALL]
@@ -983,14 +984,14 @@ class HTTPClient:
         self,
         _id: str,
         /
-    ) -> dict[str, Any]:
+    ) -> AudioFeaturesData:
         return await self.request(Route("GET", "/audio-features/{id}", id=_id))
 
     async def get_track_audio_analysis(
         self,
         _id: str,
         /,
-    ) -> dict[str, Any]:
+    ) -> dict[str, list[AudioFeaturesData]]:
         return await self.request(Route("GET", "/audio-analysis/{id}", id=_id))
 
     # USERS API

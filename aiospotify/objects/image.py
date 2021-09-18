@@ -1,6 +1,9 @@
 # Future
 from __future__ import annotations
 
+# My stuff
+from typings.objects import ImageData
+
 
 __all__ = (
     "Image",
@@ -9,15 +12,11 @@ __all__ = (
 
 class Image:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: ImageData) -> None:
 
-        self.url: str = data.get("url")
-        self.width: int | None = data.get("width")
-        self.height: int | None = data.get("height")
+        self.url = data["url"]
+        self.width = data["width"]
+        self.height = data["height"]
 
     def __repr__(self) -> str:
-        return f"<spotify.Image url=\"<{self.url}>\" width=\"{self.width}\" height=\"{self.height}\">"
-
-    def __str__(self) -> str:
-        return self.url
+        return f"<aiospotify.Image url='<{self.url}>', width={self.width}, height={self.height}>"

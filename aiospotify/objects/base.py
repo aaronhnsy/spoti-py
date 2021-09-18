@@ -1,6 +1,9 @@
 # Future
 from __future__ import annotations
 
+# My stuff
+from typings.objects import BaseObjectData, PagingObjectData
+
 
 __all__ = (
     "BaseObject",
@@ -10,34 +13,29 @@ __all__ = (
 
 class BaseObject:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: BaseObjectData) -> None:
 
-        self.href: str = data.get("href")
-        self.id: str = data.get("id")
-        self.name: str = data.get("name")
-        self.type: str = data.get("type")
-        self.uri: str = data.get("uri")
+        self.href = data["href"]
+        self.id = data["id"]
+        self.name = data.get("name")
+        self.type = data["type"]
+        self.uri = data["uri"]
 
     def __repr__(self) -> str:
-        return f"<spotify.BaseObject id=\"{self.id}\" name=\"{self.name}\">"
-
-    def __str__(self) -> str:
-        return self.name
+        return f"<aiospotify.BaseObject id='{self.id}', name='{self.name}'>"
 
 
 class PagingObject:
 
-    def __init__(self, data: dict) -> None:
-        self.data = data
+    def __init__(self, data: PagingObjectData) -> None:
 
-        self.href: str = data.get("href")
-        self.items: list[dict] = data.get("items")
-        self.limit: int = data.get("limit")
-        self.next: str | None = data.get("next")
-        self.offset: int = data.get("offset")
-        self.previous: str | None = data.get("previous")
-        self.total: int = data.get("total")
+        self.href = data["href"]
+        self.items = data["items"]
+        self.limit = data["limit"]
+        self.next = data["next"]
+        self.offset = data["offset"]
+        self.previous = data["previous"]
+        self.total = data["total"]
 
     def __repr__(self) -> str:
-        return f"<spotify.PagingObject total={self.total} offset={self.offset} limit={self.limit}>"
+        return f"<spotify.PagingObject total={self.total}, limit={self.limit}, offset={self.offset}>"
