@@ -119,7 +119,7 @@ class Client:
         if album._tracks_paging.total <= 50:  # The album has 50 or less tracks already so we can just return it now.
             return album
 
-        for _ in range(1, math.ceil(album._tracks_paging.total / 50)):
+        for _ in range(2, math.ceil(album._tracks_paging.total / 50)):
             response = await self.http.get_album_tracks(_id, market=market, limit=50, offset=_ * 50)
             album.tracks.extend([objects.SimpleTrack(data) for data in objects.PagingObject(response).items])
 
@@ -266,7 +266,74 @@ class Client:
 
     # PLAYLISTS API
 
-    ...
+    async def get_playlist(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        fields: str | None = None
+    ) -> objects.Playlist:
+
+        response = await self.http.get_playlist(_id, market=market, fields=fields)
+        return objects.Playlist(response)
+
+    async def get_playlist_items(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        fields: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[objects.PlaylistTrack]:
+
+        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=limit, offset=offset)
+        return [objects.PlaylistTrack(data) for data in objects.PagingObject(response).items]
+
+    async def get_all_playlist_items(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        fields: str | None = None,
+    ) -> list[objects.PlaylistTrack]:
+
+        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=50, offset=0)
+        paging = objects.PagingObject(response)
+
+        items = [objects.PlaylistTrack(data) for data in paging.items]
+
+        if paging.total <= 50:  # There are 50 or less tracks and we already have them so just return them
+            return items
+
+        for _ in range(1, math.ceil(paging.total / 50)):
+            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=50, offset=_ * 50)
+            items.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
+
+        return items
+
+    async def get_full_playlist(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        fields: str | None = None,
+    ) -> objects.Playlist:
+
+        playlist = await self.get_playlist(_id, market=market, fields=fields)
+
+        if playlist._tracks_paging.total <= 50:  # The playlist has 50 or less tracks already so we can just return it now.
+            return playlist
+
+        for _ in range(2, math.ceil(playlist._tracks_paging.total / 50)):
+            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=50, offset=_ * 50)
+            playlist.tracks.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
+
+        return playlist
 
     # SEARCH API
 
