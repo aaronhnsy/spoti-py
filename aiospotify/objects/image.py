@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from typings.objects import ImageData
+from aiospotify.typings.objects import ImageData
 
 
 __all__ = (

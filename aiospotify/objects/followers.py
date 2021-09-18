@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from typings.objects import FollowersData
+from aiospotify.typings.objects import FollowersData
 
 
 __all__ = (

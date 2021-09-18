@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
-from typings.objects import RecommendationData, RecommendationSeedData
+from aiospotify.typings.objects import RecommendationData, RecommendationSeedData
 
 
 __all__ = (

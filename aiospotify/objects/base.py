@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from typings.objects import BaseObjectData, PagingObjectData
+from aiospotify.typings.objects import BaseObjectData, PagingObjectData
 
 
 __all__ = (

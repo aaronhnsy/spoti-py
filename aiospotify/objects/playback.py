@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
-from typings.objects import ContextData, CurrentlyPlayingContextData, CurrentlyPlayingData
+from aiospotify.typings.objects import ContextData, CurrentlyPlayingContextData, CurrentlyPlayingData
 
 
 __all__ = (

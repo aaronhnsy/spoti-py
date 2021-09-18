@@ -3,14 +3,14 @@ from __future__ import annotations
 
 # Standard Library
 import time
-from typing import ClassVar, Literal
+from typing import ClassVar
 
 # Packages
 import aiohttp
 
 # My stuff
 from aiospotify import exceptions
-from typings.objects import ClientCredentialsData
+from aiospotify.typings.objects import ClientCredentialsData
 
 
 __all__ = (

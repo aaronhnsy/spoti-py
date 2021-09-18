@@ -5,6 +5,38 @@ from __future__ import annotations
 from typing import Any, Optional, TypedDict
 
 
+__all__ = (
+    "ClientCredentialsData",
+    "BaseObjectData",
+    "PagingObjectData",
+    "SearchResultData",
+    "RecommendationSeedData",
+    "RecommendationData",
+    "ImageData",
+    "ExplicitContentSettingsData",
+    "FollowersData",
+    "DeviceData",
+    "DisallowsData",
+    "ContextData",
+    "CurrentlyPlayingContextData",
+    "CurrentlyPlayingData",
+    "CopyrightData",
+    "AudioFeaturesData",
+    "SimpleArtistData",
+    "ArtistData",
+    "AlbumRestrictionData",
+    "SimpleAlbumData",
+    "AlbumData",
+    "TrackRestrictionData",
+    "SimpleTrackData",
+    "TrackData",
+    "PlaylistTrackData",
+    "PlaylistTrackRefData",
+    "SimplePlaylistData",
+    "PlaylistData",
+)
+
+
 class ClientCredentialsData(TypedDict):
     access_token: str
     token_type: str

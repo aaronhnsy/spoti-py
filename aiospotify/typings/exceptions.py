@@ -5,6 +5,12 @@ from __future__ import annotations
 from typing import TypedDict
 
 
+__all__ = (
+    "AuthenticationErrorData",
+    "RegularErrorData",
+)
+
+
 class AuthenticationErrorData(TypedDict):
     error: str
     error_description: str

@@ -3,7 +3,13 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify.objects import album, artist, base, enums, user
-from typings.objects import AudioFeaturesData, PlaylistTrackData, SimpleTrackData, TrackData, TrackRestrictionData
+from aiospotify.typings.objects import (
+    AudioFeaturesData,
+    PlaylistTrackData,
+    SimpleTrackData,
+    TrackData,
+    TrackRestrictionData,
+)
 
 
 __all__ = (

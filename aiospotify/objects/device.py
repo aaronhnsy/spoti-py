@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from typings.objects import DeviceData
+from aiospotify.typings.objects import DeviceData
 
 
 __all__ = (

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 # My stuff
-from typings.objects import DisallowsData
+from aiospotify.typings.objects import DisallowsData
 
 
 __all__ = (

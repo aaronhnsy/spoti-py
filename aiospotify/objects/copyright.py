@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
-from typings.objects import CopyrightData
+from aiospotify.typings.objects import CopyrightData
 
 
 __all__ = (
