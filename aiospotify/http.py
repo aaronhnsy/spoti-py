@@ -3,6 +3,7 @@ from __future__ import annotations
 
 # Standard Library
 import asyncio
+import logging
 import urllib.parse
 from collections.abc import Sequence
 from typing import Any, ClassVar, Literal
@@ -28,6 +29,9 @@ __all__ = (
     "Route",
     "HTTPClient"
 )
+
+
+__log__: logging.Logger
 
 
 class Route:
@@ -117,14 +121,22 @@ class HTTPClient:
                         raise exceptions.SpotifyException("Something went wrong, the Spotify API returned text.")
 
                     if 200 <= response.status < 300:
+                        __log__.debug(f"{route.method} @ {route.url} received payload: {response_data}")
                         return response_data
 
-                    if response.status >= 500:
+                    if response.status == 429:
+                        retry_after = data['retry_after']
+                        __log__.warning(f"{route.method} @ {route.url} is being ratelimited, retrying in {retry_after:.2f} seconds.")
+                        await asyncio.sleep(retry_after)
+                        __log__.debug(f"{route.method} @ {route.url} is done sleeping for ratelimit, retrying...")
+                        continue
+
+                    if response.status in {500, 502, 503}:
                         await asyncio.sleep(1 + tries * 2)
                         continue
 
                     if error := response_data.get("error"):
-                        raise values.EXCEPTION_MAPPING[response.status](error)
+                        raise values.EXCEPTION_MAPPING[response.status](response, error)
 
             except OSError as error:
                 if tries < 4 and error.errno in (54, 10054):
@@ -132,8 +144,8 @@ class HTTPClient:
                     continue
                 raise
 
-        if response and response.status >= 500:
-            raise values.EXCEPTION_MAPPING[response.status](response_data["error"])
+        if response:
+            raise exceptions.SpotifyHTTPError(response, response_data["error"])
 
         raise RuntimeError("This shouldn't happen.")
 

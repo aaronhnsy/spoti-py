@@ -1,6 +1,9 @@
 # Future
 from __future__ import annotations
 
+# Packages
+import aiohttp
+
 # My stuff
 from aiospotify.typings.exceptions import AuthenticationErrorData, RegularErrorData
 
@@ -8,7 +11,7 @@ from aiospotify.typings.exceptions import AuthenticationErrorData, RegularErrorD
 __all__ = (
     "SpotifyException",
     "AuthenticationError",
-    "SpotifyResponseError",
+    "SpotifyHTTPError",
     "BadRequest",
     "Unauthorized",
     "Forbidden",
@@ -39,11 +42,17 @@ class AuthenticationError(SpotifyException):
         return self._error_description
 
 
-class SpotifyResponseError(SpotifyException):
+class SpotifyHTTPError(SpotifyException):
 
-    def __init__(self, data: RegularErrorData) -> None:
+    def __init__(self, response: aiohttp.ClientResponse, data: RegularErrorData) -> None:
+
+        self._response = response
         self._status = data["status"]
         self._message = data["message"]
+
+    @property
+    def response(self) -> aiohttp.ClientResponse:
+        return self._response
 
     @property
     def status(self) -> int:
@@ -54,33 +63,37 @@ class SpotifyResponseError(SpotifyException):
         return self._message
 
 
-class BadRequest(SpotifyResponseError):
+class BadRequest(SpotifyHTTPError):
     pass
 
 
-class Unauthorized(SpotifyResponseError):
+class Unauthorized(SpotifyHTTPError):
     pass
 
 
-class Forbidden(SpotifyResponseError):
+class Forbidden(SpotifyHTTPError):
     pass
 
 
-class NotFound(SpotifyResponseError):
+class NotFound(SpotifyHTTPError):
     pass
 
 
-class TooManyRequests(SpotifyResponseError):
+class TooManyRequests(SpotifyHTTPError):
     pass
 
 
-class InternalServerError(SpotifyResponseError):
+class SpotifyServerError(SpotifyHTTPError):
     pass
 
 
-class BadGatewayError(SpotifyResponseError):
+class InternalServerError(SpotifyServerError):
     pass
 
 
-class ServiceUnavailable(SpotifyResponseError):
+class BadGatewayError(SpotifyServerError):
+    pass
+
+
+class ServiceUnavailable(SpotifyServerError):
     pass
