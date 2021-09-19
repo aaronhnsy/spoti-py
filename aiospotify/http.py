@@ -16,6 +16,7 @@ from aiospotify import exceptions, objects, utils, values
 from aiospotify.typings.http import (
     ArtistRelatedArtistsData,
     ArtistTopTracksData,
+    AvailableMarketsData,
     CategoryPlaylistsData,
     FeaturedPlaylistsData,
     MultipleAlbumsData,
@@ -464,7 +465,7 @@ class HTTPClient:
 
     async def get_available_markets(
         self
-    ) -> dict[str, Any]:
+    ) -> AvailableMarketsData:
         return await self.request(Route("GET", "/markets"))
 
     # PERSONALIZATION API

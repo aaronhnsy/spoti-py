@@ -18,6 +18,7 @@ __all__ = (
     "MultipleCategoriesData",
     "CategoryPlaylistsData",
     "RecommendationGenresData",
+    "AvailableMarketsData",
 )
 
 
@@ -56,3 +57,7 @@ class CategoryPlaylistsData(TypedDict):
 
 class RecommendationGenresData(TypedDict):
     genres: list[str]
+
+
+class AvailableMarketsData(TypedDict):
+    markets: list[str]
