@@ -3,11 +3,14 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
-from aiospotify.typings.objects import EpisodeData, EpisodeRestrictionData, EpisodeResumePointData
+from aiospotify.typings.objects import EpisodeData, EpisodeRestrictionData, EpisodeResumePointData, SimpleEpisodeData
 
 
 __all__ = (
+    "EpisodeRestriction",
+    "EpisodeResumePoint",
     "Episode",
+    "SimpleEpisode"
 )
 
 
@@ -30,6 +33,36 @@ class EpisodeResumePoint:
 
     def __repr__(self) -> str:
         return f"<aiospotify.EpisodeResumePoint fully_played={self.fully_played} resume_position_ms={self.resume_position_ms}>"
+
+
+class SimpleEpisode(objects.BaseObject):
+
+    def __init__(self, data: SimpleEpisodeData) -> None:
+        super().__init__(data)
+
+        self.audio_preview_url = data["audio_preview_url"]
+        self.description = data["description"]
+        self.duration_ms = data["duration_ms"]
+        self.explicit = data["explicit"]
+        self.external_urls = data["external_urls"]
+        self.html_description = data["html_description"]
+        self.images = [objects.Image(image) for image in data["images"]]
+        self.is_externally_hosted = data["is_externally_hosted"]
+        self.is_playable = data["is_playable"]
+        self.languages = data["languages"]
+        self.release_date = data["release_date"]
+        self.release_date_precision = data["release_date_precision"]
+        self.restriction = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
+        self.resume_point = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
+
+    def __repr__(self) -> str:
+        return f"<aiospotify.SimpleEpisode id='{self.id}', name='{self.name}'>"
+
+    #
+
+    @property
+    def url(self) -> str | None:
+        return self.external_urls.get("spotify")
 
 
 class Episode(objects.BaseObject):

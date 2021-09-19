@@ -959,7 +959,7 @@ class HTTPClient:
         self,
         ids: Sequence[str],
         *,
-        market: str | None
+        market: str | None,
     ) -> MultipleShowsData:
 
         if len(ids) > 50:
@@ -976,7 +976,7 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        market: str | None
+        market: str | None,
     ) -> ShowData:
 
         parameters = {"market": market} if market else None

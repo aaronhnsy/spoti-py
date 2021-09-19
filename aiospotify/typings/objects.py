@@ -124,6 +124,23 @@ class EpisodeResumePointData(TypedDict):
     resume_position_ms: int
 
 
+class SimpleEpisodeData(BaseObjectData):
+    audio_preview_url: Optional[str]
+    description: str
+    duration_ms: int
+    explicit: bool
+    external_urls: dict[str, Any]
+    html_description: str
+    images: list[ImageData]
+    is_externally_hosted: bool
+    is_playable: bool
+    languages: list[str]
+    release_date: str
+    release_date_precision: str
+    restrictions: EpisodeRestrictionData
+    resume_point: EpisodeResumePointData
+
+
 class EpisodeData(BaseObjectData):
     audio_preview_url: Optional[str]
     description: str
