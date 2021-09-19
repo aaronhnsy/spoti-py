@@ -3,7 +3,7 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
-from aiospotify.typings.objects import SearchResultData
+from aiospotify.typings.http import SearchResultData
 
 
 __all__ = (
