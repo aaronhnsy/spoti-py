@@ -17,6 +17,7 @@ __all__ = (
     "FeaturedPlaylistsData",
     "MultipleCategoriesData",
     "CategoryPlaylistsData",
+    "RecommendationGenresData",
 )
 
 
@@ -51,3 +52,7 @@ class MultipleCategoriesData(TypedDict):
 
 class CategoryPlaylistsData(TypedDict):
     playlists: PagingObjectData
+
+
+class RecommendationGenresData(TypedDict):
+    genres: list[str]

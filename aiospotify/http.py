@@ -22,6 +22,7 @@ from aiospotify.typings.http import (
     MultipleArtistsData,
     MultipleCategoriesData,
     NewReleasesData,
+    RecommendationGenresData,
 )
 from aiospotify.typings.objects import (
     AlbumData,
@@ -444,7 +445,7 @@ class HTTPClient:
 
     async def get_recommendation_genres(
         self
-    ) -> dict[str, Any]:
+    ) -> RecommendationGenresData:
         return await self.request(Route("GET", "/recommendations/available-genre-seeds"))
 
     # EPISODE API
