@@ -14,12 +14,14 @@ from aiospotify.objects.copyright import *
 from aiospotify.objects.device import *
 from aiospotify.objects.disallows import *
 from aiospotify.objects.enums import *
+from aiospotify.objects.episode import *
 from aiospotify.objects.followers import *
 from aiospotify.objects.image import *
 from aiospotify.objects.playback import *
 from aiospotify.objects.playlist import *
-from aiospotify.objects.recommendations import *
+from aiospotify.objects.recommendation import *
 from aiospotify.objects.search import *
-from aiospotify.objects.tokens import *
+from aiospotify.objects.show import *
+from aiospotify.objects.token import *
 from aiospotify.objects.track import *
 from aiospotify.objects.user import *

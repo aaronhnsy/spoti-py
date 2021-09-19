@@ -22,18 +22,22 @@ from aiospotify.typings.http import (
     MultipleAlbumsData,
     MultipleArtistsData,
     MultipleCategoriesData,
+    MultipleEpisodesData,
+    MultipleShowsData,
     NewReleasesData,
     RecommendationGenresData,
+    SearchResultData,
 )
 from aiospotify.typings.objects import (
     AlbumData,
     ArtistData,
     AudioFeaturesData,
     CategoryData,
+    EpisodeData,
     PagingObjectData,
     PlaylistData,
     RecommendationData,
-    SearchResultData,
+    ShowData,
     TrackData,
 )
 
@@ -451,7 +455,32 @@ class HTTPClient:
 
     # EPISODE API
 
-    ...
+    async def get_episodes(
+        self,
+        ids: Sequence[str],
+        *,
+        market: str | None,
+    ) -> MultipleEpisodesData:
+
+        if len(ids) > 50:
+            raise ValueError("'get_episodes' can only take a maximum of 50 episodes ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        if market:
+            parameters["market"] = market
+
+        return await self.request(Route("GET", "/episodes"), parameters=parameters)
+
+    async def get_episode(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None,
+    ) -> EpisodeData:
+
+        parameters = {"market": market} if market else None
+        return await self.request(Route("GET", "/episodes/{id}", id=_id), parameters=parameters)
 
     # FOLLOW API
 
@@ -931,7 +960,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None
-    ) -> dict[str, Any]:
+    ) -> MultipleShowsData:
 
         if len(ids) > 50:
             raise ValueError("'get_shows' can only take a maximum of 50 show ids.")
@@ -948,7 +977,7 @@ class HTTPClient:
         /,
         *,
         market: str | None
-    ) -> dict[str, Any]:
+    ) -> ShowData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/shows/{id}", id=_id), parameters=parameters)
@@ -961,7 +990,7 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-    ) -> dict[str, Any]:
+    ) -> PagingObjectData:
 
         parameters = {}
         if market:
@@ -975,7 +1004,7 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/shows/{id}/episodes", id=_id), parameters=parameters)
 
-    # TRACKS API #
+    # TRACKS API
 
     async def get_tracks(
         self,

@@ -5,44 +5,7 @@ from __future__ import annotations
 from typing import Any, Optional, TypedDict
 
 
-__all__ = (
-    "ClientCredentialsData",
-    "BaseObjectData",
-    "PagingObjectData",
-    "SearchResultData",
-    "RecommendationSeedData",
-    "RecommendationData",
-    "ImageData",
-    "ExplicitContentSettingsData",
-    "FollowersData",
-    "DeviceData",
-    "DisallowsData",
-    "ContextData",
-    "CurrentlyPlayingContextData",
-    "CurrentlyPlayingData",
-    "CopyrightData",
-    "AudioFeaturesData",
-    "SimpleArtistData",
-    "ArtistData",
-    "AlbumRestrictionData",
-    "SimpleAlbumData",
-    "AlbumData",
-    "TrackRestrictionData",
-    "SimpleTrackData",
-    "TrackData",
-    "PlaylistTrackData",
-    "PlaylistTrackRefData",
-    "SimplePlaylistData",
-    "PlaylistData",
-    "CategoryData"
-)
-
-
-class ClientCredentialsData(TypedDict):
-    access_token: str
-    token_type: str
-    expires_in: int
-
+# COMMON
 
 class BaseObjectData(TypedDict):
     href: str
@@ -62,13 +25,78 @@ class PagingObjectData(TypedDict):
     total: int
 
 
-class SearchResultData(TypedDict):
-    albums: PagingObjectData
-    artists: PagingObjectData
+class ImageData(TypedDict):
+    url: str
+    width: int
+    height: int
+
+
+class FollowersData(TypedDict):
+    href: Optional[str]
+    total: int
+
+
+class CopyrightData(TypedDict):
+    text: str
+    type: str
+
+
+# ALBUMS API
+
+class AlbumRestrictionData(TypedDict):
+    reason: str
+
+
+class SimpleAlbumData(BaseObjectData):
+    album_type: str
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    external_urls: dict[str, Any]
+    images: list[ImageData]
+    release_date: str
+    release_date_precision: str
+    restrictions: AlbumRestrictionData
+    total_tracks: int
+
+
+class AlbumData(BaseObjectData):
+    album_type: str
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    copyrights: list[CopyrightData]
+    external_ids: dict[str, Any]
+    external_urls: dict[str, Any]
+    genres: list[str]
+    images: list[ImageData]
+    label: str
+    popularity: int
+    release_date: str
+    release_date_precision: str
+    restrictions: AlbumRestrictionData
+    total_tracks: int
     tracks: PagingObjectData
-    playlists: PagingObjectData
-    shows: PagingObjectData
-    episodes: PagingObjectData
+
+
+# ARTISTS API
+
+class SimpleArtistData(BaseObjectData):
+    external_urls: dict[str, Any]
+
+
+class ArtistData(SimpleArtistData):
+    followers: FollowersData
+    genres: list[str]
+    images: list[ImageData]
+    popularity: int
+
+
+# BROWSE API
+
+class CategoryData(TypedDict):
+    href: str
+    icons: list[ImageData]
+    id: str
+    name: str
 
 
 class RecommendationSeedData(TypedDict):
@@ -85,21 +113,56 @@ class RecommendationData(TypedDict):
     seeds: list[RecommendationSeedData]
 
 
-class ImageData(TypedDict):
-    url: str
-    width: int
-    height: int
+# EPISODE API
+
+class EpisodeRestrictionData(TypedDict):
+    reason: str
 
 
-class ExplicitContentSettingsData(TypedDict):
-    filter_enabled: bool
-    filter_locked: bool
+class EpisodeResumePointData(TypedDict):
+    fully_played: bool
+    resume_position_ms: int
 
 
-class FollowersData(TypedDict):
-    href: Optional[str]
-    total: int
+class EpisodeData(BaseObjectData):
+    audio_preview_url: Optional[str]
+    description: str
+    duration_ms: int
+    explicit: bool
+    external_urls: dict[str, Any]
+    html_description: str
+    images: list[ImageData]
+    is_externally_hosted: bool
+    is_playable: bool
+    languages: list[str]
+    release_date: str
+    release_date_precision: str
+    restrictions: EpisodeRestrictionData
+    resume_point: EpisodeResumePointData
+    show: ShowData
 
+
+# FOLLOW API
+
+...
+
+
+# LIBRARY API
+
+...
+
+
+# MARKETS API
+
+...
+
+
+# PERSONALIZATION API
+
+...
+
+
+# PLAYER API
 
 class DeviceData(TypedDict):
     id: str
@@ -153,112 +216,7 @@ class CurrentlyPlayingData(TypedDict):
     timestamp: int
 
 
-class CopyrightData(TypedDict):
-    text: str
-    type: str
-
-
-class AudioFeaturesData(TypedDict):
-    acousticness: float
-    analysis_url: str
-    danceability: float
-    duration_ms: int
-    energy: float
-    id: str
-    instrumentalness: float
-    key: int
-    liveness: float
-    loudness: float
-    mode: int
-    speechiness: float
-    tempo: float
-    time_signature: int
-    track_href: str
-    type: str
-    uri: str
-    valence: float
-
-
-class SimpleArtistData(BaseObjectData):
-    external_urls: dict[str, Any]
-
-
-class ArtistData(SimpleArtistData):
-    followers: FollowersData
-    genres: list[str]
-    images: list[ImageData]
-    popularity: int
-
-
-class AlbumRestrictionData(TypedDict):
-    reason: str
-
-
-class SimpleAlbumData(BaseObjectData):
-    album_type: str
-    artists: list[SimpleArtistData]
-    available_markets: list[str]
-    external_urls: dict[str, Any]
-    images: list[ImageData]
-    release_date: str
-    release_date_precision: str
-    restrictions: AlbumRestrictionData
-    total_tracks: int
-
-
-class AlbumData(BaseObjectData):
-    album_type: str
-    artists: list[SimpleArtistData]
-    available_markets: list[str]
-    copyrights: list[CopyrightData]
-    external_ids: dict[str, Any]
-    external_urls: dict[str, Any]
-    genres: list[str]
-    images: list[ImageData]
-    label: str
-    popularity: int
-    release_date: str
-    release_date_precision: str
-    restrictions: AlbumRestrictionData
-    total_tracks: int
-    tracks: PagingObjectData
-
-
-class TrackRestrictionData(TypedDict):
-    reason: str
-
-
-class SimpleTrackData(BaseObjectData):
-    artists: list[SimpleArtistData]
-    available_markets: list[str]
-    disc_number: int
-    duration_ms: int
-    explicit: bool
-    external_urls: dict[str, Any]
-    is_local: bool
-    is_playable: bool
-    #  linked_from: LinkedTrackData
-    preview_url: str
-    restrictions: TrackRestrictionData
-    track_number: int
-
-
-class TrackData(BaseObjectData):
-    album: SimpleAlbumData
-    artists: list[SimpleArtistData]
-    available_markets: list[str]
-    disc_number: int
-    duration_ms: int
-    explicit: bool
-    external_ids: dict[str, Any]
-    external_urls: dict[str, Any]
-    is_local: bool
-    is_playable: bool
-    #  linked_from: LinkedTrackData
-    popularity: int
-    preview_url: str
-    restrictions: TrackRestrictionData
-    track_number: int
+# PLAYLISTS API
 
 
 class PlaylistTrackData(BaseObjectData):
@@ -300,8 +258,99 @@ class PlaylistData(BaseObjectData):
     tracks: PagingObjectData
 
 
-class CategoryData(TypedDict):
-    href: str
-    icons: list[ImageData]
+# SEARCH API
+
+...
+
+
+# SHOWS API
+
+class ShowData(BaseObjectData):
+    available_markets: list[str]
+    copyrights: list[CopyrightData]
+    description: str
+    explicit: bool
+    external_urls: dict[str, Any]
+    html_description: str
+    images: list[ImageData]
+    is_externally_hosted: bool
+    languages: list[str]
+    media_type: str
+    publisher: str
+    total_episodes: int
+
+
+# TRACKS API
+
+
+class TrackRestrictionData(TypedDict):
+    reason: str
+
+
+class SimpleTrackData(BaseObjectData):
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    disc_number: int
+    duration_ms: int
+    explicit: bool
+    external_urls: dict[str, Any]
+    is_local: bool
+    is_playable: bool
+    #  linked_from: LinkedTrackData
+    preview_url: str
+    restrictions: TrackRestrictionData
+    track_number: int
+
+
+class TrackData(BaseObjectData):
+    album: SimpleAlbumData
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    disc_number: int
+    duration_ms: int
+    explicit: bool
+    external_ids: dict[str, Any]
+    external_urls: dict[str, Any]
+    is_local: bool
+    is_playable: bool
+    #  linked_from: LinkedTrackData
+    popularity: int
+    preview_url: str
+    restrictions: TrackRestrictionData
+    track_number: int
+
+
+class AudioFeaturesData(TypedDict):
+    acousticness: float
+    analysis_url: str
+    danceability: float
+    duration_ms: int
+    energy: float
     id: str
-    name: str
+    instrumentalness: float
+    key: int
+    liveness: float
+    loudness: float
+    mode: int
+    speechiness: float
+    tempo: float
+    time_signature: int
+    track_href: str
+    type: str
+    uri: str
+    valence: float
+
+
+# USERS API
+
+class ExplicitContentSettingsData(TypedDict):
+    filter_enabled: bool
+    filter_locked: bool
+
+
+# TOKENS
+
+class ClientCredentialsData(TypedDict):
+    access_token: str
+    token_type: str
+    expires_in: int
