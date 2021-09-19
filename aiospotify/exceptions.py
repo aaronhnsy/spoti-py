@@ -1,11 +1,11 @@
 # Future
 from __future__ import annotations
 
+# Standard Library
+from typing import TypedDict
+
 # Packages
 import aiohttp
-
-# My stuff
-from aiospotify.typings.exceptions import AuthenticationErrorData, RegularErrorData
 
 
 __all__ = (
@@ -21,6 +21,16 @@ __all__ = (
     "BadGatewayError",
     "ServiceUnavailable"
 )
+
+
+class AuthenticationErrorData(TypedDict):
+    error: str
+    error_description: str
+
+
+class RegularErrorData(TypedDict):
+    status: int
+    message: str
 
 
 class SpotifyException(Exception):
