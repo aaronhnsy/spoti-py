@@ -209,7 +209,66 @@ class Client:
 
     # BROWSE API
 
-    ...
+    async def get_new_releases(
+        self,
+        *,
+        country: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[objects.SimpleAlbum]:
+
+        response = await self.http.get_new_releases(country=country, limit=limit, offset=offset)
+        return [objects.SimpleAlbum(data) for data in objects.PagingObject(response["albums"]).items]
+
+    async def get_featured_playlists(
+        self,
+        *,
+        country: str | None = None,
+        locale: str | None = None,
+        timestamp: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> tuple[str, list[objects.SimplePlaylist]]:
+
+        response = await self.http.get_featured_playlists(country=country, locale=locale, timestamp=timestamp, limit=limit, offset=offset)
+        return response["message"], [objects.SimplePlaylist(data) for data in objects.PagingObject(response["playlists"]).items]
+
+    async def get_categories(
+        self,
+        *,
+        country: str | None = None,
+        locale: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[objects.Category]:
+
+        response = await self.http.get_categories(country=country, locale=locale, limit=limit, offset=offset)
+        return [objects.Category(data) for data in objects.PagingObject(response["categories"]).items]
+
+    async def get_category(
+        self,
+        _id: str,
+        /,
+        *,
+        country: str | None = None,
+        locale: str | None = None,
+    ) -> objects.Category:
+
+        response = await self.http.get_category(_id, country=country, locale=locale)
+        return objects.Category(response)
+
+    async def get_category_playlists(
+        self,
+        _id: str,
+        /,
+        *,
+        country: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[objects.SimplePlaylist]:
+
+        response = await self.http.get_category_playlists(_id, country=country, limit=limit, offset=offset)
+        return [objects.SimplePlaylist(data) for data in objects.PagingObject(response["playlists"]).items]
 
     async def get_recommendations(
         self,

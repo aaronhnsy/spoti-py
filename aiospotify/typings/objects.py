@@ -34,6 +34,7 @@ __all__ = (
     "PlaylistTrackRefData",
     "SimplePlaylistData",
     "PlaylistData",
+    "CategoryData"
 )
 
 
@@ -53,7 +54,7 @@ class BaseObjectData(TypedDict):
 
 class PagingObjectData(TypedDict):
     href: str
-    items: list[Any]
+    items: list[Any]  # type: ignore
     limit: int
     next: Optional[str | None]
     offset: int
@@ -297,3 +298,10 @@ class PlaylistData(BaseObjectData):
     public: Optional[bool]
     snapshot_id: str
     tracks: PagingObjectData
+
+
+class CategoryData(TypedDict):
+    href: str
+    icons: list[ImageData]
+    id: str
+    name: str

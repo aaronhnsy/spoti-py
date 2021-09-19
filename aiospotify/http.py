@@ -13,10 +13,21 @@ import aiohttp
 
 # My stuff
 from aiospotify import exceptions, objects, utils, values
+from aiospotify.typings.http import (
+    ArtistRelatedArtistsData,
+    ArtistTopTracksData,
+    CategoryPlaylistsData,
+    FeaturedPlaylistsData,
+    MultipleAlbumsData,
+    MultipleArtistsData,
+    MultipleCategoriesData,
+    NewReleasesData,
+)
 from aiospotify.typings.objects import (
     AlbumData,
     ArtistData,
     AudioFeaturesData,
+    CategoryData,
     PagingObjectData,
     PlaylistData,
     RecommendationData,
@@ -31,7 +42,7 @@ __all__ = (
 )
 
 
-__log__: logging.Logger
+__log__: logging.Logger = logging.getLogger("aiospotify.http")
 
 
 class Route:
@@ -125,7 +136,7 @@ class HTTPClient:
                         return response_data
 
                     if response.status == 429:
-                        retry_after = data['retry_after']
+                        retry_after = float(response.headers["Retry-After"])
                         __log__.warning(f"{route.method} @ {route.url} is being ratelimited, retrying in {retry_after:.2f} seconds.")
                         await asyncio.sleep(retry_after)
                         __log__.debug(f"{route.method} @ {route.url} is done sleeping for ratelimit, retrying...")
@@ -163,7 +174,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None
-    ) -> dict[str, Any]:
+    ) -> MultipleAlbumsData:
 
         if len(ids) > 20:
             raise ValueError("'get_albums' can only take a maximum of 20 album ids.")
@@ -214,7 +225,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None
-    ) -> dict[str, Any]:
+    ) -> MultipleArtistsData:
 
         if len(ids) > 50:
             raise ValueError("'get_artists' can only take a maximum of 50 artist ids.")
@@ -242,7 +253,7 @@ class HTTPClient:
         /,
         *,
         market: str = "GB"
-    ) -> dict[str, Any]:
+    ) -> ArtistTopTracksData:
 
         parameters = {"market": market}
         return await self.request(Route("GET", "/artists/{id}/top-tracks", id=_id), parameters=parameters)
@@ -253,7 +264,7 @@ class HTTPClient:
         /,
         *,
         market: str | None
-    ) -> dict[str, Any]:
+    ) -> ArtistRelatedArtistsData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/artists/{id}/related-artists", id=_id), parameters=parameters)
@@ -291,7 +302,7 @@ class HTTPClient:
         country: str | None,
         limit: int | None,
         offset: int | None
-    ) -> dict[str, Any]:
+    ) -> NewReleasesData:
 
         parameters = {}
         if country:
@@ -313,7 +324,7 @@ class HTTPClient:
         timestamp: str | None,
         limit: int | None,
         offset: int | None
-    ) -> dict[str, Any]:
+    ) -> FeaturedPlaylistsData:
 
         parameters = {}
         if country:
@@ -338,7 +349,7 @@ class HTTPClient:
         locale: str | None,
         limit: int | None,
         offset: int | None
-    ) -> dict[str, Any]:
+    ) -> MultipleCategoriesData:
 
         parameters = {}
         if country:
@@ -361,7 +372,7 @@ class HTTPClient:
         *,
         country: str | None,
         locale: str | None,
-    ) -> dict[str, Any]:
+    ) -> CategoryData:
 
         parameters = {}
         if country:
@@ -379,7 +390,7 @@ class HTTPClient:
         country: str | None,
         limit: int | None,
         offset: int | None
-    ) -> dict[str, Any]:
+    ) -> CategoryPlaylistsData:
 
         parameters = {}
         if country:
