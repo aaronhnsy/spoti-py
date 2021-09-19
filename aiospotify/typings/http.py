@@ -8,6 +8,18 @@ from typing import TypedDict, Union
 from aiospotify.typings.objects import AlbumData, ArtistData, PagingObjectData, TrackData
 
 
+__all__ = (
+    "MultipleAlbumsData",
+    "MultipleArtistsData",
+    "ArtistTopTracksData",
+    "ArtistRelatedArtistsData",
+    "NewReleasesData",
+    "FeaturedPlaylistsData",
+    "MultipleCategoriesData",
+    "CategoryPlaylistsData",
+)
+
+
 class MultipleAlbumsData(TypedDict):
     albums: list[Union[AlbumData | None]]
 
