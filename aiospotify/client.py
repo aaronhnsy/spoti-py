@@ -300,7 +300,26 @@ class Client:
 
     # EPISODE API
 
-    ...
+    async def get_episodes(
+        self,
+        ids: Sequence[ID],
+        *,
+        market: str | None = "GB",
+    ) -> dict[ID, objects.Episode | None]:
+
+        response = await self.http.get_episodes(ids=ids, market=market)
+        return dict(zip(ids, [objects.Episode(data) if data else None for data in response["episodes"]]))
+
+    async def get_episode(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = "GB",
+    ) -> objects.Episode:
+
+        response = await self.http.get_episode(_id, market=market)
+        return objects.Episode(response)
 
     # FOLLOW API
 
@@ -413,7 +432,61 @@ class Client:
 
     # SHOWS API
 
-    ...
+    async def get_shows(
+        self,
+        ids: Sequence[ID],
+        *,
+        market: str | None = "GB",
+    ) -> dict[ID, objects.Show | None]:
+
+        response = await self.http.get_shows(ids, market=market)
+        return dict(zip(ids, [objects.Show(data) if data else None for data in response["shows"]]))
+
+    async def get_show(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = "GB",
+    ) -> objects.Show:
+
+        response = await self.http.get_show(_id, market=market)
+        return objects.Show(response)
+
+    async def get_show_episodes(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = "GB",
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[objects.SimpleEpisode]:
+
+        response = await self.http.get_show_episodes(_id, market=market, limit=limit, offset=offset)
+        return [objects.SimpleEpisode(data) for data in objects.PagingObject(response).items]
+
+    async def get_all_show_episodes(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = "GB",
+    ) -> list[objects.SimpleEpisode]:
+
+        response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=0)
+        paging = objects.PagingObject(response)
+
+        episodes = [objects.SimpleEpisode(data) for data in paging.items]
+
+        if paging.total <= 50:  # There are 50 or less episodes and we already have them so just return them
+            return episodes
+
+        for _ in range(1, math.ceil(paging.total / 50)):
+            response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=_ * 50)
+            episodes.extend([objects.SimpleEpisode(data) for data in objects.PagingObject(response).items])
+
+        return episodes
 
     # TRACKS API #
 
