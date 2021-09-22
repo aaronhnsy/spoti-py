@@ -97,27 +97,42 @@ class HTTPClient:
 
     #
 
+    async def get_credentials(
+        self,
+        _credentials: objects.ClientCredentials | objects.UserCredentials | None,
+        /
+    ) -> objects.ClientCredentials | objects.UserCredentials:
+
+        if not _credentials:
+
+            if not self._client_credentials:
+                self._client_credentials = await objects.ClientCredentials.from_client_secret(self._client_id, self._client_secret, session=self._session)
+
+            _credentials = self._client_credentials
+
+        if _credentials.is_expired():
+            await _credentials.refresh(session=self._session)
+
+        return _credentials
+
     async def request(
         self,
         route: Route,
         /,
         *,
         parameters: dict[str, Any] | None = None,
-        data: dict[str, Any] | None = None
+        data: dict[str, Any] | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials | None
     ) -> Any:
 
         if not self._session:
             self._session = aiohttp.ClientSession()
 
-        if not self._client_credentials:
-            self._client_credentials = await objects.ClientCredentials.create(self._client_id, self._client_secret, session=self._session)
-
-        if self._client_credentials.is_expired():
-            await self._client_credentials.refresh(session=self._session)
+        credentials = await self.get_credentials(credentials)
 
         headers = {
             "Content-Type":  "application/json",
-            "Authorization": f"Bearer {self._client_credentials.access_token}"
+            "Authorization": f"Bearer {credentials.access_token}"
         }
 
         for tries in range(5):
@@ -179,7 +194,8 @@ class HTTPClient:
         self,
         ids: Sequence[str],
         *,
-        market: str | None
+        market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> MultipleAlbumsData:
 
         if len(ids) > 20:
@@ -189,18 +205,19 @@ class HTTPClient:
         if market:
             parameters["market"] = market
 
-        return await self.request(Route("GET", "/albums"), parameters=parameters)
+        return await self.request(Route("GET", "/albums"), parameters=parameters, credentials=credentials)
 
     async def get_album(
         self,
         _id: str,
         /,
         *,
-        market: str | None
+        market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> AlbumData:
 
         parameters = {"market": market} if market else None
-        return await self.request(Route("GET", "/albums/{id}", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/albums/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_album_tracks(
         self,
@@ -210,6 +227,7 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> PagingObjectData:
 
         parameters = {}
@@ -222,7 +240,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/albums/{id}/tracks", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/albums/{id}/tracks", id=_id), parameters=parameters, credentials=credentials)
 
     # ARTISTS API
 
@@ -230,7 +248,8 @@ class HTTPClient:
         self,
         ids: Sequence[str],
         *,
-        market: str | None
+        market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> MultipleArtistsData:
 
         if len(ids) > 50:
@@ -240,40 +259,43 @@ class HTTPClient:
         if market:
             parameters["market"] = market
 
-        return await self.request(Route("GET", "/artists"), parameters=parameters)
+        return await self.request(Route("GET", "/artists"), parameters=parameters, credentials=credentials)
 
     async def get_artist(
         self,
         _id: str,
         /,
         *,
-        market: str | None
+        market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> ArtistData:
 
         parameters = {"market": market} if market else None
-        return await self.request(Route("GET", "/artists/{id}", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/artists/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_artist_top_tracks(
         self,
         _id: str,
         /,
         *,
-        market: str = "GB"
+        market: str = "GB",
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> ArtistTopTracksData:
 
         parameters = {"market": market}
-        return await self.request(Route("GET", "/artists/{id}/top-tracks", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/artists/{id}/top-tracks", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_related_artists(
         self,
         _id: str,
         /,
         *,
-        market: str | None
+        market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> ArtistRelatedArtistsData:
 
         parameters = {"market": market} if market else None
-        return await self.request(Route("GET", "/artists/{id}/related-artists", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/artists/{id}/related-artists", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_artist_albums(
         self,
@@ -283,7 +305,8 @@ class HTTPClient:
         market: str | None,
         include_groups: Sequence[objects.IncludeGroup] | None = [objects.IncludeGroup.ALBUM],
         limit: int | None,
-        offset: int | None
+        offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> PagingObjectData:
 
         parameters = {}
@@ -298,7 +321,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/artists/{id}/albums", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/artists/{id}/albums", id=_id), parameters=parameters, credentials=credentials)
 
     # BROWSE API
 
@@ -307,7 +330,8 @@ class HTTPClient:
         *,
         country: str | None,
         limit: int | None,
-        offset: int | None
+        offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> NewReleasesData:
 
         parameters = {}
@@ -320,7 +344,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/browse/new-releases"), parameters=parameters)
+        return await self.request(Route("GET", "/browse/new-releases"), parameters=parameters, credentials=credentials)
 
     async def get_featured_playlists(
         self,
@@ -329,7 +353,8 @@ class HTTPClient:
         locale: str | None,
         timestamp: str | None,
         limit: int | None,
-        offset: int | None
+        offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> FeaturedPlaylistsData:
 
         parameters = {}
@@ -346,7 +371,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/browse/featured-playlists"), parameters=parameters)
+        return await self.request(Route("GET", "/browse/featured-playlists"), parameters=parameters, credentials=credentials)
 
     async def get_categories(
         self,
@@ -354,7 +379,8 @@ class HTTPClient:
         country: str | None,
         locale: str | None,
         limit: int | None,
-        offset: int | None
+        offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> MultipleCategoriesData:
 
         parameters = {}
@@ -369,7 +395,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/browse/categories"), parameters=parameters)
+        return await self.request(Route("GET", "/browse/categories"), parameters=parameters, credentials=credentials)
 
     async def get_category(
         self,
@@ -378,6 +404,7 @@ class HTTPClient:
         *,
         country: str | None,
         locale: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> CategoryData:
 
         parameters = {}
@@ -386,7 +413,7 @@ class HTTPClient:
         if locale:
             parameters["locale"] = locale
 
-        return await self.request(Route("GET", "/browse/categories/{id}", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/browse/categories/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_category_playlists(
         self,
@@ -395,7 +422,8 @@ class HTTPClient:
         *,
         country: str | None,
         limit: int | None,
-        offset: int | None
+        offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> CategoryPlaylistsData:
 
         parameters = {}
@@ -408,7 +436,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/browse/categories/{id}/playlists", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/browse/categories/{id}/playlists", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_recommendations(
         self,
@@ -418,6 +446,7 @@ class HTTPClient:
         seed_track_ids: Sequence[str] | None,
         limit: int | None,
         market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
         **kwargs
     ) -> RecommendationData:
 
@@ -446,12 +475,14 @@ class HTTPClient:
         if market:
             parameters["market"] = market
 
-        return await self.request(Route("GET", "/recommendations"), parameters=parameters)
+        return await self.request(Route("GET", "/recommendations"), parameters=parameters, credentials=credentials)
 
     async def get_recommendation_genres(
-        self
+        self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> RecommendationGenresData:
-        return await self.request(Route("GET", "/recommendations/available-genre-seeds"))
+        return await self.request(Route("GET", "/recommendations/available-genre-seeds"), credentials=credentials)
 
     # EPISODE API
 
@@ -460,6 +491,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> MultipleEpisodesData:
 
         if len(ids) > 50:
@@ -469,7 +501,7 @@ class HTTPClient:
         if market:
             parameters["market"] = market
 
-        return await self.request(Route("GET", "/episodes"), parameters=parameters)
+        return await self.request(Route("GET", "/episodes"), parameters=parameters, credentials=credentials)
 
     async def get_episode(
         self,
@@ -477,10 +509,11 @@ class HTTPClient:
         /,
         *,
         market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> EpisodeData:
 
         parameters = {"market": market} if market else None
-        return await self.request(Route("GET", "/episodes/{id}", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/episodes/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     # FOLLOW API
 
@@ -493,9 +526,11 @@ class HTTPClient:
     # MARKETS API
 
     async def get_available_markets(
-        self
+        self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> AvailableMarketsData:
-        return await self.request(Route("GET", "/markets"))
+        return await self.request(Route("GET", "/markets"), credentials=credentials)
 
     # PERSONALIZATION API
 
@@ -504,7 +539,8 @@ class HTTPClient:
         *,
         time_range: objects.TimeRange | None,
         limit: int | None,
-        offset: int | None
+        offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, None]:
 
         parameters = {}
@@ -517,14 +553,15 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/me/top/artists"), parameters=parameters)
+        return await self.request(Route("GET", "/me/top/artists"), parameters=parameters, credentials=credentials)
 
     async def get_current_users_top_tracks(
         self,
         *,
         time_range: objects.TimeRange | None,
         limit: int | None,
-        offset: int | None
+        offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, None]:
 
         parameters = {}
@@ -537,7 +574,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/me/top/tracks"), parameters=parameters)
+        return await self.request(Route("GET", "/me/top/tracks"), parameters=parameters, credentials=credentials)
 
     # PLAYER API
 
@@ -545,116 +582,129 @@ class HTTPClient:
         self,
         *,
         market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         parameters = {"additional_types": "track"}
         if market:
             parameters["market"] = market
 
-        return await self.request(Route("GET", "/me/player"), parameters=parameters)
+        return await self.request(Route("GET", "/me/player"), parameters=parameters, credentials=credentials)
 
     async def transfer_current_user_playback(
         self,
         *,
         device_id: str,
-        play: bool | None
+        play: bool | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         data: dict[str, Any] = {"device_ids": [device_id]}
         if play:
             data["play"] = play
 
-        return await self.request(Route("PUT", "/me/player"), data=data)
+        return await self.request(Route("PUT", "/me/player"), data=data, credentials=credentials)
 
     async def get_current_user_available_devices(
         self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
-        return await self.request(Route("GET", "/me/player/devices"))
+        return await self.request(Route("GET", "/me/player/devices"), credentials=credentials)
 
     async def get_current_user_playing_track(
         self,
         *,
         market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         parameters = {"additional_types": "track"}
         if market:
             parameters["market"] = market
 
-        return await self.request(Route("GET", "/me/player/currently-playing"), parameters=parameters)
+        return await self.request(Route("GET", "/me/player/currently-playing"), parameters=parameters, credentials=credentials)
 
     async def start_current_user_playback(
         self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> ...:
         raise NotImplementedError
 
     async def pause_current_user_playback(
         self,
         *,
-        device_id: str | None
+        device_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         parameters = {}
         if device_id:
             parameters["device_id"] = device_id
 
-        return await self.request(Route("PUT", "/me/player/pause"), parameters=parameters)
+        return await self.request(Route("PUT", "/me/player/pause"), parameters=parameters, credentials=credentials)
 
     async def skip_forward_current_user_playback(
         self,
         *,
-        device_id: str | None
+        device_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         parameters = {}
         if device_id:
             parameters["device_id"] = device_id
 
-        return await self.request(Route("POST", "/me/player/next"), parameters=parameters)
+        return await self.request(Route("POST", "/me/player/next"), parameters=parameters, credentials=credentials)
 
     async def skip_backward_current_user_playback(
         self,
         *,
-        device_id: str | None
+        device_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         parameters = {}
         if device_id:
             parameters["device_id"] = device_id
 
-        return await self.request(Route("POST", "/me/player/previous"), parameters=parameters)
+        return await self.request(Route("POST", "/me/player/previous"), parameters=parameters, credentials=credentials)
 
     async def seek_current_user_playback(
         self,
         *,
         position_ms: int,
-        device_id: str | None
+        device_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         parameters: dict[str, Any] = {"position_ms": position_ms}
         if device_id:
             parameters["device_id"] = device_id
 
-        return await self.request(Route("PUT", "/me/player/seek"), parameters=parameters)
+        return await self.request(Route("PUT", "/me/player/seek"), parameters=parameters, credentials=credentials)
 
     async def set_current_user_repeat_mode(
         self,
         *,
         repeat_mode: objects.RepeatMode,
-        device_id: str | None
+        device_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         parameters = {"state": repeat_mode.value}
         if device_id:
             parameters["device_id"] = device_id
 
-        return await self.request(Route("PUT", "/me/player/repeat"), parameters=parameters)
+        return await self.request(Route("PUT", "/me/player/repeat"), parameters=parameters, credentials=credentials)
 
     async def set_current_user_volume(
         self,
         *,
         volume_percent: int,
-        device_id: str | None
+        device_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         if volume_percent < 0 or volume_percent > 100:
@@ -664,20 +714,21 @@ class HTTPClient:
         if device_id:
             parameters["device_id"] = device_id
 
-        return await self.request(Route("PUT", "/me/player/volume"), parameters=parameters)
+        return await self.request(Route("PUT", "/me/player/volume"), parameters=parameters, credentials=credentials)
 
     async def set_current_user_shuffle_state(
         self,
         *,
         state: bool,
-        device_id: str | None
+        device_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         parameters: dict[str, Any] = {"state": state}
         if device_id:
             parameters["device_id"] = device_id
 
-        return await self.request(Route("PUT", "/me/player/shuffle"), parameters=parameters)
+        return await self.request(Route("PUT", "/me/player/shuffle"), parameters=parameters, credentials=credentials)
 
     async def get_current_users_recently_played_tracks(
         self,
@@ -685,6 +736,7 @@ class HTTPClient:
         limit: int | None,
         before: int | None,
         after: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         if before and after:
@@ -698,20 +750,21 @@ class HTTPClient:
         if after:
             parameters["after"] = after
 
-        return await self.request(Route("GET", "/me/player/recently-played"), parameters=parameters)
+        return await self.request(Route("GET", "/me/player/recently-played"), parameters=parameters, credentials=credentials)
 
     async def add_item_to_current_user_queue(
         self,
         *,
         uri: str,
-        device_id: str | None
+        device_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         parameters = {"uri": uri}
         if device_id:
             parameters["device_id"] = device_id
 
-        return await self.request(Route("POST", "/me/player/queue"), parameters=parameters)
+        return await self.request(Route("POST", "/me/player/queue"), parameters=parameters, credentials=credentials)
 
     # PLAYLISTS API
 
@@ -720,6 +773,7 @@ class HTTPClient:
         *,
         limit: int | None,
         offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         parameters = {}
@@ -728,7 +782,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/me/playlists"), parameters=parameters)
+        return await self.request(Route("GET", "/me/playlists"), parameters=parameters, credentials=credentials)
 
     async def get_user_playlists(
         self,
@@ -737,6 +791,7 @@ class HTTPClient:
         *,
         limit: int | None,
         offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         parameters = {}
@@ -745,7 +800,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/users/{id}/playlists", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/users/{id}/playlists", id=_id), parameters=parameters, credentials=credentials)
 
     async def create_playlist(
         self,
@@ -754,7 +809,8 @@ class HTTPClient:
         name: str,
         public: bool | None,
         collaborative: bool | None,
-        description: str | None
+        description: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         if collaborative and public:
@@ -768,7 +824,7 @@ class HTTPClient:
         if description:
             data["description"] = description
 
-        return await self.request(Route("POST", "/users/{user_id}/playlists", user_id=user_id), data=data)
+        return await self.request(Route("POST", "/users/{user_id}/playlists", user_id=user_id), data=data, credentials=credentials)
 
     async def get_playlist(
         self,
@@ -777,6 +833,7 @@ class HTTPClient:
         *,
         market: str | None,
         fields: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> PlaylistData:
 
         parameters = {"additional_types": "track"}
@@ -785,7 +842,7 @@ class HTTPClient:
         if fields:
             parameters["fields"] = fields
 
-        return await self.request(Route("GET", "/playlists/{id}", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/playlists/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def change_playlist_details(
         self,
@@ -795,7 +852,8 @@ class HTTPClient:
         name: str | None,
         public: bool | None,
         collaborative: bool | None,
-        description: str | None
+        description: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         if collaborative and public:
@@ -811,7 +869,7 @@ class HTTPClient:
         if description:
             data["description"] = description
 
-        return await self.request(Route("PUT", "/playlists/{id}", id=_id), data=data)
+        return await self.request(Route("PUT", "/playlists/{id}", id=_id), data=data, credentials=credentials)
 
     async def get_playlist_items(
         self,
@@ -822,6 +880,7 @@ class HTTPClient:
         fields: str | None,
         limit: int | None,
         offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> PagingObjectData:
 
         parameters: dict[str, Any] = {"additional_types": "track"}
@@ -836,7 +895,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/playlists/{id}/tracks", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/playlists/{id}/tracks", id=_id), parameters=parameters, credentials=credentials)
 
     async def add_items_to_playlist(
         self,
@@ -845,13 +904,14 @@ class HTTPClient:
         *,
         position: int | None,
         uris: Sequence[str],
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         data: dict[str, Any] = {"uris": uris}
         if position:
             data["position"] = position
 
-        return await self.request(Route("POST", "/playlists/{id}/tracks", id=_id), data=data)
+        return await self.request(Route("POST", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
 
     async def reorder_playlist_items(
         self,
@@ -862,6 +922,7 @@ class HTTPClient:
         insert_before: int,
         range_length: int | None,
         snapshot_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         data: dict[str, Any] = {
@@ -873,14 +934,15 @@ class HTTPClient:
         if snapshot_id:
             data["snapshot_id"] = snapshot_id
 
-        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data)
+        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
 
     async def replace_playlist_items(
         self,
         _id: str,
         /,
         *,
-        uris: Sequence[str] | None
+        uris: Sequence[str] | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> None:
 
         data: dict[str, Any] = {"uris": None}
@@ -889,7 +951,7 @@ class HTTPClient:
                 raise ValueError("'uris' must be less than 100 uris.")
             data["uris"] = uris
 
-        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data)
+        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
 
     async def remove_items_from_playlist(
         self,
@@ -898,23 +960,28 @@ class HTTPClient:
         *,
         uris: Sequence[str],
         snapshot_id: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
 
         data: dict[str, Any] = {"tracks": [{"uri": uri} for uri in uris]}
         if snapshot_id:
             data["snapshot_id"] = snapshot_id
 
-        return await self.request(Route("DELETE", "/playlists/{id}/tracks", id=_id), data=data)
+        return await self.request(Route("DELETE", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
 
     async def get_playlist_cover_image(
         self,
         _id: str,
         /,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> Sequence[dict[str, Any]]:
-        return await self.request(Route("GET", "/playlists/{id}/images", id=_id))
+        return await self.request(Route("GET", "/playlists/{id}/images", id=_id), credentials=credentials)
 
     async def upload_playlist_cover_image(
-        self
+        self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> ...:
         raise NotImplementedError
 
@@ -929,7 +996,8 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        include_external: bool = False
+        include_external: bool = False,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> SearchResultData:
 
         if not search_types:
@@ -951,7 +1019,7 @@ class HTTPClient:
         if include_external:
             parameters["include_external"] = "audio"
 
-        return await self.request(Route("GET", "/search"), parameters=parameters)
+        return await self.request(Route("GET", "/search"), parameters=parameters, credentials=credentials)
 
     # SHOWS API
 
@@ -960,6 +1028,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> MultipleShowsData:
 
         if len(ids) > 50:
@@ -969,7 +1038,7 @@ class HTTPClient:
         if market:
             parameters["market"] = market
 
-        return await self.request(Route("GET", "/shows"), parameters=parameters)
+        return await self.request(Route("GET", "/shows"), parameters=parameters, credentials=credentials)
 
     async def get_show(
         self,
@@ -977,10 +1046,11 @@ class HTTPClient:
         /,
         *,
         market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> ShowData:
 
         parameters = {"market": market} if market else None
-        return await self.request(Route("GET", "/shows/{id}", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/shows/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_show_episodes(
         self,
@@ -990,6 +1060,7 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> PagingObjectData:
 
         parameters = {}
@@ -1002,7 +1073,7 @@ class HTTPClient:
         if offset:
             parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/shows/{id}/episodes", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/shows/{id}/episodes", id=_id), parameters=parameters, credentials=credentials)
 
     # TRACKS API
 
@@ -1010,7 +1081,8 @@ class HTTPClient:
         self,
         ids: Sequence[str],
         *,
-        market: str | None
+        market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[str, Any]:
 
         if len(ids) > 50:
@@ -1020,53 +1092,64 @@ class HTTPClient:
         if market:
             parameters["market"] = market
 
-        return await self.request(Route("GET", "/tracks"), parameters=parameters)
+        return await self.request(Route("GET", "/tracks"), parameters=parameters, credentials=credentials)
 
     async def get_track(
         self,
         _id: str,
         /,
         *,
-        market: str | None
+        market: str | None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> TrackData:
 
         parameters = {"market": market} if market else None
-        return await self.request(Route("GET", "/tracks/{id}", id=_id), parameters=parameters)
+        return await self.request(Route("GET", "/tracks/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_several_tracks_audio_features(
         self,
-        ids: Sequence[str]
+        ids: Sequence[str],
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[str, Any]:
 
         if len(ids) > 100:
             raise ValueError("'get_several_track_audio_features' can only take a maximum of 100 track ids.")
 
-        return await self.request(Route("GET", "/audio-features"), parameters={"ids": ",".join(ids)})
+        return await self.request(Route("GET", "/audio-features"), parameters={"ids": ",".join(ids)}, credentials=credentials)
 
     async def get_track_audio_features(
         self,
         _id: str,
-        /
+        /,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> AudioFeaturesData:
-        return await self.request(Route("GET", "/audio-features/{id}", id=_id))
+        return await self.request(Route("GET", "/audio-features/{id}", id=_id), credentials=credentials)
 
     async def get_track_audio_analysis(
         self,
         _id: str,
         /,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[str, list[AudioFeaturesData]]:
-        return await self.request(Route("GET", "/audio-analysis/{id}", id=_id))
+        return await self.request(Route("GET", "/audio-analysis/{id}", id=_id), credentials=credentials)
 
     # USERS API
 
     async def get_current_user_profile(
-        self
+        self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
-        return await self.request(Route("GET", "/me"))
+        return await self.request(Route("GET", "/me"), credentials=credentials)
 
     async def get_user_profile(
         self,
         _id: str,
         /,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
     ) -> dict[str, Any]:
-        return await self.request(Route("GET", "/users/{id}", id=_id))
+        return await self.request(Route("GET", "/users/{id}", id=_id), credentials=credentials)

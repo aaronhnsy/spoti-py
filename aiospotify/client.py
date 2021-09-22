@@ -54,10 +54,11 @@ class Client:
         self,
         ids: Sequence[ID],
         *,
-        market: str | None = None
+        market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[ID, objects.Album | None]:
 
-        response = await self.http.get_albums(ids=ids, market=market)
+        response = await self.http.get_albums(ids=ids, market=market, credentials=credentials)
         return dict(zip(ids, [objects.Album(data) if data else None for data in response["albums"]]))
 
     async def get_album(
@@ -65,10 +66,11 @@ class Client:
         _id: str,
         /,
         *,
-        market: str | None = None
+        market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Album:
 
-        response = await self.http.get_album(_id, market=market)
+        response = await self.http.get_album(_id, market=market, credentials=credentials)
         return objects.Album(response)
 
     async def get_album_tracks(
@@ -79,9 +81,10 @@ class Client:
         market: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.SimpleTrack]:
 
-        response = await self.http.get_album_tracks(_id, market=market, limit=limit, offset=offset)
+        response = await self.http.get_album_tracks(_id, market=market, limit=limit, offset=offset, credentials=credentials)
         return [objects.SimpleTrack(data) for data in objects.PagingObject(response).items]
 
     async def get_all_album_tracks(
@@ -90,9 +93,10 @@ class Client:
         /,
         *,
         market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.SimpleTrack]:
 
-        response = await self.http.get_album_tracks(_id, market=market, limit=50, offset=0)
+        response = await self.http.get_album_tracks(_id, market=market, limit=50, offset=0, credentials=credentials)
         paging = objects.PagingObject(response)
 
         tracks = [objects.SimpleTrack(data) for data in paging.items]
@@ -101,7 +105,7 @@ class Client:
             return tracks
 
         for _ in range(1, math.ceil(paging.total / 50)):
-            response = await self.http.get_album_tracks(_id, market=market, limit=50, offset=_ * 50)
+            response = await self.http.get_album_tracks(_id, market=market, limit=50, offset=_ * 50, credentials=credentials)
             tracks.extend([objects.SimpleTrack(data) for data in objects.PagingObject(response).items])
 
         return tracks
@@ -112,15 +116,16 @@ class Client:
         /,
         *,
         market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Album:
 
-        album = await self.get_album(_id, market=market)
+        album = await self.get_album(_id, market=market, credentials=credentials)
 
         if album._tracks_paging.total <= 50:  # The album has 50 or less tracks already so we can just return it now.
             return album
 
         for _ in range(2, math.ceil(album._tracks_paging.total / 50)):
-            response = await self.http.get_album_tracks(_id, market=market, limit=50, offset=_ * 50)
+            response = await self.http.get_album_tracks(_id, market=market, limit=50, offset=_ * 50, credentials=credentials)
             album.tracks.extend([objects.SimpleTrack(data) for data in objects.PagingObject(response).items])
 
         return album
@@ -131,10 +136,11 @@ class Client:
         self,
         ids: Sequence[ID],
         *,
-        market: str | None = None
+        market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[ID, objects.Artist | None]:
 
-        response = await self.http.get_artists(ids=ids, market=market)
+        response = await self.http.get_artists(ids=ids, market=market, credentials=credentials)
         return dict(zip(ids, [objects.Artist(data) if data else None for data in response["artists"]]))
 
     async def get_artist(
@@ -142,10 +148,11 @@ class Client:
         _id: str,
         /,
         *,
-        market: str | None = None
+        market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Artist:
 
-        response = await self.http.get_artist(_id, market=market)
+        response = await self.http.get_artist(_id, market=market, credentials=credentials)
         return objects.Artist(response)
 
     async def get_artist_top_tracks(
@@ -153,10 +160,11 @@ class Client:
         _id: str,
         /,
         *,
-        market: str = "GB"
+        market: str = "GB",
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.Track]:
 
-        response = await self.http.get_artist_top_tracks(_id, market=market)
+        response = await self.http.get_artist_top_tracks(_id, market=market, credentials=credentials)
         return [objects.Track(data) for data in response["tracks"]]
 
     async def get_related_artists(
@@ -164,10 +172,11 @@ class Client:
         _id: str,
         /,
         *,
-        market: str | None = None
+        market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.Artist]:
 
-        response = await self.http.get_related_artists(_id, market=market)
+        response = await self.http.get_related_artists(_id, market=market, credentials=credentials)
         return [objects.Artist(data) for data in response["artists"]]
 
     async def get_artist_albums(
@@ -178,10 +187,11 @@ class Client:
         market: str | None = None,
         include_groups: Sequence[objects.IncludeGroup] | None = [objects.IncludeGroup.ALBUM],
         limit: int | None = None,
-        offset: int | None = None
+        offset: int | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.SimpleAlbum]:
 
-        response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=limit, offset=offset)
+        response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=limit, offset=offset, credentials=credentials)
         return [objects.SimpleAlbum(data) for data in objects.PagingObject(response).items]
 
     async def get_all_artist_albums(
@@ -191,9 +201,10 @@ class Client:
         *,
         market: str | None = None,
         include_groups: Sequence[objects.IncludeGroup] | None = [objects.IncludeGroup.ALBUM],
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.SimpleAlbum]:
 
-        response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=50, offset=0)
+        response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=50, offset=0, credentials=credentials)
         paging = objects.PagingObject(response)
 
         albums = [objects.SimpleAlbum(data) for data in paging.items]
@@ -202,7 +213,7 @@ class Client:
             return albums
 
         for _ in range(1, math.ceil(paging.total / 50)):
-            response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=50, offset=_ * 50)
+            response = await self.http.get_artist_albums(_id, market=market, include_groups=include_groups, limit=50, offset=_ * 50, credentials=credentials)
             albums.extend([objects.SimpleAlbum(data) for data in objects.PagingObject(response).items])
 
         return albums
@@ -215,9 +226,10 @@ class Client:
         country: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.SimpleAlbum]:
 
-        response = await self.http.get_new_releases(country=country, limit=limit, offset=offset)
+        response = await self.http.get_new_releases(country=country, limit=limit, offset=offset, credentials=credentials)
         return [objects.SimpleAlbum(data) for data in objects.PagingObject(response["albums"]).items]
 
     async def get_featured_playlists(
@@ -228,9 +240,17 @@ class Client:
         timestamp: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> tuple[str, list[objects.SimplePlaylist]]:
 
-        response = await self.http.get_featured_playlists(country=country, locale=locale, timestamp=timestamp, limit=limit, offset=offset)
+        response = await self.http.get_featured_playlists(
+            country=country,
+            locale=locale,
+            timestamp=timestamp,
+            limit=limit,
+            offset=offset,
+            credentials=credentials
+        )
         return response["message"], [objects.SimplePlaylist(data) for data in objects.PagingObject(response["playlists"]).items]
 
     async def get_categories(
@@ -240,9 +260,10 @@ class Client:
         locale: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.Category]:
 
-        response = await self.http.get_categories(country=country, locale=locale, limit=limit, offset=offset)
+        response = await self.http.get_categories(country=country, locale=locale, limit=limit, offset=offset, credentials=credentials)
         return [objects.Category(data) for data in objects.PagingObject(response["categories"]).items]
 
     async def get_category(
@@ -252,9 +273,10 @@ class Client:
         *,
         country: str | None = None,
         locale: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Category:
 
-        response = await self.http.get_category(_id, country=country, locale=locale)
+        response = await self.http.get_category(_id, country=country, locale=locale, credentials=credentials)
         return objects.Category(response)
 
     async def get_category_playlists(
@@ -265,9 +287,10 @@ class Client:
         country: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.SimplePlaylist]:
 
-        response = await self.http.get_category_playlists(_id, country=country, limit=limit, offset=offset)
+        response = await self.http.get_category_playlists(_id, country=country, limit=limit, offset=offset, credentials=credentials)
         return [objects.SimplePlaylist(data) for data in objects.PagingObject(response["playlists"]).items]
 
     async def get_recommendations(
@@ -278,6 +301,7 @@ class Client:
         seed_track_ids: Sequence[str] | None = None,
         limit: int | None = None,
         market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
         **kwargs
     ) -> objects.Recommendation:
 
@@ -287,15 +311,18 @@ class Client:
             seed_track_ids=seed_track_ids,
             limit=limit,
             market=market,
+           credentials = credentials,
             **kwargs
         )
         return objects.Recommendation(response)
 
     async def get_recommendation_genres(
-        self
+        self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[str]:
 
-        response = await self.http.get_recommendation_genres()
+        response = await self.http.get_recommendation_genres(credentials=credentials)
         return response["genres"]
 
     # EPISODE API
@@ -305,9 +332,10 @@ class Client:
         ids: Sequence[ID],
         *,
         market: str | None = "GB",
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[ID, objects.Episode | None]:
 
-        response = await self.http.get_episodes(ids=ids, market=market)
+        response = await self.http.get_episodes(ids=ids, market=market, credentials=credentials)
         return dict(zip(ids, [objects.Episode(data) if data else None for data in response["episodes"]]))
 
     async def get_episode(
@@ -316,9 +344,10 @@ class Client:
         /,
         *,
         market: str | None = "GB",
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Episode:
 
-        response = await self.http.get_episode(_id, market=market)
+        response = await self.http.get_episode(_id, market=market, credentials=credentials)
         return objects.Episode(response)
 
     # FOLLOW API
@@ -332,10 +361,12 @@ class Client:
     # MARKETS API
 
     async def get_available_markets(
-        self
+        self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[str]:
 
-        response = await self.http.get_available_markets()
+        response = await self.http.get_available_markets(credentials=credentials)
         return response["markets"]
 
     # PERSONALIZATION API
@@ -350,10 +381,11 @@ class Client:
         /,
         *,
         market: str | None = None,
-        fields: str | None = None
+        fields: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Playlist:
 
-        response = await self.http.get_playlist(_id, market=market, fields=fields)
+        response = await self.http.get_playlist(_id, market=market, fields=fields, credentials=credentials)
         return objects.Playlist(response)
 
     async def get_playlist_items(
@@ -365,9 +397,10 @@ class Client:
         fields: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.PlaylistTrack]:
 
-        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=limit, offset=offset)
+        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=limit, offset=offset, credentials=credentials)
         return [objects.PlaylistTrack(data) for data in objects.PagingObject(response).items]
 
     async def get_all_playlist_items(
@@ -377,9 +410,10 @@ class Client:
         *,
         market: str | None = None,
         fields: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.PlaylistTrack]:
 
-        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=0)
+        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=0, credentials=credentials)
         paging = objects.PagingObject(response)
 
         items = [objects.PlaylistTrack(data) for data in paging.items]
@@ -388,7 +422,7 @@ class Client:
             return items
 
         for _ in range(1, math.ceil(paging.total / 100)):
-            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100)
+            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100, credentials=credentials)
             items.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
 
         return items
@@ -400,15 +434,16 @@ class Client:
         *,
         market: str | None = None,
         fields: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Playlist:
 
-        playlist = await self.get_playlist(_id, market=market, fields=fields)
+        playlist = await self.get_playlist(_id, market=market, fields=fields, credentials=credentials)
 
         if playlist._tracks_paging.total <= 100:  # The playlist has 100 or less tracks already so we can just return it now.
             return playlist
 
         for _ in range(1, math.ceil(playlist._tracks_paging.total / 100)):
-            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100)
+            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100, credentials=credentials)
             playlist.tracks.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
 
         return playlist
@@ -424,10 +459,19 @@ class Client:
         market: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        include_external: bool = False
+        include_external: bool = False,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.SearchResult:
 
-        response = await self.http.search(query, search_types=search_types, market=market, limit=limit, offset=offset, include_external=include_external)
+        response = await self.http.search(
+            query,
+            search_types=search_types,
+            market=market,
+            limit=limit,
+            offset=offset,
+            include_external=include_external,
+            credentials=credentials
+        )
         return objects.SearchResult(response)
 
     # SHOWS API
@@ -437,9 +481,10 @@ class Client:
         ids: Sequence[ID],
         *,
         market: str | None = "GB",
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[ID, objects.Show | None]:
 
-        response = await self.http.get_shows(ids, market=market)
+        response = await self.http.get_shows(ids, market=market, credentials=credentials)
         return dict(zip(ids, [objects.Show(data) if data else None for data in response["shows"]]))
 
     async def get_show(
@@ -448,9 +493,10 @@ class Client:
         /,
         *,
         market: str | None = "GB",
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Show:
 
-        response = await self.http.get_show(_id, market=market)
+        response = await self.http.get_show(_id, market=market, credentials=credentials)
         return objects.Show(response)
 
     async def get_show_episodes(
@@ -461,9 +507,10 @@ class Client:
         market: str | None = "GB",
         limit: int | None = None,
         offset: int | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.SimpleEpisode]:
 
-        response = await self.http.get_show_episodes(_id, market=market, limit=limit, offset=offset)
+        response = await self.http.get_show_episodes(_id, market=market, limit=limit, offset=offset, credentials=credentials)
         return [objects.SimpleEpisode(data) for data in objects.PagingObject(response).items]
 
     async def get_all_show_episodes(
@@ -472,9 +519,10 @@ class Client:
         /,
         *,
         market: str | None = "GB",
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> list[objects.SimpleEpisode]:
 
-        response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=0)
+        response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=0, credentials=credentials)
         paging = objects.PagingObject(response)
 
         episodes = [objects.SimpleEpisode(data) for data in paging.items]
@@ -483,7 +531,7 @@ class Client:
             return episodes
 
         for _ in range(1, math.ceil(paging.total / 50)):
-            response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=_ * 50)
+            response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=_ * 50, credentials=credentials)
             episodes.extend([objects.SimpleEpisode(data) for data in objects.PagingObject(response).items])
 
         return episodes
@@ -495,9 +543,10 @@ class Client:
         ids: Sequence[ID],
         *,
         market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[ID, objects.Track | None]:
 
-        response = await self.http.get_tracks(ids=ids, market=market)
+        response = await self.http.get_tracks(ids=ids, market=market, credentials=credentials)
         return dict(zip(ids, [objects.Track(data) if data else None for data in response["tracks"]]))
 
     async def get_track(
@@ -506,26 +555,31 @@ class Client:
         /,
         *,
         market: str | None = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.Track:
 
-        response = await self.http.get_track(_id, market=market)
+        response = await self.http.get_track(_id, market=market, credentials=credentials)
         return objects.Track(response)
 
     async def get_several_tracks_audio_features(
         self,
-        ids: Sequence[ID]
+        ids: Sequence[ID],
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> dict[ID, objects.AudioFeatures | None]:
 
-        response = await self.http.get_several_tracks_audio_features(ids)
+        response = await self.http.get_several_tracks_audio_features(ids, credentials=credentials)
         return dict(zip(ids, [objects.AudioFeatures(data) if data else None for data in response["audio_features"]]))
 
     async def get_track_audio_features(
         self,
         _id: str,
-        /
+        /,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
     ) -> objects.AudioFeatures:
 
-        response = await self.http.get_track_audio_features(_id)
+        response = await self.http.get_track_audio_features(_id, credentials=credentials)
         return objects.AudioFeatures(response)
 
     ...

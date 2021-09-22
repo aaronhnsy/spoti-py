@@ -371,3 +371,11 @@ class ClientCredentialsData(TypedDict):
     access_token: str
     token_type: str
     expires_in: int
+
+
+class UserCredentialsData(TypedDict):
+    access_token: str
+    token_type: str
+    expires_in: int
+    scope: str
+    refresh_token: str
