@@ -238,7 +238,7 @@ class CurrentlyPlayingData(TypedDict):
 
 class PlaylistTrackData(BaseObjectData):
     added_at: str
-    added_by: dict[str, Any]
+    added_by: UserData
     is_local: bool
     primary_color: Any
     video_thumbnail: Any
@@ -255,7 +255,7 @@ class SimplePlaylistData(BaseObjectData):
     description: Optional[str]
     external_urls: dict[str, Any]
     images: list[ImageData]
-    owner: dict[str, Any]
+    owner: UserData
     primary_color: Optional[str]
     public: Optional[bool]
     snapshot_id: str
@@ -268,7 +268,7 @@ class PlaylistData(BaseObjectData):
     external_urls: dict[str, Any]
     followers: FollowersData
     images: list[ImageData]
-    owner: dict[str, Any]
+    owner: UserData
     primary_color: Optional[str]
     public: Optional[bool]
     snapshot_id: str
@@ -363,6 +363,17 @@ class AudioFeaturesData(TypedDict):
 class ExplicitContentSettingsData(TypedDict):
     filter_enabled: bool
     filter_locked: bool
+
+
+class UserData(BaseObjectData):
+    country: str
+    display_name: str
+    email: str
+    explicit_content: ExplicitContentSettingsData
+    external_urls: dict[str, Any]
+    followers: FollowersData
+    images: list[ImageData]
+    product: str
 
 
 # TOKENS

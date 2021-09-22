@@ -39,6 +39,7 @@ from aiospotify.typings.objects import (
     RecommendationData,
     ShowData,
     TrackData,
+    UserData,
 )
 
 
@@ -1142,7 +1143,7 @@ class HTTPClient:
         self,
         *,
         credentials: objects.ClientCredentials | objects.UserCredentials,
-    ) -> dict[str, Any]:
+    ) -> UserData:
         return await self.request(Route("GET", "/me"), credentials=credentials)
 
     async def get_user_profile(
@@ -1151,5 +1152,5 @@ class HTTPClient:
         /,
         *,
         credentials: objects.ClientCredentials | objects.UserCredentials,
-    ) -> dict[str, Any]:
+    ) -> UserData:
         return await self.request(Route("GET", "/users/{id}", id=_id), credentials=credentials)

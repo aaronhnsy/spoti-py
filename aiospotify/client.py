@@ -311,7 +311,7 @@ class Client:
             seed_track_ids=seed_track_ids,
             limit=limit,
             market=market,
-           credentials = credentials,
+            credentials=credentials,
             **kwargs
         )
         return objects.Recommendation(response)
@@ -586,4 +586,22 @@ class Client:
 
     # USERS API
 
-    ...
+    async def get_current_user_profile(
+        self,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
+    ) -> objects.User:
+
+        response = await self.http.get_current_user_profile(credentials=credentials)
+        return objects.User(response)
+
+    async def get_user_profile(
+        self,
+        _id: str,
+        /,
+        *,
+        credentials: objects.ClientCredentials | objects.UserCredentials,
+    ) -> objects.User:
+
+        response = await self.http.get_user_profile(_id, credentials=credentials)
+        return objects.User(response)
