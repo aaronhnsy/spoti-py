@@ -113,7 +113,7 @@ class UserCredentials:
         self._access_token = data["access_token"]
         self._token_type = data["token_type"]
         self._scope = data["scope"]
-        self._expires_in = 10
+        self._expires_in = data["expires_in"]
         self._refresh_token = data.get("refresh_token")
 
         self._client_id: str = client_id
@@ -159,8 +159,6 @@ class UserCredentials:
             "client_id":     self._client_id,
             "client_secret": self._client_secret
         }
-
-        print(data)
 
         async with session.post(url=TOKEN_URL, data=data) as post:
 
