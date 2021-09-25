@@ -17,7 +17,6 @@ with open("requirements.txt") as file:
 with open("aiospotify/__init__.py") as file:
     VERSION = re.search(r"^__version__: [^=]* = \"([^\"]*)\"", file.read(), re.MULTILINE).group(1)
 
-
 CLASSIFIERS = [
     "Framework :: AsyncIO",
     "Topic :: Software Development",
@@ -39,9 +38,8 @@ CLASSIFIERS = [
 PROJECT_URLS = {
     "Documentation": "https://aiospotify.readthedocs.io/en/latest/",
     "Issue Tracker": "https://github.com/Axelancerr/aiospotify/issues",
-    "Source": "https://github.com/Axelancerr/aiospotify",
+    "Source":        "https://github.com/Axelancerr/aiospotify",
 }
-
 
 EXTRAS_REQUIRE = {
     "docs": [
