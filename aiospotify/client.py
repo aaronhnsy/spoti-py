@@ -407,7 +407,92 @@ class Client:
         response = await self.http.get_current_users_top_tracks(time_range=time_range, limit=limit, offset=offset, credentials=credentials)
         return [objects.Track(data) for data in objects.PagingObject(response).items]
 
+    # PLAYER API
+
+    ...  # get_current_user_playback
+    ...  # transfer_current_user_playback
+    ...  # get_current_user_available_devices
+    ...  # get_current_user_playing_track
+    ...  # start_current_user_playback
+    ...  # pause_current_user_playback
+    ...  # skip_forward_current_user_playback
+    ...  # skip_backward_current_user_playback
+    ...  # seek_current_user_playback
+    ...  # set_current_user_repeat_mode
+    ...  # set_current_user_volume
+    ...  # set_current_user_shuffle_state
+    ...  # get_current_users_recently_played_tracks
+    ...  # add_item_to_current_user_queue
+
     # PLAYLISTS API
+
+    async def get_current_user_playlists(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        credentials: Credentials,
+    ) -> list[objects.SimplePlaylist]:
+
+        response = await self.http.get_current_user_playlists(limit=limit, offset=offset, credentials=credentials)
+        return [objects.SimplePlaylist(data) for data in objects.PagingObject(response).items]
+
+    async def get_all_current_user_playlists(
+        self,
+        *,
+        credentials: Credentials,
+    ) -> list[objects.SimplePlaylist]:
+
+        response = await self.http.get_current_user_playlists(limit=50, offset=0, credentials=credentials)
+        paging = objects.PagingObject(response)
+
+        playlists = [objects.SimplePlaylist(data) for data in paging.items]
+
+        if paging.total <= 50:  # There are 50 or fewer playlists, and we already have them so just return them
+            return playlists
+
+        for _ in range(1, math.ceil(paging.total / 50)):
+            response = await self.http.get_current_user_playlists(limit=50, offset=_ * 50, credentials=credentials)
+            playlists.extend([objects.SimplePlaylist(data) for data in objects.PagingObject(response).items])
+
+        return playlists
+
+    async def get_user_playlists(
+        self,
+        _id: str,
+        /,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> list[objects.SimplePlaylist]:
+
+        response = await self.http.get_user_playlists(_id, limit=limit, offset=offset, credentials=credentials)
+        return [objects.SimplePlaylist(data) for data in objects.PagingObject(response).items]
+
+    async def get_all_user_playlists(
+        self,
+        _id: str,
+        /,
+        *,
+        credentials: OptionalCredentials = None,
+    ) -> list[objects.SimplePlaylist]:
+
+        response = await self.http.get_user_playlists(_id, limit=50, offset=0, credentials=credentials)
+        paging = objects.PagingObject(response)
+
+        playlists = [objects.SimplePlaylist(data) for data in paging.items]
+
+        if paging.total <= 50:  # There are 50 or fewer playlists, and we already have them so just return them
+            return playlists
+
+        for _ in range(1, math.ceil(paging.total / 50)):
+            response = await self.http.get_user_playlists(_id, limit=50, offset=_ * 50, credentials=credentials)
+            playlists.extend([objects.SimplePlaylist(data) for data in objects.PagingObject(response).items])
+
+        return playlists
+
+    ...  # create_playlist
 
     async def get_playlist(
         self,
@@ -421,6 +506,8 @@ class Client:
 
         response = await self.http.get_playlist(_id, market=market, fields=fields, credentials=credentials)
         return objects.Playlist(response)
+
+    ...  # change_playlist_details
 
     async def get_playlist_items(
         self,
@@ -481,6 +568,27 @@ class Client:
             playlist.tracks.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
 
         return playlist
+
+    ...  # add_items_to_playlist
+
+    ...  # reorder_playlist_items
+
+    ...  # replace_playlist_items
+
+    ...  # remove_items_from_playlist
+
+    async def get_playlist_cover_image(
+        self,
+        _id: str,
+        /,
+        *,
+        credentials: OptionalCredentials = None
+    ) -> list[objects.Image]:
+
+        response = await self.http.get_playlist_cover_image(_id, credentials=credentials)
+        return [objects.Image(data) for data in response]
+
+    ...  # upload_playlist_cover_image
 
     # SEARCH API
 
@@ -616,7 +724,7 @@ class Client:
         response = await self.http.get_track_audio_features(_id, credentials=credentials)
         return objects.AudioFeatures(response)
 
-    ...
+    ...  # get_track_audio_analysis
 
     # USERS API
 

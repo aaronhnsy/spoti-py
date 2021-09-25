@@ -36,6 +36,7 @@ from aiospotify.typings.objects import (
     AudioFeaturesData,
     CategoryData,
     EpisodeData,
+    ImageData,
     PagingObjectData,
     PlaylistData,
     RecommendationData,
@@ -542,7 +543,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: Credentials,
-    ) -> dict[str, Any]:
+    ) -> PagingObjectData:
 
         parameters = {}
         if time_range:
@@ -563,7 +564,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: Credentials,
-    ) -> dict[str, Any]:
+    ) -> PagingObjectData:
 
         parameters = {}
         if time_range:
@@ -775,7 +776,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: Credentials,
-    ) -> dict[str, Any]:
+    ) -> PagingObjectData:
 
         parameters = {}
         if limit:
@@ -793,7 +794,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: Credentials,
-    ) -> dict[str, Any]:
+    ) -> PagingObjectData:
 
         parameters = {}
         if limit:
@@ -976,7 +977,7 @@ class HTTPClient:
         /,
         *,
         credentials: OptionalCredentials = None,
-    ) -> Sequence[dict[str, Any]]:
+    ) -> Sequence[ImageData]:
         return await self.request(Route("GET", "/playlists/{id}/images", id=_id), credentials=credentials)
 
     async def upload_playlist_cover_image(
