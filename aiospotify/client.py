@@ -383,7 +383,29 @@ class Client:
 
     # PERSONALIZATION API
 
-    ...
+    async def get_current_users_top_artists(
+        self,
+        *,
+        time_range: objects.TimeRange | None,
+        limit: int | None,
+        offset: int | None,
+        credentials: Credentials,
+    ) -> list[objects.Artist]:
+
+        response = await self.http.get_current_users_top_artists(time_range=time_range, limit=limit, offset=offset, credentials=credentials)
+        return [objects.Artist(data) for data in objects.PagingObject(response).items]
+
+    async def get_current_users_top_tracks(
+        self,
+        *,
+        time_range: objects.TimeRange | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        credentials: Credentials,
+    ) -> list[objects.Track]:
+
+        response = await self.http.get_current_users_top_tracks(time_range=time_range, limit=limit, offset=offset, credentials=credentials)
+        return [objects.Track(data) for data in objects.PagingObject(response).items]
 
     # PLAYLISTS API
 
