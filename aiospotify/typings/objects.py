@@ -41,6 +41,10 @@ class CopyrightData(TypedDict):
     type: str
 
 
+ExternalUrlsData = dict[str, Any]
+ExternalIdsData = dict[str, Any]
+
+
 # ALBUMS API
 
 class AlbumRestrictionData(TypedDict):
@@ -51,7 +55,7 @@ class SimpleAlbumData(BaseObjectData):
     album_type: str
     artists: list[SimpleArtistData]
     available_markets: list[str]
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     images: list[ImageData]
     release_date: str
     release_date_precision: str
@@ -64,8 +68,8 @@ class AlbumData(BaseObjectData):
     artists: list[SimpleArtistData]
     available_markets: list[str]
     copyrights: list[CopyrightData]
-    external_ids: dict[str, Any]
-    external_urls: dict[str, Any]
+    external_ids: ExternalIdsData
+    external_urls: ExternalUrlsData
     genres: list[str]
     images: list[ImageData]
     label: str
@@ -80,7 +84,7 @@ class AlbumData(BaseObjectData):
 # ARTISTS API
 
 class SimpleArtistData(BaseObjectData):
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
 
 
 class ArtistData(SimpleArtistData):
@@ -129,7 +133,7 @@ class SimpleEpisodeData(BaseObjectData):
     description: str
     duration_ms: int
     explicit: bool
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     html_description: str
     images: list[ImageData]
     is_externally_hosted: bool
@@ -146,7 +150,7 @@ class EpisodeData(BaseObjectData):
     description: str
     duration_ms: int
     explicit: bool
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     html_description: str
     images: list[ImageData]
     is_externally_hosted: bool
@@ -205,7 +209,7 @@ class DisallowsData(TypedDict):
 
 
 class ContextData(TypedDict):
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     href: str
     type: str
     uri: str
@@ -253,7 +257,7 @@ class PlaylistTrackRefData(TypedDict):
 class SimplePlaylistData(BaseObjectData):
     collaborative: bool
     description: Optional[str]
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     images: list[ImageData]
     owner: UserData
     primary_color: Optional[str]
@@ -265,7 +269,7 @@ class SimplePlaylistData(BaseObjectData):
 class PlaylistData(BaseObjectData):
     collaborative: bool
     description: Optional[str]
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     followers: FollowersData
     images: list[ImageData]
     owner: UserData
@@ -287,7 +291,7 @@ class ShowData(BaseObjectData):
     copyrights: list[CopyrightData]
     description: str
     explicit: bool
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     html_description: str
     images: list[ImageData]
     is_externally_hosted: bool
@@ -310,7 +314,7 @@ class SimpleTrackData(BaseObjectData):
     disc_number: int
     duration_ms: int
     explicit: bool
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     is_local: bool
     is_playable: bool
     #  linked_from: LinkedTrackData
@@ -326,8 +330,8 @@ class TrackData(BaseObjectData):
     disc_number: int
     duration_ms: int
     explicit: bool
-    external_ids: dict[str, Any]
-    external_urls: dict[str, Any]
+    external_ids: ExternalIdsData
+    external_urls: ExternalUrlsData
     is_local: bool
     is_playable: bool
     #  linked_from: LinkedTrackData
@@ -370,7 +374,7 @@ class UserData(BaseObjectData):
     display_name: str
     email: str
     explicit_content: ExplicitContentSettingsData
-    external_urls: dict[str, Any]
+    external_urls: ExternalUrlsData
     followers: FollowersData
     images: list[ImageData]
     product: str
