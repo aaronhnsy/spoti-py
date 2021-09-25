@@ -33,8 +33,8 @@ class User(objects.BaseObject):
         self.email = data.get("email")
         self.explicit_content_settings = ExplicitContentSettings(explicit_content) if (explicit_content := data.get("explicit_content")) else None
         self.external_urls = data["external_urls"]
-        self.followers = objects.Followers(data["followers"])
-        self.images = [objects.Image(image) for image in data["images"]]
+        self.followers = objects.Followers(followers) if (followers := data.get("followers")) else None
+        self.images = [objects.Image(image) for image in images] if (images := data.get("images")) else None
         self.product = data.get("product")
 
     def __repr__(self) -> str:
