@@ -6,7 +6,7 @@ import asyncio
 import logging
 import urllib.parse
 from collections.abc import Sequence
-from typing import Any, ClassVar, Literal
+from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
 # Packages
 import aiohttp
@@ -41,6 +41,12 @@ from aiospotify.typings.objects import (
     TrackData,
     UserData,
 )
+
+
+if TYPE_CHECKING:
+
+    # My stuff
+    from aiospotify.typings import Credentials, OptionalCredentials
 
 
 __all__ = (
@@ -98,42 +104,30 @@ class HTTPClient:
 
     #
 
-    async def get_credentials(
-        self,
-        _credentials: objects.ClientCredentials | objects.UserCredentials | None,
-        /
-    ) -> objects.ClientCredentials | objects.UserCredentials:
-
-        if not _credentials:
-
-            if not self._client_credentials:
-                self._client_credentials = await objects.ClientCredentials.from_client_secret(self._client_id, self._client_secret, session=self._session)
-
-            _credentials = self._client_credentials
-
-        if _credentials.is_expired():
-            await _credentials.refresh(session=self._session)
-
-        return _credentials
-
     async def request(
         self,
         route: Route,
         /,
         *,
+        credentials: OptionalCredentials,
         parameters: dict[str, Any] | None = None,
         data: dict[str, Any] | None = None,
-        credentials: objects.ClientCredentials | objects.UserCredentials | None
     ) -> Any:
 
         if not self._session:
             self._session = aiohttp.ClientSession()
 
-        credentials = await self.get_credentials(credentials)
+        if not self._client_credentials:
+            self._client_credentials = await objects.ClientCredentials.from_client_secret(self._client_id, self._client_secret, session=self._session)
+
+        _credentials = credentials or self._client_credentials
+
+        if _credentials.is_expired():
+            await _credentials.refresh(session=self._session)
 
         headers = {
             "Content-Type":  "application/json",
-            "Authorization": f"Bearer {credentials.access_token}"
+            "Authorization": f"Bearer {_credentials.access_token}"
         }
 
         for tries in range(5):
@@ -196,7 +190,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> MultipleAlbumsData:
 
         if len(ids) > 20:
@@ -214,7 +208,7 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> AlbumData:
 
         parameters = {"market": market} if market else None
@@ -228,7 +222,7 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> PagingObjectData:
 
         parameters = {}
@@ -250,7 +244,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> MultipleArtistsData:
 
         if len(ids) > 50:
@@ -268,7 +262,7 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> ArtistData:
 
         parameters = {"market": market} if market else None
@@ -280,7 +274,7 @@ class HTTPClient:
         /,
         *,
         market: str = "GB",
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> ArtistTopTracksData:
 
         parameters = {"market": market}
@@ -292,7 +286,7 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> ArtistRelatedArtistsData:
 
         parameters = {"market": market} if market else None
@@ -304,11 +298,14 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        include_groups: Sequence[objects.IncludeGroup] | None = [objects.IncludeGroup.ALBUM],
+        include_groups: Sequence[objects.IncludeGroup] | None = utils.MISSING,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> PagingObjectData:
+
+        if include_groups == utils.MISSING:
+            include_groups = [objects.IncludeGroup.ALBUM]
 
         parameters = {}
         if market:
@@ -332,7 +329,7 @@ class HTTPClient:
         country: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> NewReleasesData:
 
         parameters = {}
@@ -355,7 +352,7 @@ class HTTPClient:
         timestamp: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> FeaturedPlaylistsData:
 
         parameters = {}
@@ -381,7 +378,7 @@ class HTTPClient:
         locale: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> MultipleCategoriesData:
 
         parameters = {}
@@ -405,7 +402,7 @@ class HTTPClient:
         *,
         country: str | None,
         locale: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> CategoryData:
 
         parameters = {}
@@ -424,7 +421,7 @@ class HTTPClient:
         country: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> CategoryPlaylistsData:
 
         parameters = {}
@@ -447,7 +444,7 @@ class HTTPClient:
         seed_track_ids: Sequence[str] | None,
         limit: int | None,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
         **kwargs
     ) -> RecommendationData:
 
@@ -481,7 +478,7 @@ class HTTPClient:
     async def get_recommendation_genres(
         self,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> RecommendationGenresData:
         return await self.request(Route("GET", "/recommendations/available-genre-seeds"), credentials=credentials)
 
@@ -492,7 +489,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> MultipleEpisodesData:
 
         if len(ids) > 50:
@@ -510,7 +507,7 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> EpisodeData:
 
         parameters = {"market": market} if market else None
@@ -529,7 +526,7 @@ class HTTPClient:
     async def get_available_markets(
         self,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> AvailableMarketsData:
         return await self.request(Route("GET", "/markets"), credentials=credentials)
 
@@ -541,7 +538,7 @@ class HTTPClient:
         time_range: objects.TimeRange | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, None]:
 
         parameters = {}
@@ -562,7 +559,7 @@ class HTTPClient:
         time_range: objects.TimeRange | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, None]:
 
         parameters = {}
@@ -583,7 +580,7 @@ class HTTPClient:
         self,
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         parameters = {"additional_types": "track"}
@@ -597,7 +594,7 @@ class HTTPClient:
         *,
         device_id: str,
         play: bool | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         data: dict[str, Any] = {"device_ids": [device_id]}
@@ -609,7 +606,7 @@ class HTTPClient:
     async def get_current_user_available_devices(
         self,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
         return await self.request(Route("GET", "/me/player/devices"), credentials=credentials)
 
@@ -617,7 +614,7 @@ class HTTPClient:
         self,
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         parameters = {"additional_types": "track"}
@@ -629,7 +626,7 @@ class HTTPClient:
     async def start_current_user_playback(
         self,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> ...:
         raise NotImplementedError
 
@@ -637,7 +634,7 @@ class HTTPClient:
         self,
         *,
         device_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         parameters = {}
@@ -650,7 +647,7 @@ class HTTPClient:
         self,
         *,
         device_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         parameters = {}
@@ -663,7 +660,7 @@ class HTTPClient:
         self,
         *,
         device_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         parameters = {}
@@ -677,7 +674,7 @@ class HTTPClient:
         *,
         position_ms: int,
         device_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         parameters: dict[str, Any] = {"position_ms": position_ms}
@@ -691,7 +688,7 @@ class HTTPClient:
         *,
         repeat_mode: objects.RepeatMode,
         device_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         parameters = {"state": repeat_mode.value}
@@ -705,7 +702,7 @@ class HTTPClient:
         *,
         volume_percent: int,
         device_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         if volume_percent < 0 or volume_percent > 100:
@@ -722,7 +719,7 @@ class HTTPClient:
         *,
         state: bool,
         device_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         parameters: dict[str, Any] = {"state": state}
@@ -737,7 +734,7 @@ class HTTPClient:
         limit: int | None,
         before: int | None,
         after: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         if before and after:
@@ -758,7 +755,7 @@ class HTTPClient:
         *,
         uri: str,
         device_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         parameters = {"uri": uri}
@@ -774,7 +771,7 @@ class HTTPClient:
         *,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         parameters = {}
@@ -792,7 +789,7 @@ class HTTPClient:
         *,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         parameters = {}
@@ -811,7 +808,7 @@ class HTTPClient:
         public: bool | None,
         collaborative: bool | None,
         description: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         if collaborative and public:
@@ -834,7 +831,7 @@ class HTTPClient:
         *,
         market: str | None,
         fields: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> PlaylistData:
 
         parameters = {"additional_types": "track"}
@@ -854,7 +851,7 @@ class HTTPClient:
         public: bool | None,
         collaborative: bool | None,
         description: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         if collaborative and public:
@@ -881,7 +878,7 @@ class HTTPClient:
         fields: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> PagingObjectData:
 
         parameters: dict[str, Any] = {"additional_types": "track"}
@@ -905,7 +902,7 @@ class HTTPClient:
         *,
         position: int | None,
         uris: Sequence[str],
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         data: dict[str, Any] = {"uris": uris}
@@ -923,7 +920,7 @@ class HTTPClient:
         insert_before: int,
         range_length: int | None,
         snapshot_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         data: dict[str, Any] = {
@@ -943,7 +940,7 @@ class HTTPClient:
         /,
         *,
         uris: Sequence[str] | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> None:
 
         data: dict[str, Any] = {"uris": None}
@@ -961,7 +958,7 @@ class HTTPClient:
         *,
         uris: Sequence[str],
         snapshot_id: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> dict[str, Any]:
 
         data: dict[str, Any] = {"tracks": [{"uri": uri} for uri in uris]}
@@ -975,14 +972,14 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> Sequence[dict[str, Any]]:
         return await self.request(Route("GET", "/playlists/{id}/images", id=_id), credentials=credentials)
 
     async def upload_playlist_cover_image(
         self,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> ...:
         raise NotImplementedError
 
@@ -998,7 +995,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         include_external: bool = False,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> SearchResultData:
 
         if not search_types:
@@ -1029,7 +1026,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> MultipleShowsData:
 
         if len(ids) > 50:
@@ -1047,7 +1044,7 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> ShowData:
 
         parameters = {"market": market} if market else None
@@ -1061,7 +1058,7 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> PagingObjectData:
 
         parameters = {}
@@ -1083,7 +1080,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> dict[str, Any]:
 
         if len(ids) > 50:
@@ -1101,7 +1098,7 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> TrackData:
 
         parameters = {"market": market} if market else None
@@ -1111,7 +1108,7 @@ class HTTPClient:
         self,
         ids: Sequence[str],
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> dict[str, Any]:
 
         if len(ids) > 100:
@@ -1124,7 +1121,7 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> AudioFeaturesData:
         return await self.request(Route("GET", "/audio-features/{id}", id=_id), credentials=credentials)
 
@@ -1133,7 +1130,7 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials = utils.MISSING,
+        credentials: OptionalCredentials = None,
     ) -> dict[str, list[AudioFeaturesData]]:
         return await self.request(Route("GET", "/audio-analysis/{id}", id=_id), credentials=credentials)
 
@@ -1142,7 +1139,7 @@ class HTTPClient:
     async def get_current_user_profile(
         self,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> UserData:
         return await self.request(Route("GET", "/me"), credentials=credentials)
 
@@ -1151,6 +1148,6 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: objects.ClientCredentials | objects.UserCredentials,
+        credentials: Credentials,
     ) -> UserData:
         return await self.request(Route("GET", "/users/{id}", id=_id), credentials=credentials)

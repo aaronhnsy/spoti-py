@@ -23,7 +23,7 @@ class Context:
         self.uri = data["uri"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Context"
+        return "<aiospotify.Context"
 
 
 class CurrentlyPlayingContext:
@@ -42,7 +42,7 @@ class CurrentlyPlayingContext:
         self.timestamp: int = data["timestamp"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.CurrentlyPlayingContext>"
+        return "<aiospotify.CurrentlyPlayingContext>"
 
 
 class CurrentlyPlaying:
@@ -57,4 +57,4 @@ class CurrentlyPlaying:
         self.timestamp: int = data["timestamp"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.CurrentlyPlaying>"
+        return "<aiospotify.CurrentlyPlaying>"
