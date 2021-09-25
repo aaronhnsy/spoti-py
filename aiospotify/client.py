@@ -40,7 +40,7 @@ class Client:
         self._client_secret: str = client_secret
         self._session: aiohttp.ClientSession = session
 
-        self.http = http.HTTPClient(client_id=self._client_id, client_secret=self._client_secret, session=self._session)
+        self.http: http.HTTPClient = http.HTTPClient(client_id=self._client_id, client_secret=self._client_secret, session=self._session)
 
     def __repr__(self) -> str:
         return "<aiospotify.Client>"
@@ -314,7 +314,7 @@ class Client:
         limit: int | None = None,
         market: str | None = None,
         credentials: OptionalCredentials = None,
-        **kwargs
+        **kwargs: int
     ) -> objects.Recommendation:
 
         response = await self.http.get_recommendations(

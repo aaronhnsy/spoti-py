@@ -10,18 +10,9 @@ import aiohttp
 
 
 __all__ = (
-    "to_json",
-    "from_json",
     "json_or_text",
     "MISSING"
 )
-
-
-def to_json(obj: Any, indent: int | None = None) -> str:
-    return json.dumps(obj, separators=(",", ":"), indent=indent)
-
-
-from_json = json.loads
 
 
 async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str:
@@ -30,7 +21,7 @@ async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str
 
     try:
         if response.headers["content-type"] == "application/json; charset=utf-8":
-            return from_json(text)
+            return json.loads(text)
     except KeyError:
         pass
 

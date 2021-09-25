@@ -54,8 +54,9 @@ __all__ = (
     "HTTPClient"
 )
 
-
 __log__: logging.Logger = logging.getLogger("aiospotify.http")
+
+HTTPMethod = Literal["GET", "POST", "DELETE", "PATCH", "PUT"]
 
 
 class Route:
@@ -64,14 +65,14 @@ class Route:
 
     def __init__(
         self,
-        method: Literal["GET", "POST", "DELETE", "PATCH", "PUT"],
+        method: HTTPMethod,
         path: str,
         /,
-        **parameters
+        **parameters: Any
     ) -> None:
 
-        self.method = method
-        self.path = path
+        self.method: HTTPMethod = method
+        self.path: str = path
 
         url = self.BASE_URL + self.path
         if parameters:
@@ -445,7 +446,7 @@ class HTTPClient:
         limit: int | None,
         market: str | None,
         credentials: OptionalCredentials = None,
-        **kwargs
+        **kwargs: int
     ) -> RecommendationData:
 
         seeds = len([seed for seeds in [seed_artist_ids or [], seed_genres or [], seed_track_ids or []] for seed in seeds])
