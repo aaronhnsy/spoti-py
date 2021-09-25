@@ -5,7 +5,15 @@ from __future__ import annotations
 from typing import TypedDict
 
 # My stuff
-from aiospotify.typings.objects import AlbumData, ArtistData, EpisodeData, PagingObjectData, ShowData, TrackData
+from aiospotify.typings.objects import (
+    AlbumData,
+    ArtistData,
+    AudioFeaturesData,
+    EpisodeData,
+    PagingObjectData,
+    ShowData,
+    TrackData,
+)
 
 
 # ALBUMS API
@@ -107,7 +115,12 @@ class MultipleShowsData(TypedDict):
 
 # TRACKS API #
 
-...
+class MultipleTracksData(TypedDict):
+    tracks: list[TrackData | None]
+
+
+class SeveralTracksAudioFeaturesData(TypedDict):
+    audio_features: list[AudioFeaturesData | None]
 
 
 # USERS API

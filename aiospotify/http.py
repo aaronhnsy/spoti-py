@@ -24,9 +24,11 @@ from aiospotify.typings.http import (
     MultipleCategoriesData,
     MultipleEpisodesData,
     MultipleShowsData,
+    MultipleTracksData,
     NewReleasesData,
     RecommendationGenresData,
     SearchResultData,
+    SeveralTracksAudioFeaturesData,
 )
 from aiospotify.typings.objects import (
     AlbumData,
@@ -540,7 +542,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: Credentials,
-    ) -> dict[str, None]:
+    ) -> dict[str, Any]:
 
         parameters = {}
         if time_range:
@@ -561,7 +563,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: Credentials,
-    ) -> dict[str, None]:
+    ) -> dict[str, Any]:
 
         parameters = {}
         if time_range:
@@ -1082,7 +1084,7 @@ class HTTPClient:
         *,
         market: str | None,
         credentials: OptionalCredentials = None,
-    ) -> dict[str, Any]:
+    ) -> MultipleTracksData:
 
         if len(ids) > 50:
             raise ValueError("'get_tracks' can only take a maximum of 50 track ids.")
@@ -1110,7 +1112,7 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         credentials: OptionalCredentials = None,
-    ) -> dict[str, Any]:
+    ) -> SeveralTracksAudioFeaturesData:
 
         if len(ids) > 100:
             raise ValueError("'get_several_track_audio_features' can only take a maximum of 100 track ids.")
@@ -1132,7 +1134,7 @@ class HTTPClient:
         /,
         *,
         credentials: OptionalCredentials = None,
-    ) -> dict[str, list[AudioFeaturesData]]:
+    ) -> dict[str, Any]:
         return await self.request(Route("GET", "/audio-analysis/{id}", id=_id), credentials=credentials)
 
     # USERS API
