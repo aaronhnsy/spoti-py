@@ -6,7 +6,7 @@ Support for aiospotify can be found in my [Discord](https://discord.com/invite/w
 
 ## Installation
 
-aiospotify is not available on PyPi yet, it can be installed from GitHub instead:
+aiospotify is not available on PyPi yet, but it can be installed from GitHub instead:
 ```shell
 pip install -U git+https://github.com/Axelancerr/aiospotify
 ```
