@@ -29,7 +29,7 @@ class User(objects.BaseObject):
         super().__init__(data)
 
         self.country = data.get("country")
-        self.display_name = data["display_name"]
+        self.display_name = data.get("display_name")
         self.email = data.get("email")
         self.explicit_content_settings = ExplicitContentSettings(explicit_content) if (explicit_content := data.get("explicit_content")) else None
         self.external_urls = data["external_urls"]
