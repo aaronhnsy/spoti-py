@@ -11,7 +11,7 @@ import aiohttp
 __all__ = (
     "SpotifyException",
     "AuthenticationError",
-    "SpotifyHTTPError",
+    "HTTPError",
     "BadRequest",
     "Unauthorized",
     "Forbidden",
@@ -52,7 +52,7 @@ class AuthenticationError(SpotifyException):
         return self._error_description
 
 
-class SpotifyHTTPError(SpotifyException):
+class HTTPError(SpotifyException):
 
     def __init__(self, response: aiohttp.ClientResponse, data: RegularErrorData) -> None:
 
@@ -73,27 +73,27 @@ class SpotifyHTTPError(SpotifyException):
         return self._message
 
 
-class BadRequest(SpotifyHTTPError):
+class BadRequest(HTTPError):
     pass
 
 
-class Unauthorized(SpotifyHTTPError):
+class Unauthorized(HTTPError):
     pass
 
 
-class Forbidden(SpotifyHTTPError):
+class Forbidden(HTTPError):
     pass
 
 
-class NotFound(SpotifyHTTPError):
+class NotFound(HTTPError):
     pass
 
 
-class TooManyRequests(SpotifyHTTPError):
+class TooManyRequests(HTTPError):
     pass
 
 
-class SpotifyServerError(SpotifyHTTPError):
+class SpotifyServerError(HTTPError):
     pass
 
 

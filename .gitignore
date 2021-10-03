@@ -1,8 +1,11 @@
 *.pyc
 *.log*
 
-.idea/
 .git/
+.idea/
 venv/
+docs/_build/
+build/
+aiospotify.egg-info/
 
 test.py

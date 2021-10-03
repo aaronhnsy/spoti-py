@@ -176,7 +176,7 @@ class HTTPClient:
                 raise
 
         if response:
-            raise exceptions.SpotifyHTTPError(response, response_data["error"])
+            raise exceptions.HTTPError(response, response_data["error"])
 
         raise RuntimeError("This shouldn't happen.")
 
