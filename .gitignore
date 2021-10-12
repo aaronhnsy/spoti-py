@@ -1,11 +1,12 @@
 *.pyc
 *.log*
 
-.git/
-.idea/
-venv/
-docs/_build/
-build/
 aiospotify.egg-info/
+node_modules/
+resources/
+static/
+venv/
+build/
+.idea/
 
 test.py
