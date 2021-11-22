@@ -10,3 +10,4 @@ build/
 .idea/
 
 test.py
+dashboard.py
