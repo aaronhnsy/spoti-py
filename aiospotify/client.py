@@ -56,17 +56,6 @@ class Client:
 
     # ALBUMS API
 
-    async def get_albums(
-        self,
-        ids: Sequence[ID],
-        *,
-        market: str | None = None,
-        credentials: OptionalCredentials = None,
-    ) -> dict[ID, objects.Album | None]:
-
-        response = await self.http.get_albums(ids=ids, market=market, credentials=credentials)
-        return dict(zip(ids, [objects.Album(data) if data else None for data in response["albums"]]))
-
     async def get_album(
         self,
         _id: str,
@@ -78,6 +67,17 @@ class Client:
 
         response = await self.http.get_album(_id, market=market, credentials=credentials)
         return objects.Album(response)
+
+    async def get_albums(
+        self,
+        ids: Sequence[ID],
+        *,
+        market: str | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> dict[ID, objects.Album | None]:
+
+        response = await self.http.get_albums(ids=ids, market=market, credentials=credentials)
+        return dict(zip(ids, [objects.Album(data) if data else None for data in response["albums"]]))
 
     async def get_album_tracks(
         self,
@@ -136,18 +136,31 @@ class Client:
 
         return album
 
-    # ARTISTS API
+    async def get_saved_albums(self) -> ...:
+        raise NotImplementedError
 
-    async def get_artists(
+    async def save_albums(self) -> ...:
+        raise NotImplementedError
+
+    async def remove_albums(self) -> ...:
+        raise NotImplementedError
+
+    async def check_saved_albums(self) -> ...:
+        raise NotImplementedError
+
+    async def get_new_releases(
         self,
-        ids: Sequence[ID],
         *,
-        market: str | None = None,
+        country: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
         credentials: OptionalCredentials = None,
-    ) -> dict[ID, objects.Artist | None]:
+    ) -> list[objects.SimpleAlbum]:
 
-        response = await self.http.get_artists(ids=ids, market=market, credentials=credentials)
-        return dict(zip(ids, [objects.Artist(data) if data else None for data in response["artists"]]))
+        response = await self.http.get_new_releases(country=country, limit=limit, offset=offset, credentials=credentials)
+        return [objects.SimpleAlbum(data) for data in objects.PagingObject(response["albums"]).items]
+
+    # ARTISTS API
 
     async def get_artist(
         self,
@@ -161,29 +174,16 @@ class Client:
         response = await self.http.get_artist(_id, market=market, credentials=credentials)
         return objects.Artist(response)
 
-    async def get_artist_top_tracks(
+    async def get_artists(
         self,
-        _id: str,
-        /,
-        *,
-        market: str = "GB",
-        credentials: OptionalCredentials = None,
-    ) -> list[objects.Track]:
-
-        response = await self.http.get_artist_top_tracks(_id, market=market, credentials=credentials)
-        return [objects.Track(data) for data in response["tracks"]]
-
-    async def get_related_artists(
-        self,
-        _id: str,
-        /,
+        ids: Sequence[ID],
         *,
         market: str | None = None,
         credentials: OptionalCredentials = None,
-    ) -> list[objects.Artist]:
+    ) -> dict[ID, objects.Artist | None]:
 
-        response = await self.http.get_related_artists(_id, market=market, credentials=credentials)
-        return [objects.Artist(data) for data in response["artists"]]
+        response = await self.http.get_artists(ids=ids, market=market, credentials=credentials)
+        return dict(zip(ids, [objects.Artist(data) if data else None for data in response["artists"]]))
 
     async def get_artist_albums(
         self,
@@ -230,80 +230,201 @@ class Client:
 
         return albums
 
-    # BROWSE API
-
-    async def get_new_releases(
-        self,
-        *,
-        country: str | None = None,
-        limit: int | None = None,
-        offset: int | None = None,
-        credentials: OptionalCredentials = None,
-    ) -> list[objects.SimpleAlbum]:
-
-        response = await self.http.get_new_releases(country=country, limit=limit, offset=offset, credentials=credentials)
-        return [objects.SimpleAlbum(data) for data in objects.PagingObject(response["albums"]).items]
-
-    async def get_featured_playlists(
-        self,
-        *,
-        country: str | None = None,
-        locale: str | None = None,
-        timestamp: str | None = None,
-        limit: int | None = None,
-        offset: int | None = None,
-        credentials: OptionalCredentials = None,
-    ) -> tuple[str, list[objects.SimplePlaylist]]:
-
-        response = await self.http.get_featured_playlists(
-            country=country,
-            locale=locale,
-            timestamp=timestamp,
-            limit=limit,
-            offset=offset,
-            credentials=credentials
-        )
-        return response["message"], [objects.SimplePlaylist(data) for data in objects.PagingObject(response["playlists"]).items]
-
-    async def get_categories(
-        self,
-        *,
-        country: str | None = None,
-        locale: str | None = None,
-        limit: int | None = None,
-        offset: int | None = None,
-        credentials: OptionalCredentials = None,
-    ) -> list[objects.Category]:
-
-        response = await self.http.get_categories(country=country, locale=locale, limit=limit, offset=offset, credentials=credentials)
-        return [objects.Category(data) for data in objects.PagingObject(response["categories"]).items]
-
-    async def get_category(
+    async def get_artist_top_tracks(
         self,
         _id: str,
         /,
         *,
-        country: str | None = None,
-        locale: str | None = None,
+        market: str = "GB",
         credentials: OptionalCredentials = None,
-    ) -> objects.Category:
+    ) -> list[objects.Track]:
 
-        response = await self.http.get_category(_id, country=country, locale=locale, credentials=credentials)
-        return objects.Category(response)
+        response = await self.http.get_artist_top_tracks(_id, market=market, credentials=credentials)
+        return [objects.Track(data) for data in response["tracks"]]
 
-    async def get_category_playlists(
+    async def get_related_artists(
         self,
         _id: str,
         /,
         *,
-        country: str | None = None,
+        market: str | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> list[objects.Artist]:
+
+        response = await self.http.get_related_artists(_id, market=market, credentials=credentials)
+        return [objects.Artist(data) for data in response["artists"]]
+
+    # SHOWS API
+
+    async def get_show(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = "GB",
+        credentials: OptionalCredentials = None,
+    ) -> objects.Show:
+
+        response = await self.http.get_show(_id, market=market, credentials=credentials)
+        return objects.Show(response)
+
+    async def get_shows(
+        self,
+        ids: Sequence[ID],
+        *,
+        market: str | None = "GB",
+        credentials: OptionalCredentials = None,
+    ) -> dict[ID, objects.Show | None]:
+
+        response = await self.http.get_shows(ids, market=market, credentials=credentials)
+        return dict(zip(ids, [objects.Show(data) if data else None for data in response["shows"]]))
+
+    async def get_show_episodes(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = "GB",
         limit: int | None = None,
         offset: int | None = None,
         credentials: OptionalCredentials = None,
-    ) -> list[objects.SimplePlaylist]:
+    ) -> list[objects.SimpleEpisode]:
 
-        response = await self.http.get_category_playlists(_id, country=country, limit=limit, offset=offset, credentials=credentials)
-        return [objects.SimplePlaylist(data) for data in objects.PagingObject(response["playlists"]).items]
+        response = await self.http.get_show_episodes(_id, market=market, limit=limit, offset=offset, credentials=credentials)
+        return [objects.SimpleEpisode(data) for data in objects.PagingObject(response).items]
+
+    async def get_all_show_episodes(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = "GB",
+        credentials: OptionalCredentials = None,
+    ) -> list[objects.SimpleEpisode]:
+
+        response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=0, credentials=credentials)
+        paging = objects.PagingObject(response)
+
+        episodes = [objects.SimpleEpisode(data) for data in paging.items]
+
+        if paging.total <= 50:  # There are 50 or fewer episodes, and we already have them so just return them
+            return episodes
+
+        for _ in range(1, math.ceil(paging.total / 50)):
+            response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=_ * 50, credentials=credentials)
+            episodes.extend([objects.SimpleEpisode(data) for data in objects.PagingObject(response).items])
+
+        return episodes
+
+    async def get_saved_shows(self) -> ...:
+        raise NotImplementedError
+
+    async def save_shows(self) -> ...:
+        raise NotImplementedError
+
+    async def remove_shows(self) -> ...:
+        raise NotImplementedError
+
+    async def check_saved_shows(self) -> ...:
+        raise NotImplementedError
+
+    # EPISODE API
+
+    async def get_episode(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = "GB",
+        credentials: OptionalCredentials = None,
+    ) -> objects.Episode:
+
+        response = await self.http.get_episode(_id, market=market, credentials=credentials)
+        return objects.Episode(response)
+
+    async def get_episodes(
+        self,
+        ids: Sequence[ID],
+        *,
+        market: str | None = "GB",
+        credentials: OptionalCredentials = None,
+    ) -> dict[ID, objects.Episode | None]:
+
+        response = await self.http.get_episodes(ids=ids, market=market, credentials=credentials)
+        return dict(zip(ids, [objects.Episode(data) if data else None for data in response["episodes"]]))
+
+    async def get_saved_episodes(self) -> ...:
+        raise NotImplementedError
+
+    async def save_episodes(self) -> ...:
+        raise NotImplementedError
+
+    async def remove_episodes(self) -> ...:
+        raise NotImplementedError
+
+    async def check_saved_episodes(self) -> ...:
+        raise NotImplementedError
+
+    # TRACKS API
+
+    async def get_track(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> objects.Track:
+
+        response = await self.http.get_track(_id, market=market, credentials=credentials)
+        return objects.Track(response)
+
+    async def get_tracks(
+        self,
+        ids: Sequence[ID],
+        *,
+        market: str | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> dict[ID, objects.Track | None]:
+
+        response = await self.http.get_tracks(ids=ids, market=market, credentials=credentials)
+        return dict(zip(ids, [objects.Track(data) if data else None for data in response["tracks"]]))
+
+    async def get_saved_tracks(self) -> ...:
+        raise NotImplementedError
+
+    async def save_tracks(self) -> ...:
+        raise NotImplementedError
+
+    async def remove_tracks(self) -> ...:
+        raise NotImplementedError
+
+    async def check_saved_tracks(self) -> ...:
+        raise NotImplementedError
+
+    async def get_several_tracks_audio_features(
+        self,
+        ids: Sequence[ID],
+        *,
+        credentials: OptionalCredentials = None,
+    ) -> dict[ID, objects.AudioFeatures | None]:
+
+        response = await self.http.get_several_tracks_audio_features(ids, credentials=credentials)
+        return dict(zip(ids, [objects.AudioFeatures(data) if data else None for data in response["audio_features"]]))
+
+    async def get_track_audio_features(
+        self,
+        _id: str,
+        /,
+        *,
+        credentials: OptionalCredentials = None,
+    ) -> objects.AudioFeatures:
+
+        response = await self.http.get_track_audio_features(_id, credentials=credentials)
+        return objects.AudioFeatures(response)
+
+    async def get_track_audio_analysis(self) -> ...:
+        raise NotImplementedError
 
     async def get_recommendations(
         self,
@@ -328,60 +449,42 @@ class Client:
         )
         return objects.Recommendation(response)
 
-    async def get_recommendation_genres(
+    # SEARCH API
+
+    async def search(
         self,
-        *,
-        credentials: OptionalCredentials = None,
-    ) -> list[str]:
-
-        response = await self.http.get_recommendation_genres(credentials=credentials)
-        return response["genres"]
-
-    # EPISODE API
-
-    async def get_episodes(
-        self,
-        ids: Sequence[ID],
-        *,
-        market: str | None = "GB",
-        credentials: OptionalCredentials = None,
-    ) -> dict[ID, objects.Episode | None]:
-
-        response = await self.http.get_episodes(ids=ids, market=market, credentials=credentials)
-        return dict(zip(ids, [objects.Episode(data) if data else None for data in response["episodes"]]))
-
-    async def get_episode(
-        self,
-        _id: str,
+        query: str,
         /,
         *,
-        market: str | None = "GB",
+        search_types: Sequence[objects.SearchType] | None = None,
+        market: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        include_external: bool = False,
         credentials: OptionalCredentials = None,
-    ) -> objects.Episode:
+    ) -> objects.SearchResult:
 
-        response = await self.http.get_episode(_id, market=market, credentials=credentials)
-        return objects.Episode(response)
+        response = await self.http.search(
+            query,
+            search_types=search_types,
+            market=market,
+            limit=limit,
+            offset=offset,
+            include_external=include_external,
+            credentials=credentials
+        )
+        return objects.SearchResult(response)
 
-    # FOLLOW API
+    # USERS API
 
-    ...
-
-    # LIBRARY API
-
-    ...
-
-    # MARKETS API
-
-    async def get_available_markets(
+    async def get_current_user_profile(
         self,
         *,
-        credentials: OptionalCredentials = None,
-    ) -> list[str]:
+        credentials: Credentials,
+    ) -> objects.User:
 
-        response = await self.http.get_available_markets(credentials=credentials)
-        return response["markets"]
-
-    # PERSONALIZATION API
+        response = await self.http.get_current_user_profile(credentials=credentials)
+        return objects.User(response)
 
     async def get_current_users_top_artists(
         self,
@@ -392,7 +495,7 @@ class Client:
         credentials: Credentials,
     ) -> list[objects.Artist]:
 
-        response = await self.http.get_current_users_top_artists(time_range=time_range, limit=limit, offset=offset, credentials=credentials)
+        response = await self.http.get_current_user_top_artists(time_range=time_range, limit=limit, offset=offset, credentials=credentials)
         return [objects.Artist(data) for data in objects.PagingObject(response).items]
 
     async def get_current_users_top_tracks(
@@ -404,27 +507,142 @@ class Client:
         credentials: Credentials,
     ) -> list[objects.Track]:
 
-        response = await self.http.get_current_users_top_tracks(time_range=time_range, limit=limit, offset=offset, credentials=credentials)
+        response = await self.http.get_current_user_top_tracks(time_range=time_range, limit=limit, offset=offset, credentials=credentials)
         return [objects.Track(data) for data in objects.PagingObject(response).items]
 
-    # PLAYER API
+    async def get_user_profile(
+        self,
+        _id: str,
+        /,
+        *,
+        credentials: Credentials,
+    ) -> objects.User:
 
-    ...  # get_current_user_playback
-    ...  # transfer_current_user_playback
-    ...  # get_current_user_available_devices
-    ...  # get_current_user_playing_track
-    ...  # start_current_user_playback
-    ...  # pause_current_user_playback
-    ...  # skip_forward_current_user_playback
-    ...  # skip_backward_current_user_playback
-    ...  # seek_current_user_playback
-    ...  # set_current_user_repeat_mode
-    ...  # set_current_user_volume
-    ...  # set_current_user_shuffle_state
-    ...  # get_current_users_recently_played_tracks
-    ...  # add_item_to_current_user_queue
+        response = await self.http.get_user_profile(_id, credentials=credentials)
+        return objects.User(response)
+
+    async def follow_playlist(self) -> ...:
+        raise NotImplementedError
+
+    async def unfollow_playlist(self) -> ...:
+        raise NotImplementedError
+
+    async def get_followed_artists(self) -> ...:
+        raise NotImplementedError
+
+    async def get_followed_users(self) -> ...:
+        raise NotImplementedError
+
+    async def follow_artists(self) -> ...:
+        raise NotImplementedError
+
+    async def follow_users(self) -> ...:
+        raise NotImplementedError
+
+    async def unfollow_artists(self) -> ...:
+        raise NotImplementedError
+
+    async def unfollow_users(self) -> ...:
+        raise NotImplementedError
+
+    async def check_followed_artists(self) -> ...:
+        raise NotImplementedError
+
+    async def check_followed_users(self) -> ...:
+        raise NotImplementedError
+
+    async def check_playlist_followers(self) -> ...:
+        raise NotImplementedError
 
     # PLAYLISTS API
+
+    async def get_playlist(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        fields: str | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> objects.Playlist:
+
+        response = await self.http.get_playlist(_id, market=market, fields=fields, credentials=credentials)
+        return objects.Playlist(response)
+
+    async def change_playlist_details(self) -> ...:
+        raise NotImplementedError
+
+    async def get_playlist_items(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        fields: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> list[objects.PlaylistTrack]:
+
+        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=limit, offset=offset, credentials=credentials)
+        return [objects.PlaylistTrack(data) for data in objects.PagingObject(response).items]
+
+    async def get_all_playlist_items(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        fields: str | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> list[objects.PlaylistTrack]:
+
+        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=0, credentials=credentials)
+        paging = objects.PagingObject(response)
+
+        items = [objects.PlaylistTrack(data) for data in paging.items]
+
+        if paging.total <= 100:  # There are 50 or fewer tracks, and we already have them so just return them
+            return items
+
+        for _ in range(1, math.ceil(paging.total / 100)):
+            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100, credentials=credentials)
+            items.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
+
+        return items
+
+    async def get_full_playlist(
+        self,
+        _id: str,
+        /,
+        *,
+        market: str | None = None,
+        fields: str | None = None,
+        credentials: OptionalCredentials = None,
+    ) -> objects.Playlist:
+
+        playlist = await self.get_playlist(_id, market=market, fields=fields, credentials=credentials)
+
+        if playlist._tracks_paging.total <= 100:  # The playlist has 100 or fewer tracks already, so we can just return it now.
+            return playlist
+
+        for _ in range(1, math.ceil(playlist._tracks_paging.total / 100)):
+            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100, credentials=credentials)
+            playlist.tracks.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
+
+        return playlist
+
+    async def add_items_to_playlist(self) -> ...:
+        raise NotImplementedError
+
+    async def reorder_playlist_items(self) -> ...:
+        raise NotImplementedError
+
+    async def replace_playlist_items(self) -> ...:
+        raise NotImplementedError
+
+    async def remove_items_from_playlist(self) -> ...:
+        raise NotImplementedError
 
     async def get_current_user_playlists(
         self,
@@ -492,90 +710,43 @@ class Client:
 
         return playlists
 
-    ...  # create_playlist
+    async def create_playlist(self) -> ...:
+        raise NotImplementedError
 
-    async def get_playlist(
+    async def get_featured_playlists(
         self,
-        _id: str,
-        /,
         *,
-        market: str | None = None,
-        fields: str | None = None,
-        credentials: OptionalCredentials = None,
-    ) -> objects.Playlist:
-
-        response = await self.http.get_playlist(_id, market=market, fields=fields, credentials=credentials)
-        return objects.Playlist(response)
-
-    ...  # change_playlist_details
-
-    async def get_playlist_items(
-        self,
-        _id: str,
-        /,
-        *,
-        market: str | None = None,
-        fields: str | None = None,
+        country: str | None = None,
+        locale: str | None = None,
+        timestamp: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
         credentials: OptionalCredentials = None,
-    ) -> list[objects.PlaylistTrack]:
+    ) -> tuple[str, list[objects.SimplePlaylist]]:
 
-        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=limit, offset=offset, credentials=credentials)
-        return [objects.PlaylistTrack(data) for data in objects.PagingObject(response).items]
+        response = await self.http.get_featured_playlists(
+            country=country,
+            locale=locale,
+            timestamp=timestamp,
+            limit=limit,
+            offset=offset,
+            credentials=credentials
+        )
+        return response["message"], [objects.SimplePlaylist(data) for data in objects.PagingObject(response["playlists"]).items]
 
-    async def get_all_playlist_items(
+    async def get_category_playlists(
         self,
         _id: str,
         /,
         *,
-        market: str | None = None,
-        fields: str | None = None,
+        country: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
         credentials: OptionalCredentials = None,
-    ) -> list[objects.PlaylistTrack]:
+    ) -> list[objects.SimplePlaylist]:
 
-        response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=0, credentials=credentials)
-        paging = objects.PagingObject(response)
-
-        items = [objects.PlaylistTrack(data) for data in paging.items]
-
-        if paging.total <= 100:  # There are 50 or fewer tracks, and we already have them so just return them
-            return items
-
-        for _ in range(1, math.ceil(paging.total / 100)):
-            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100, credentials=credentials)
-            items.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
-
-        return items
-
-    async def get_full_playlist(
-        self,
-        _id: str,
-        /,
-        *,
-        market: str | None = None,
-        fields: str | None = None,
-        credentials: OptionalCredentials = None,
-    ) -> objects.Playlist:
-
-        playlist = await self.get_playlist(_id, market=market, fields=fields, credentials=credentials)
-
-        if playlist._tracks_paging.total <= 100:  # The playlist has 100 or fewer tracks already, so we can just return it now.
-            return playlist
-
-        for _ in range(1, math.ceil(playlist._tracks_paging.total / 100)):
-            response = await self.http.get_playlist_items(_id, market=market, fields=fields, limit=100, offset=_ * 100, credentials=credentials)
-            playlist.tracks.extend([objects.PlaylistTrack(data) for data in objects.PagingObject(response).items])
-
-        return playlist
-
-    ...  # add_items_to_playlist
-
-    ...  # reorder_playlist_items
-
-    ...  # replace_playlist_items
-
-    ...  # remove_items_from_playlist
+        response = await self.http.get_category_playlists(_id, country=country, limit=limit, offset=offset, credentials=credentials)
+        return [objects.SimplePlaylist(data) for data in objects.PagingObject(response["playlists"]).items]
 
     async def get_playlist_cover_image(
         self,
@@ -588,162 +759,102 @@ class Client:
         response = await self.http.get_playlist_cover_image(_id, credentials=credentials)
         return [objects.Image(data) for data in response]
 
-    ...  # upload_playlist_cover_image
+    async def upload_playlist_cover_image(self) -> ...:
+        raise NotImplementedError
 
-    # SEARCH API
+    # CATEGORY API
 
-    async def search(
+    async def get_categories(
         self,
-        query: str,
-        /,
         *,
-        search_types: Sequence[objects.SearchType] | None = None,
-        market: str | None = None,
-        limit: int | None = None,
-        offset: int | None = None,
-        include_external: bool = False,
-        credentials: OptionalCredentials = None,
-    ) -> objects.SearchResult:
-
-        response = await self.http.search(
-            query,
-            search_types=search_types,
-            market=market,
-            limit=limit,
-            offset=offset,
-            include_external=include_external,
-            credentials=credentials
-        )
-        return objects.SearchResult(response)
-
-    # SHOWS API
-
-    async def get_shows(
-        self,
-        ids: Sequence[ID],
-        *,
-        market: str | None = "GB",
-        credentials: OptionalCredentials = None,
-    ) -> dict[ID, objects.Show | None]:
-
-        response = await self.http.get_shows(ids, market=market, credentials=credentials)
-        return dict(zip(ids, [objects.Show(data) if data else None for data in response["shows"]]))
-
-    async def get_show(
-        self,
-        _id: str,
-        /,
-        *,
-        market: str | None = "GB",
-        credentials: OptionalCredentials = None,
-    ) -> objects.Show:
-
-        response = await self.http.get_show(_id, market=market, credentials=credentials)
-        return objects.Show(response)
-
-    async def get_show_episodes(
-        self,
-        _id: str,
-        /,
-        *,
-        market: str | None = "GB",
+        country: str | None = None,
+        locale: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
         credentials: OptionalCredentials = None,
-    ) -> list[objects.SimpleEpisode]:
+    ) -> list[objects.Category]:
 
-        response = await self.http.get_show_episodes(_id, market=market, limit=limit, offset=offset, credentials=credentials)
-        return [objects.SimpleEpisode(data) for data in objects.PagingObject(response).items]
+        response = await self.http.get_categories(country=country, locale=locale, limit=limit, offset=offset, credentials=credentials)
+        return [objects.Category(data) for data in objects.PagingObject(response["categories"]).items]
 
-    async def get_all_show_episodes(
+    async def get_category(
         self,
         _id: str,
         /,
         *,
-        market: str | None = "GB",
+        country: str | None = None,
+        locale: str | None = None,
         credentials: OptionalCredentials = None,
-    ) -> list[objects.SimpleEpisode]:
+    ) -> objects.Category:
 
-        response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=0, credentials=credentials)
-        paging = objects.PagingObject(response)
+        response = await self.http.get_category(_id, country=country, locale=locale, credentials=credentials)
+        return objects.Category(response)
 
-        episodes = [objects.SimpleEpisode(data) for data in paging.items]
+    # GENRE API
 
-        if paging.total <= 50:  # There are 50 or fewer episodes, and we already have them so just return them
-            return episodes
-
-        for _ in range(1, math.ceil(paging.total / 50)):
-            response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=_ * 50, credentials=credentials)
-            episodes.extend([objects.SimpleEpisode(data) for data in objects.PagingObject(response).items])
-
-        return episodes
-
-    # TRACKS API #
-
-    async def get_tracks(
+    async def get_available_genre_seeds(
         self,
-        ids: Sequence[ID],
-        *,
-        market: str | None = None,
-        credentials: OptionalCredentials = None,
-    ) -> dict[ID, objects.Track | None]:
-
-        response = await self.http.get_tracks(ids=ids, market=market, credentials=credentials)
-        return dict(zip(ids, [objects.Track(data) if data else None for data in response["tracks"]]))
-
-    async def get_track(
-        self,
-        _id: str,
-        /,
-        *,
-        market: str | None = None,
-        credentials: OptionalCredentials = None,
-    ) -> objects.Track:
-
-        response = await self.http.get_track(_id, market=market, credentials=credentials)
-        return objects.Track(response)
-
-    async def get_several_tracks_audio_features(
-        self,
-        ids: Sequence[ID],
         *,
         credentials: OptionalCredentials = None,
-    ) -> dict[ID, objects.AudioFeatures | None]:
+    ) -> list[str]:
 
-        response = await self.http.get_several_tracks_audio_features(ids, credentials=credentials)
-        return dict(zip(ids, [objects.AudioFeatures(data) if data else None for data in response["audio_features"]]))
+        response = await self.http.get_available_genre_seeds(credentials=credentials)
+        return response["genres"]
 
-    async def get_track_audio_features(
+    # PLAYER API
+
+    async def get_playback_state(self) -> ...:
+        raise NotImplementedError
+
+    async def transfer_playback(self) -> ...:
+        raise NotImplementedError
+
+    async def get_available_devices(self) -> ...:
+        raise NotImplementedError
+
+    async def get_currently_playing_track(self) -> ...:
+        raise NotImplementedError
+
+    async def start_playback(self) -> ...:
+        raise NotImplementedError
+
+    async def resume_playback(self) -> ...:
+        raise NotImplementedError
+
+    async def pause_playback(self) -> ...:
+        raise NotImplementedError
+
+    async def skip_to_next(self) -> ...:
+        raise NotImplementedError
+
+    async def skip_to_previous(self) -> ...:
+        raise NotImplementedError
+
+    async def seek_to_position(self) -> ...:
+        raise NotImplementedError
+
+    async def set_repeat_mode(self) -> ...:
+        raise NotImplementedError
+
+    async def set_playback_volume(self) -> ...:
+        raise NotImplementedError
+
+    async def toggle_playback_shuffle(self) -> ...:
+        raise NotImplementedError
+
+    async def get_recently_played_tracks(self) -> ...:
+        raise NotImplementedError
+
+    async def add_item_to_playback_queue(self) -> ...:
+        raise NotImplementedError
+
+    # MARKETS API
+
+    async def get_available_markets(
         self,
-        _id: str,
-        /,
         *,
         credentials: OptionalCredentials = None,
-    ) -> objects.AudioFeatures:
+    ) -> list[str]:
 
-        response = await self.http.get_track_audio_features(_id, credentials=credentials)
-        return objects.AudioFeatures(response)
-
-    ...  # get_track_audio_analysis
-
-    # USERS API
-
-    async def get_current_user_profile(
-        self,
-        *,
-        credentials: Credentials,
-    ) -> objects.User:
-
-        response = await self.http.get_current_user_profile(credentials=credentials)
-        return objects.User(response)
-
-    async def get_user_profile(
-        self,
-        _id: str,
-        /,
-        *,
-        credentials: Credentials,
-    ) -> objects.User:
-
-        response = await self.http.get_user_profile(_id, credentials=credentials)
-        return objects.User(response)
+        response = await self.http.get_available_markets(credentials=credentials)
+        return response["markets"]
