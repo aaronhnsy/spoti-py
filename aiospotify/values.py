@@ -17,6 +17,7 @@ EXCEPTION_MAPPING = {
     401: exceptions.Unauthorized,
     403: exceptions.Forbidden,
     404: exceptions.NotFound,
+    413: exceptions.RequestEntityTooLarge,
     429: exceptions.TooManyRequests,
     500: exceptions.InternalServerError,
     502: exceptions.BadGatewayError,

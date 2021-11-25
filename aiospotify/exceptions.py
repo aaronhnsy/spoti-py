@@ -89,6 +89,10 @@ class NotFound(HTTPError):
     pass
 
 
+class RequestEntityTooLarge(HTTPError):
+    pass
+
+
 class TooManyRequests(HTTPError):
     pass
 
