@@ -94,27 +94,21 @@ class ArtistData(SimpleArtistData):
     popularity: int
 
 
-# BROWSE API
+# SHOWS API
 
-class CategoryData(TypedDict):
-    href: str
-    icons: list[ImageData]
-    id: str
-    name: str
-
-
-class RecommendationSeedData(TypedDict):
-    initialPoolSize: int
-    afterFilteringSize: int
-    afterRelinkingSize: int
-    id: str
-    type: str
-    href: str
-
-
-class RecommendationData(TypedDict):
-    tracks: list[TrackData]
-    seeds: list[RecommendationSeedData]
+class ShowData(BaseObjectData):
+    available_markets: list[str]
+    copyrights: list[CopyrightData]
+    description: str
+    explicit: bool
+    external_urls: ExternalUrlsData
+    html_description: str
+    images: list[ImageData]
+    is_externally_hosted: bool
+    languages: list[str]
+    media_type: str
+    publisher: str
+    total_episodes: int
 
 
 # EPISODE API
@@ -163,146 +157,7 @@ class EpisodeData(BaseObjectData):
     show: ShowData
 
 
-# FOLLOW API
-
-...
-
-
-# LIBRARY API
-
-...
-
-
-# MARKETS API
-
-...
-
-
-# PERSONALIZATION API
-
-...
-
-
-# PLAYER API
-
-class DeviceData(TypedDict):
-    id: str
-    is_active: bool
-    is_private_session: bool
-    is_restricted: bool
-    name: str
-    type: str
-    volume_percent: int
-
-
-class DisallowsData(TypedDict):
-    interrupting_playback: bool
-    pausing: bool
-    resuming: bool
-    seeking: bool
-    skipping_next: bool
-    skipping_prev: bool
-    toggling_repeat_context: bool
-    toggling_repeat_track: bool
-    toggling_shuffle: bool
-    transferring_playback: bool
-
-
-class ContextData(TypedDict):
-    external_urls: ExternalUrlsData
-    href: str
-    type: str
-    uri: str
-
-
-class CurrentlyPlayingContextData(TypedDict):
-    actions: DisallowsData
-    context: ContextData
-    currently_playing_type: str
-    device: DeviceData
-    is_playing: bool
-    item: Optional[TrackData]
-    progress_ms: int
-    repeat_state: str
-    shuffle_state: str
-    timestamp: int
-
-
-class CurrentlyPlayingData(TypedDict):
-    context: ContextData
-    currently_playing_type: str
-    is_playing: bool
-    item: Optional[TrackData]
-    progress_ms: int
-    timestamp: int
-
-
-# PLAYLISTS API
-
-
-class PlaylistTrackData(BaseObjectData):
-    added_at: str
-    added_by: UserData
-    is_local: bool
-    primary_color: Any
-    video_thumbnail: Any
-    track: TrackData
-
-
-class PlaylistTrackRefData(TypedDict):
-    href: str
-    total: int
-
-
-class SimplePlaylistData(BaseObjectData):
-    collaborative: bool
-    description: Optional[str]
-    external_urls: ExternalUrlsData
-    images: list[ImageData]
-    owner: UserData
-    primary_color: Optional[str]
-    public: Optional[bool]
-    snapshot_id: str
-    tracks: PlaylistTrackRefData
-
-
-class PlaylistData(BaseObjectData):
-    collaborative: bool
-    description: Optional[str]
-    external_urls: ExternalUrlsData
-    followers: FollowersData
-    images: list[ImageData]
-    owner: UserData
-    primary_color: Optional[str]
-    public: Optional[bool]
-    snapshot_id: str
-    tracks: PagingObjectData
-
-
-# SEARCH API
-
-...
-
-
-# SHOWS API
-
-class ShowData(BaseObjectData):
-    available_markets: list[str]
-    copyrights: list[CopyrightData]
-    description: str
-    explicit: bool
-    external_urls: ExternalUrlsData
-    html_description: str
-    images: list[ImageData]
-    is_externally_hosted: bool
-    languages: list[str]
-    media_type: str
-    publisher: str
-    total_episodes: int
-
-
 # TRACKS API
-
 
 class TrackRestrictionData(TypedDict):
     reason: str
@@ -362,6 +217,25 @@ class AudioFeaturesData(TypedDict):
     valence: float
 
 
+class RecommendationSeedData(TypedDict):
+    initialPoolSize: int
+    afterFilteringSize: int
+    afterRelinkingSize: int
+    id: str
+    type: str
+    href: str
+
+
+class RecommendationData(TypedDict):
+    tracks: list[TrackData]
+    seeds: list[RecommendationSeedData]
+
+
+# SEARCH API
+
+...
+
+
 # USERS API
 
 class ExplicitContentSettingsData(TypedDict):
@@ -378,6 +252,120 @@ class UserData(BaseObjectData):
     followers: FollowersData
     images: list[ImageData]
     product: str
+
+
+# PLAYLISTS API
+
+class PlaylistTrackData(BaseObjectData):
+    added_at: str
+    added_by: UserData
+    is_local: bool
+    primary_color: Any
+    video_thumbnail: Any
+    track: TrackData
+
+
+class PlaylistTrackRefData(TypedDict):
+    href: str
+    total: int
+
+
+class SimplePlaylistData(BaseObjectData):
+    collaborative: bool
+    description: Optional[str]
+    external_urls: ExternalUrlsData
+    images: list[ImageData]
+    owner: UserData
+    primary_color: Optional[str]
+    public: Optional[bool]
+    snapshot_id: str
+    tracks: PlaylistTrackRefData
+
+
+class PlaylistData(BaseObjectData):
+    collaborative: bool
+    description: Optional[str]
+    external_urls: ExternalUrlsData
+    followers: FollowersData
+    images: list[ImageData]
+    owner: UserData
+    primary_color: Optional[str]
+    public: Optional[bool]
+    snapshot_id: str
+    tracks: PagingObjectData
+
+
+# CATEGORY API
+
+class CategoryData(TypedDict):
+    href: str
+    icons: list[ImageData]
+    id: str
+    name: str
+
+
+# GENRE API
+
+...
+
+
+# PLAYER API
+
+class DeviceData(TypedDict):
+    id: str
+    is_active: bool
+    is_private_session: bool
+    is_restricted: bool
+    name: str
+    type: str
+    volume_percent: int
+
+
+class DisallowsData(TypedDict):
+    interrupting_playback: bool
+    pausing: bool
+    resuming: bool
+    seeking: bool
+    skipping_next: bool
+    skipping_prev: bool
+    toggling_repeat_context: bool
+    toggling_repeat_track: bool
+    toggling_shuffle: bool
+    transferring_playback: bool
+
+
+class ContextData(TypedDict):
+    external_urls: ExternalUrlsData
+    href: str
+    type: str
+    uri: str
+
+
+class CurrentlyPlayingContextData(TypedDict):
+    actions: DisallowsData
+    context: ContextData
+    currently_playing_type: str
+    device: DeviceData
+    is_playing: bool
+    item: Optional[TrackData]
+    progress_ms: int
+    repeat_state: str
+    shuffle_state: str
+    timestamp: int
+
+
+class CurrentlyPlayingData(TypedDict):
+    context: ContextData
+    currently_playing_type: str
+    is_playing: bool
+    item: Optional[TrackData]
+    progress_ms: int
+    timestamp: int
+
+
+# MARKETS API
+
+...
 
 
 # TOKENS

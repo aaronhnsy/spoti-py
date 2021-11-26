@@ -14,7 +14,7 @@ import aiohttp
 # My stuff
 from aiospotify import exceptions, objects, utils, values
 from aiospotify.typings.http import (
-    ArtistRelatedArtistsData,
+    RelatedArtistsData,
     ArtistTopTracksData,
     AvailableMarketsData,
     CategoryPlaylistsData,
@@ -353,7 +353,7 @@ class HTTPClient:
         *,
         market: str | None,
         credentials: OptionalCredentials = None,
-    ) -> ArtistRelatedArtistsData:
+    ) -> RelatedArtistsData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/artists/{id}/related-artists", id=_id), parameters=parameters, credentials=credentials)

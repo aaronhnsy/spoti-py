@@ -22,6 +22,10 @@ class MultipleAlbumsData(TypedDict):
     albums: list[AlbumData | None]
 
 
+class NewReleasesData(TypedDict):
+    albums: PagingObjectData
+
+
 # ARTISTS API
 
 class MultipleArtistsData(TypedDict):
@@ -32,31 +36,14 @@ class ArtistTopTracksData(TypedDict):
     tracks: list[TrackData]
 
 
-class ArtistRelatedArtistsData(TypedDict):
+class RelatedArtistsData(TypedDict):
     artists: list[ArtistData]
 
 
-# BROWSE API
+# SHOWS API
 
-class NewReleasesData(TypedDict):
-    albums: PagingObjectData
-
-
-class FeaturedPlaylistsData(TypedDict):
-    message: str
-    playlists: PagingObjectData
-
-
-class MultipleCategoriesData(TypedDict):
-    categories: PagingObjectData
-
-
-class CategoryPlaylistsData(TypedDict):
-    playlists: PagingObjectData
-
-
-class RecommendationGenresData(TypedDict):
-    genres: list[str]
+class MultipleShowsData(TypedDict):
+    shows: list[ShowData | None]
 
 
 # EPISODE API
@@ -65,35 +52,14 @@ class MultipleEpisodesData(TypedDict):
     episodes: list[EpisodeData | None]
 
 
-# FOLLOW API
+# TRACKS API
 
-...
-
-
-# LIBRARY API
-
-...
+class MultipleTracksData(TypedDict):
+    tracks: list[TrackData | None]
 
 
-# MARKETS API
-
-class AvailableMarketsData(TypedDict):
-    markets: list[str]
-
-
-# PERSONALIZATION API
-
-...
-
-
-# PLAYER API
-
-...
-
-
-# PLAYLISTS API
-
-...
+class SeveralTracksAudioFeaturesData(TypedDict):
+    audio_features: list[AudioFeaturesData | None]
 
 
 # SEARCH API
@@ -107,22 +73,40 @@ class SearchResultData(TypedDict):
     episodes: PagingObjectData
 
 
-# SHOWS API
-
-class MultipleShowsData(TypedDict):
-    shows: list[ShowData | None]
-
-
-# TRACKS API #
-
-class MultipleTracksData(TypedDict):
-    tracks: list[TrackData | None]
-
-
-class SeveralTracksAudioFeaturesData(TypedDict):
-    audio_features: list[AudioFeaturesData | None]
-
-
 # USERS API
 
 ...
+
+
+# PLAYLISTS API
+
+class FeaturedPlaylistsData(TypedDict):
+    message: str
+    playlists: PagingObjectData
+
+
+class CategoryPlaylistsData(TypedDict):
+    playlists: PagingObjectData
+
+
+# CATEGORY API
+
+class MultipleCategoriesData(TypedDict):
+    categories: PagingObjectData
+
+
+# GENRE API
+
+class RecommendationGenresData(TypedDict):
+    genres: list[str]
+
+
+# PLAYER API
+
+...
+
+
+# MARKETS API
+
+class AvailableMarketsData(TypedDict):
+    markets: list[str]
