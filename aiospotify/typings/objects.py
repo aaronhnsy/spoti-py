@@ -81,6 +81,14 @@ class AlbumData(BaseObjectData):
     tracks: PagingObjectData
 
 
+class MultipleAlbumsData(TypedDict):
+    albums: list[AlbumData | None]
+
+
+class NewReleasesData(TypedDict):
+    albums: PagingObjectData
+
+
 # ARTISTS API
 
 class SimpleArtistData(BaseObjectData):
@@ -92,6 +100,18 @@ class ArtistData(SimpleArtistData):
     genres: list[str]
     images: list[ImageData]
     popularity: int
+
+
+class MultipleArtistsData(TypedDict):
+    artists: list[ArtistData | None]
+
+
+class ArtistTopTracksData(TypedDict):
+    tracks: list[TrackData]
+
+
+class ArtistRelatedArtistsData(TypedDict):
+    artists: list[ArtistData]
 
 
 # SHOWS API
@@ -109,6 +129,10 @@ class ShowData(BaseObjectData):
     media_type: str
     publisher: str
     total_episodes: int
+
+
+class MultipleShowsData(TypedDict):
+    shows: list[ShowData | None]
 
 
 # EPISODE API
@@ -157,6 +181,10 @@ class EpisodeData(BaseObjectData):
     show: ShowData
 
 
+class MultipleEpisodesData(TypedDict):
+    episodes: list[EpisodeData | None]
+
+
 # TRACKS API
 
 class TrackRestrictionData(TypedDict):
@@ -196,6 +224,10 @@ class TrackData(BaseObjectData):
     track_number: int
 
 
+class MultipleTracksData(TypedDict):
+    tracks: list[TrackData | None]
+
+
 class AudioFeaturesData(TypedDict):
     acousticness: float
     analysis_url: str
@@ -217,6 +249,10 @@ class AudioFeaturesData(TypedDict):
     valence: float
 
 
+class SeveralAudioFeaturesData(TypedDict):
+    audio_features: list[AudioFeaturesData | None]
+
+
 class RecommendationSeedData(TypedDict):
     initialPoolSize: int
     afterFilteringSize: int
@@ -233,7 +269,13 @@ class RecommendationData(TypedDict):
 
 # SEARCH API
 
-...
+class SearchResultData(TypedDict):
+    albums: PagingObjectData
+    artists: PagingObjectData
+    tracks: PagingObjectData
+    playlists: PagingObjectData
+    shows: PagingObjectData
+    episodes: PagingObjectData
 
 
 # USERS API
@@ -295,6 +337,15 @@ class PlaylistData(BaseObjectData):
     tracks: PagingObjectData
 
 
+class FeaturedPlaylistsData(TypedDict):
+    message: str
+    playlists: PagingObjectData
+
+
+class CategoryPlaylistsData(TypedDict):
+    playlists: PagingObjectData
+
+
 # CATEGORY API
 
 class CategoryData(TypedDict):
@@ -304,9 +355,14 @@ class CategoryData(TypedDict):
     name: str
 
 
+class MultipleCategoriesData(TypedDict):
+    categories: PagingObjectData
+
+
 # GENRE API
 
-...
+class RecommendationGenresData(TypedDict):
+    genres: list[str]
 
 
 # PLAYER API
@@ -365,7 +421,8 @@ class CurrentlyPlayingData(TypedDict):
 
 # MARKETS API
 
-...
+class AvailableMarketsData(TypedDict):
+    markets: list[str]
 
 
 # TOKENS
