@@ -33,14 +33,18 @@ class Client:
         self,
         client_id: str,
         client_secret: str,
-        session: aiohttp.ClientSession = utils.MISSING
+        session: aiohttp.ClientSession | None = None
     ) -> None:
 
         self._client_id: str = client_id
         self._client_secret: str = client_secret
-        self._session: aiohttp.ClientSession = session
+        self._session: aiohttp.ClientSession | None = session
 
-        self.http: http.HTTPClient = http.HTTPClient(client_id=self._client_id, client_secret=self._client_secret, session=self._session)
+        self.http: http.HTTPClient = http.HTTPClient(
+            client_id=self._client_id,
+            client_secret=self._client_secret,
+            session=self._session
+        )
 
     def __repr__(self) -> str:
         return "<aiospotify.Client>"

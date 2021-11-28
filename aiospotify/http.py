@@ -3,22 +3,29 @@ from __future__ import annotations
 
 # Standard Library
 import asyncio
+import base64
 import logging
 import urllib.parse
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, ClassVar, Literal
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar
 
 # Packages
 import aiohttp
 
 # My stuff
 from aiospotify import exceptions, objects, utils, values
-from aiospotify.typings.http import (
-    RelatedArtistsData,
+from aiospotify.typings.objects import (
+    AlbumData,
+    ArtistData,
+    ArtistRelatedArtistsData,
     ArtistTopTracksData,
+    AudioFeaturesData,
     AvailableMarketsData,
+    CategoryData,
     CategoryPlaylistsData,
+    EpisodeData,
     FeaturedPlaylistsData,
+    ImageData,
     MultipleAlbumsData,
     MultipleArtistsData,
     MultipleCategoriesData,
@@ -26,20 +33,12 @@ from aiospotify.typings.http import (
     MultipleShowsData,
     MultipleTracksData,
     NewReleasesData,
-    RecommendationGenresData,
-    SearchResultData,
-    SeveralTracksAudioFeaturesData,
-)
-from aiospotify.typings.objects import (
-    AlbumData,
-    ArtistData,
-    AudioFeaturesData,
-    CategoryData,
-    EpisodeData,
-    ImageData,
     PagingObjectData,
     PlaylistData,
     RecommendationData,
+    RecommendationGenresData,
+    SearchResultData,
+    SeveralAudioFeaturesData,
     ShowData,
     TrackData,
     UserData,
@@ -60,6 +59,7 @@ __all__ = (
 __log__: logging.Logger = logging.getLogger("aiospotify.http")
 
 HTTPMethod = Literal["GET", "POST", "DELETE", "PATCH", "PUT"]
+ID = TypeVar("ID", bound=str)
 
 
 class Route:
@@ -94,32 +94,29 @@ class HTTPClient:
         *,
         client_id: str,
         client_secret: str,
-        session: aiohttp.ClientSession
+        session: aiohttp.ClientSession | None
     ) -> None:
 
         self._client_id: str = client_id
         self._client_secret: str = client_secret
-        self._session: aiohttp.ClientSession = session
+        self._session: aiohttp.ClientSession | None = session
 
         self._client_credentials: objects.ClientCredentials | None = None
 
     def __repr__(self) -> str:
         return "<aiospotify.HTTPClient>"
 
-    #
+    async def _ensure_session_exists(self) -> None:
 
-    async def request(
+        if self._session and not self._session.closed:
+            return
+
+        self._session = aiohttp.ClientSession()
+
+    async def _get_credentials(
         self,
-        route: Route,
-        /,
-        *,
-        credentials: OptionalCredentials,
-        parameters: dict[str, Any] | None = None,
-        data: dict[str, Any] | None = None,
-    ) -> Any:
-
-        if not self._session:
-            self._session = aiohttp.ClientSession()
+        credentials: OptionalCredentials
+    ) -> Credentials:
 
         if not self._client_credentials:
             self._client_credentials = await objects.ClientCredentials.from_client_secret(self._client_id, self._client_secret, session=self._session)
@@ -129,12 +126,39 @@ class HTTPClient:
         if _credentials.is_expired():
             await _credentials.refresh(session=self._session)
 
+        return credentials
+
+    #
+
+    async def close(self) -> None:
+
+        if not self._session or self._session.closed:
+            return
+
+        await self._session.close()
+        self._session = None
+
+    async def request(
+        self,
+        route: Route,
+        /,
+        *,
+        credentials: OptionalCredentials,
+        parameters: dict[str, Any] | None = None,
+        data: Any = None,
+    ) -> Any:
+
+        await self._ensure_session_exists()
+        assert self._session is not None
+
+        credentials = await self._get_credentials(credentials)
+
         headers = {
             "Content-Type":  "application/json",
-            "Authorization": f"Bearer {_credentials.access_token}"
+            "Authorization": f"Bearer {credentials.access_token}"
         }
 
-        for tries in range(5):
+        for tries in range(3):
 
             try:
 
@@ -148,25 +172,27 @@ class HTTPClient:
 
                     response_data = await utils.json_or_text(response)
 
-                    if isinstance(response_data, str):
-                        raise exceptions.SpotifyException("Something went wrong, the Spotify API returned text.")
-
                     if 200 <= response.status < 300:
+
                         __log__.debug(f"{route.method} @ {route.url} received payload: {response_data}")
                         return response_data
 
-                    if response.status == 429:
+                    if response.status == 413:  # Special case as spotify doesnt return a json content type for this error?
+                        raise exceptions.RequestEntityTooLarge(response=response, data={"status": 413, "message": "Request entity too large."})
+
+                    if response.status == 429:  # Retry after specified amount of time has passed.
                         retry_after = float(response.headers["Retry-After"])
                         __log__.warning(f"{route.method} @ {route.url} is being ratelimited, retrying in {retry_after:.2f} seconds.")
                         await asyncio.sleep(retry_after)
                         __log__.debug(f"{route.method} @ {route.url} is done sleeping for ratelimit, retrying...")
                         continue
 
-                    if response.status in {500, 502, 503}:
+                    if response.status in {500, 502, 503}:  # Retry after delay.
                         await asyncio.sleep(1 + tries * 2)
                         continue
 
                     if error := response_data.get("error"):
+                        print(error)
                         raise values.EXCEPTION_MAPPING[response.status](response, error)
 
             except OSError as error:
@@ -179,13 +205,6 @@ class HTTPClient:
             raise exceptions.HTTPError(response, response_data["error"])
 
         raise RuntimeError("This shouldn't happen.")
-
-    async def close(self) -> None:
-
-        if not self._session:
-            return
-
-        await self._session.close()
 
     # ALBUMS API
 
@@ -210,7 +229,7 @@ class HTTPClient:
     ) -> MultipleAlbumsData:
 
         if len(ids) > 20:
-            raise ValueError("'get_albums' can only take a maximum of 20 album ids.")
+            raise ValueError("'ids' can not contain more than 20 ids.")
 
         parameters = {"ids": ",".join(ids)}
         if market:
@@ -233,25 +252,71 @@ class HTTPClient:
         if market:
             parameters["market"] = market
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
 
         return await self.request(Route("GET", "/albums/{id}/tracks", id=_id), parameters=parameters, credentials=credentials)
 
-    async def get_saved_albums(self) -> None:
-        pass
+    async def get_saved_albums(
+        self,
+        *,
+        market: str | None,
+        limit: int | None,
+        offset: int | None,
+        credentials: Credentials,
+    ) -> PagingObjectData:
 
-    async def save_albums(self) -> None:
-        pass
+        parameters = {}
+        if market:
+            parameters["market"] = market
+        if limit:
+            utils.limit_value("limit", limit, 1, 50)
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
 
-    async def remove_albums(self) -> None:
-        pass
+        return await self.request(Route("GET", "/me/albums"), parameters=parameters, credentials=credentials)
 
-    async def check_saved_albums(self) -> None:
-        pass
+    async def save_albums(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("PUT", "/me/albums"), parameters=parameters, credentials=credentials)
+
+    async def remove_albums(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("DELETE", "/me/albums"), parameters=parameters, credentials=credentials)
+
+    async def check_saved_albums(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> list[bool]:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("GET", "/me/albums/contains"), parameters=parameters, credentials=credentials)
 
     async def get_new_releases(
         self,
@@ -266,8 +331,7 @@ class HTTPClient:
         if country:
             parameters["country"] = country
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
@@ -297,7 +361,7 @@ class HTTPClient:
     ) -> MultipleArtistsData:
 
         if len(ids) > 50:
-            raise ValueError("'get_artists' can only take a maximum of 50 artist ids.")
+            raise ValueError("'ids' can not contain more than 50 ids.")
 
         parameters = {"ids": ",".join(ids)}
         if market:
@@ -311,26 +375,22 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        include_groups: Sequence[objects.IncludeGroup] | None = utils.MISSING,
         limit: int | None,
         offset: int | None,
+        include_groups: Sequence[objects.IncludeGroup] | None,
         credentials: OptionalCredentials = None,
     ) -> PagingObjectData:
-
-        if include_groups == utils.MISSING:
-            include_groups = [objects.IncludeGroup.ALBUM]
 
         parameters = {}
         if market:
             parameters["market"] = market
-        if include_groups:
-            parameters["include_groups"] = ",".join(include_group.value for include_group in include_groups)
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
+        if include_groups:
+            parameters["include_groups"] = ",".join(include_group.value for include_group in include_groups)
 
         return await self.request(Route("GET", "/artists/{id}/albums", id=_id), parameters=parameters, credentials=credentials)
 
@@ -339,7 +399,7 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        market: str = "GB",
+        market: str,
         credentials: OptionalCredentials = None,
     ) -> ArtistTopTracksData:
 
@@ -353,7 +413,7 @@ class HTTPClient:
         *,
         market: str | None,
         credentials: OptionalCredentials = None,
-    ) -> RelatedArtistsData:
+    ) -> ArtistRelatedArtistsData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/artists/{id}/related-artists", id=_id), parameters=parameters, credentials=credentials)
@@ -381,7 +441,7 @@ class HTTPClient:
     ) -> MultipleShowsData:
 
         if len(ids) > 50:
-            raise ValueError("'get_shows' can only take a maximum of 50 show ids.")
+            raise ValueError("'ids' can not contain more than 50 ids.")
 
         parameters = {"ids": ",".join(ids)}
         if market:
@@ -404,25 +464,68 @@ class HTTPClient:
         if market:
             parameters["market"] = market
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
 
         return await self.request(Route("GET", "/shows/{id}/episodes", id=_id), parameters=parameters, credentials=credentials)
 
-    async def get_saved_shows(self) -> None:
-        pass
+    async def get_saved_shows(
+        self,
+        *,
+        limit: int | None,
+        offset: int | None,
+        credentials: Credentials,
+    ) -> PagingObjectData:
 
-    async def save_shows(self) -> None:
-        pass
+        parameters = {}
+        if limit:
+            utils.limit_value("limit", limit, 1, 50)
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
 
-    async def remove_shows(self) -> None:
-        pass
+        return await self.request(Route("GET", "/me/shows"), parameters=parameters, credentials=credentials)
 
-    async def check_saved_shows(self) -> None:
-        pass
+    async def save_shows(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("PUT", "/me/shows"), parameters=parameters, credentials=credentials)
+
+    async def remove_shows(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("DELETE", "/me/shows"), parameters=parameters, credentials=credentials)
+
+    async def check_saved_shows(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> list[bool]:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("GET", "/me/shows/contains"), parameters=parameters, credentials=credentials)
 
     # EPISODE API
 
@@ -447,7 +550,7 @@ class HTTPClient:
     ) -> MultipleEpisodesData:
 
         if len(ids) > 50:
-            raise ValueError("'get_episodes' can only take a maximum of 50 episodes ids.")
+            raise ValueError("'ids' can not contain more than 50 ids.")
 
         parameters = {"ids": ",".join(ids)}
         if market:
@@ -455,17 +558,65 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/episodes"), parameters=parameters, credentials=credentials)
 
-    async def get_saved_episodes(self) -> None:
-        pass
+    async def get_saved_episodes(
+        self,
+        *,
+        market: str | None,
+        limit: int | None,
+        offset: int | None,
+        credentials: Credentials,
+    ) -> PagingObjectData:
 
-    async def save_episodes(self) -> None:
-        pass
+        parameters = {}
+        if market:
+            parameters["market"] = market
+        if limit:
+            utils.limit_value("limit", limit, 1, 50)
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
 
-    async def remove_episodes(self) -> None:
-        pass
+        return await self.request(Route("GET", "/me/episodes"), parameters=parameters, credentials=credentials)
 
-    async def check_saved_episodes(self) -> None:
-        pass
+    async def save_episodes(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("PUT", "/me/episodes"), parameters=parameters, credentials=credentials)
+
+    async def remove_episodes(
+        self,
+        ids: list[str],
+        /,
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("DELETE", "/me/episodes"), parameters=parameters, credentials=credentials)
+
+    async def check_saved_episodes(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> list[bool]:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("GET", "/me/episodes/contains"), parameters=parameters, credentials=credentials)
 
     # TRACKS API
 
@@ -490,7 +641,7 @@ class HTTPClient:
     ) -> MultipleTracksData:
 
         if len(ids) > 50:
-            raise ValueError("'get_tracks' can only take a maximum of 50 track ids.")
+            raise ValueError("'ids' can not contain more than 50 ids.")
 
         parameters = {"ids": ",".join(ids)}
         if market:
@@ -498,29 +649,66 @@ class HTTPClient:
 
         return await self.request(Route("GET", "/tracks"), parameters=parameters, credentials=credentials)
 
-    async def get_saved_tracks(self) -> None:
-        pass
-
-    async def save_tracks(self) -> None:
-        pass
-
-    async def remove_tracks(self) -> None:
-        pass
-
-    async def check_saved_tracks(self) -> None:
-        pass
-
-    async def get_several_tracks_audio_features(
+    async def get_saved_tracks(
         self,
-        ids: Sequence[str],
         *,
-        credentials: OptionalCredentials = None,
-    ) -> SeveralTracksAudioFeaturesData:
+        market: str | None,
+        limit: int | None,
+        offset: int | None,
+        credentials: Credentials,
+    ) -> PagingObjectData:
 
-        if len(ids) > 100:
-            raise ValueError("'get_several_track_audio_features' can only take a maximum of 100 track ids.")
+        parameters = {}
+        if market:
+            parameters["market"] = market
+        if limit:
+            utils.limit_value("limit", limit, 1, 50)
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
 
-        return await self.request(Route("GET", "/audio-features"), parameters={"ids": ",".join(ids)}, credentials=credentials)
+        return await self.request(Route("GET", "/me/tracks"), parameters=parameters, credentials=credentials)
+
+    async def save_tracks(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("PUT", "/me/tracks"), parameters=parameters, credentials=credentials)
+
+    async def remove_tracks(
+        self,
+        ids: list[str],
+        /,
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("DELETE", "/me/tracks"), parameters=parameters, credentials=credentials)
+
+    async def check_saved_tracks(
+        self,
+        ids: list[ID],
+        /,
+        *,
+        credentials: Credentials,
+    ) -> list[bool]:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("GET", "/me/tracks/contains"), parameters=parameters, credentials=credentials)
 
     async def get_track_audio_features(
         self,
@@ -530,6 +718,19 @@ class HTTPClient:
         credentials: OptionalCredentials = None,
     ) -> AudioFeaturesData:
         return await self.request(Route("GET", "/audio-features/{id}", id=_id), credentials=credentials)
+
+    async def get_several_tracks_audio_features(
+        self,
+        ids: Sequence[str],
+        *,
+        credentials: OptionalCredentials = None,
+    ) -> SeveralAudioFeaturesData:
+
+        if len(ids) > 100:
+            raise ValueError("'ids' can not contain more than 100 ids.")
+
+        parameters = {"ids": ",".join(ids)}
+        return await self.request(Route("GET", "/audio-features"), parameters=parameters, credentials=credentials)
 
     async def get_track_audio_analysis(
         self,
@@ -553,8 +754,8 @@ class HTTPClient:
     ) -> RecommendationData:
 
         seeds = len([seed for seeds in [seed_artist_ids or [], seed_genres or [], seed_track_ids or []] for seed in seeds])
-        if seeds <= 0 or seeds > 5:
-            raise ValueError("Too many or no seed values provided. Minimum 1, Maximum 5.")
+        if seeds < 1 or seeds > 5:
+            raise ValueError("too many or no seed values provided. min 1, max 5.")
 
         parameters = {}
         if seed_artist_ids:
@@ -566,14 +767,12 @@ class HTTPClient:
 
         for key, value in kwargs.items():
             if key not in values.VALID_SEED_KWARGS:
-                raise ValueError(f"'{key}' was not a valid kwarg.")
+                raise ValueError(f"'{key}' is not a valid kwarg.")
             parameters[key] = value
 
         if limit:
-            if limit < 1 or limit > 100:
-                raise ValueError("'limit' must be between 1 and 100 inclusive.")
+            utils.limit_value("limit", limit, 1, 100)
             parameters["limit"] = limit
-
         if market:
             parameters["market"] = market
 
@@ -586,32 +785,28 @@ class HTTPClient:
         query: str,
         /,
         *,
-        search_types: Sequence[objects.SearchType] | None,
+        search_types: Sequence[objects.SearchType],
+        include_external: bool = False,
         market: str | None,
         limit: int | None,
         offset: int | None,
-        include_external: bool = False,
         credentials: OptionalCredentials = None,
     ) -> SearchResultData:
-
-        if not search_types:
-            search_types = [objects.SearchType.ALL]
 
         parameters: dict[str, Any] = {
             "q": query.replace(" ", "+"),
             "type": ",".join(search_type.value for search_type in search_types)
         }
 
+        if include_external:
+            parameters["include_external"] = "audio"
         if market:
             parameters["market"] = market
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
-        if include_external:
-            parameters["include_external"] = "audio"
 
         return await self.request(Route("GET", "/search"), parameters=parameters, credentials=credentials)
 
@@ -627,42 +822,40 @@ class HTTPClient:
     async def get_current_user_top_artists(
         self,
         *,
-        time_range: objects.TimeRange | None,
         limit: int | None,
         offset: int | None,
+        time_range: objects.TimeRange | None,
         credentials: Credentials,
     ) -> PagingObjectData:
 
         parameters = {}
-        if time_range:
-            parameters["time_range"] = time_range.value
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
+        if time_range:
+            parameters["time_range"] = time_range.value
 
         return await self.request(Route("GET", "/me/top/artists"), parameters=parameters, credentials=credentials)
 
     async def get_current_user_top_tracks(
         self,
         *,
-        time_range: objects.TimeRange | None,
         limit: int | None,
         offset: int | None,
+        time_range: objects.TimeRange | None,
         credentials: Credentials,
     ) -> PagingObjectData:
 
         parameters = {}
-        if time_range:
-            parameters["time_range"] = time_range.value
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
+        if time_range:
+            parameters["time_range"] = time_range.value
 
         return await self.request(Route("GET", "/me/top/tracks"), parameters=parameters, credentials=credentials)
 
@@ -671,42 +864,173 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: Credentials,
+        credentials: OptionalCredentials = None,
     ) -> UserData:
         return await self.request(Route("GET", "/users/{id}", id=_id), credentials=credentials)
 
-    async def follow_playlist(self) -> None:
-        pass
+    async def follow_playlist(
+        self,
+        _id: str,
+        /,
+        *,
+        public: bool | None,
+        credentials: Credentials
+    ) -> None:
 
-    async def unfollow_playlist(self) -> None:
-        pass
+        data = {"public": public} if public else None
+        return await self.request(Route("PUT", "playlists/{id}/followers", id=_id), data=data, credentials=credentials)
 
-    async def get_followed_artists(self) -> None:
-        pass
+    async def unfollow_playlist(
+        self,
+        _id: str,
+        /,
+        *,
+        credentials: Credentials
+    ) -> None:
+        return await self.request(Route("DELETE", "playlists/{id}/followers", id=_id), credentials=credentials)
 
-    async def get_followed_users(self) -> None:
-        pass
+    async def check_if_users_follow_playlists(
+        self,
+        playlist_id: str,
+        /,
+        *,
+        user_ids: list[str],
+        credentials: OptionalCredentials = None,
+    ) -> None:
 
-    async def follow_artists(self) -> None:
-        pass
+        if len(user_ids) > 5:
+            raise ValueError("'ids' can not contain more than 5 ids.")
 
-    async def follow_users(self) -> None:
-        pass
+        parameters = {"ids": ",".join(user_ids)}
+        route = Route("GET", "/playlists/{playlist_id}/followers/contains", playlist_id=playlist_id)
 
-    async def unfollow_artists(self) -> None:
-        pass
+        return await self.request(route, parameters=parameters, credentials=credentials)
 
-    async def unfollow_users(self) -> None:
-        pass
+    async def get_followed_users(
+        self,
+    ) -> None:
+        raise exceptions.SpotifyException("This operation is not yet implemented in the spotify api.")
 
-    async def check_followed_artists(self) -> None:
-        pass
+    async def get_followed_artists(
+        self,
+        *,
+        limit: int | None,
+        offset: str | None,
+        credentials: Credentials,
+    ) -> dict[str, Any]:
 
-    async def check_followed_users(self) -> None:
-        pass
+        parameters: dict[str, Any] = {
+            "type": "artist"
+        }
+        if limit:
+            utils.limit_value("limit", limit, 1, 50)
+            parameters["limit"] = limit
+        if offset:
+            parameters["offset"] = offset
 
-    async def check_playlist_followers(self) -> None:
-        pass
+        return await self.request(Route("GET", "/me/following"), parameters=parameters, credentials=credentials)
+
+    async def follow_users(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {
+            "type": "user",
+            "ids": ",".join(ids)
+        }
+
+        return await self.request(Route("PUT", "/me/following"), parameters=parameters, credentials=credentials)
+
+    async def follow_artists(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {
+            "type": "artist",
+            "ids": ",".join(ids)
+        }
+
+        return await self.request(Route("PUT", "/me/following"), parameters=parameters, credentials=credentials)
+
+    async def unfollow_users(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {
+            "type": "user",
+            "ids":  ",".join(ids)
+        }
+
+        return await self.request(Route("DELETE", "/me/following"), parameters=parameters, credentials=credentials)
+
+    async def unfollow_artists(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {
+            "type": "artist",
+            "ids":  ",".join(ids)
+        }
+
+        return await self.request(Route("DELETE", "/me/following"), parameters=parameters, credentials=credentials)
+
+    async def check_followed_users(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> list[bool]:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {
+            "type": "user",
+            "ids":  ",".join(ids)
+        }
+
+        return await self.request(Route("GET", "/me/following/contains"), parameters=parameters, credentials=credentials)
+
+    async def check_followed_artists(
+        self,
+        ids: list[str],
+        *,
+        credentials: Credentials,
+    ) -> list[bool]:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        parameters = {
+            "type": "artist",
+            "ids":  ",".join(ids)
+        }
+
+        return await self.request(Route("GET", "/me/following/contains"), parameters=parameters, credentials=credentials)
 
     # PLAYLISTS API
 
@@ -720,7 +1044,9 @@ class HTTPClient:
         credentials: OptionalCredentials = None,
     ) -> PlaylistData:
 
-        parameters = {"additional_types": "track"}
+        parameters = {
+            "additional_types": "track"
+        }  # TODO: Support all types
         if market:
             parameters["market"] = market
         if fields:
@@ -741,7 +1067,7 @@ class HTTPClient:
     ) -> None:
 
         if collaborative and public:
-            raise ValueError("collaborative playlists must not be public.")
+            raise ValueError("collaborative playlists can not be public.")
 
         data = {}
         if name:
@@ -767,14 +1093,15 @@ class HTTPClient:
         credentials: OptionalCredentials = None,
     ) -> PagingObjectData:
 
-        parameters: dict[str, Any] = {"additional_types": "track"}
+        parameters: dict[str, Any] = {
+            "additional_types": "track"
+        }  # TODO: Support all types
         if market:
             parameters["market"] = market
         if fields:
             parameters["fields"] = fields
         if limit:
-            if limit < 1 or limit > 100:
-                raise ValueError("'limit' must be between 1 and 100 inclusive.")
+            utils.limit_value("limit", limit, 1, 100)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
@@ -786,12 +1113,17 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        position: int | None,
         uris: Sequence[str],
+        position: int | None,
         credentials: Credentials,
     ) -> dict[str, Any]:
 
-        data: dict[str, Any] = {"uris": uris}
+        if len(uris) > 100:
+            raise ValueError("'uris' can not contain more than 100 URI's.")
+
+        data: dict[str, Any] = {
+            "uris": uris
+        }
         if position:
             data["position"] = position
 
@@ -825,16 +1157,14 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        uris: Sequence[str] | None,
+        uris: Sequence[str],
         credentials: Credentials,
     ) -> None:
 
-        data: dict[str, Any] = {"uris": None}
-        if uris:
-            if len(uris) > 100:
-                raise ValueError("'uris' must be less than 100 uris.")
-            data["uris"] = uris
+        if len(uris) > 100:
+            raise ValueError("'uris' can not contain more than 100 URI's.")
 
+        data = {"uris": uris}
         return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
 
     async def remove_items_from_playlist(
@@ -847,7 +1177,12 @@ class HTTPClient:
         credentials: Credentials,
     ) -> dict[str, Any]:
 
-        data: dict[str, Any] = {"tracks": [{"uri": uri} for uri in uris]}
+        if len(uris) > 100:
+            raise ValueError("'uris' can not contain more than 100 URI's.")
+
+        data: dict[str, Any] = {
+            "tracks": [{"uri": uri} for uri in uris]
+        }
         if snapshot_id:
             data["snapshot_id"] = snapshot_id
 
@@ -863,6 +1198,7 @@ class HTTPClient:
 
         parameters = {}
         if limit:
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
@@ -876,11 +1212,12 @@ class HTTPClient:
         *,
         limit: int | None,
         offset: int | None,
-        credentials: Credentials,
+        credentials: OptionalCredentials = None,
     ) -> PagingObjectData:
 
         parameters = {}
         if limit:
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
@@ -899,9 +1236,11 @@ class HTTPClient:
     ) -> dict[str, Any]:
 
         if collaborative and public:
-            raise ValueError("collaborative playlists must not be public.")
+            raise ValueError("collaborative playlists can not be public.")
 
-        data: dict[str, Any] = {"name": name}
+        data: dict[str, Any] = {
+            "name": name
+        }
         if public:
             data["public"] = public
         if collaborative:
@@ -930,8 +1269,7 @@ class HTTPClient:
         if timestamp:
             parameters["timestamp"] = timestamp
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
@@ -953,8 +1291,7 @@ class HTTPClient:
         if country:
             parameters["country"] = country
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
@@ -970,8 +1307,27 @@ class HTTPClient:
     ) -> Sequence[ImageData]:
         return await self.request(Route("GET", "/playlists/{id}/images", id=_id), credentials=credentials)
 
-    async def upload_playlist_cover_image(self) -> None:
-        pass
+    async def upload_playlist_cover_image(
+        self,
+        _id: str,
+        /,
+        *,
+        url: str,
+        credentials: Credentials,
+    ) -> None:
+
+        if not self._session:
+            self._session = aiohttp.ClientSession()
+
+        async with self._session.get(url) as request:
+
+            if request.status != 200:
+                raise exceptions.SpotifyException("There was a problem while uploading that image.")
+
+            image_bytes = await request.read()
+            data = base64.b64encode(image_bytes).decode("utf-8")
+
+        return await self.request(Route("PUT", "/playlists/{id}/images", id=_id), data=data, credentials=credentials)
 
     # CATEGORY API
 
@@ -991,8 +1347,7 @@ class HTTPClient:
         if locale:
             parameters["locale"] = locale
         if limit:
-            if limit < 1 or limit > 50:
-                raise ValueError("'limit' must be between 1 and 50 inclusive.")
+            utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
         if offset:
             parameters["offset"] = offset
