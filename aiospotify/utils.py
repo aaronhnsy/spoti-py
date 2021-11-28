@@ -20,7 +20,7 @@ async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str
     text = await response.text(encoding="utf-8")
 
     try:
-        if response.headers["content-type"] == "application/json; charset=utf-8":
+        if response.headers["content-type"] in ["application/json", "application/json; charset=utf-8"]:
             return json.loads(text)
     except KeyError:
         pass
@@ -41,3 +41,14 @@ class _MissingSentinel:
 
 
 MISSING: Any = _MissingSentinel()
+
+
+def limit_value(
+    name: str,
+    value: int,
+    minimum: int,
+    maximum: int
+) -> None:
+
+    if value < minimum or value > maximum:
+        raise ValueError(f"'{name}' must be more than {minimum} and less than {maximum}")
