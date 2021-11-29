@@ -106,6 +106,8 @@ class HTTPClient:
     def __repr__(self) -> str:
         return "<aiospotify.HTTPClient>"
 
+    #
+
     async def _ensure_session_exists(self) -> None:
 
         if self._session and not self._session.closed:
@@ -113,20 +115,21 @@ class HTTPClient:
 
         self._session = aiohttp.ClientSession()
 
-    async def _get_credentials(
-        self,
-        credentials: OptionalCredentials
-    ) -> Credentials:
+    async def _get_credentials(self, credentials: OptionalCredentials) -> Credentials:
 
         if not self._client_credentials:
-            self._client_credentials = await objects.ClientCredentials.from_client_secret(self._client_id, self._client_secret, session=self._session)
+            self._client_credentials = await objects.ClientCredentials.from_client_secret(
+                self._client_id,
+                self._client_secret,
+                session=self._session
+            )
 
         _credentials = credentials or self._client_credentials
 
         if _credentials.is_expired():
             await _credentials.refresh(session=self._session)
 
-        return credentials
+        return _credentials
 
     #
 
@@ -177,22 +180,21 @@ class HTTPClient:
                         __log__.debug(f"{route.method} @ {route.url} received payload: {response_data}")
                         return response_data
 
-                    if response.status == 413:  # Special case as spotify doesnt return a json content type for this error?
+                    if response.status == 413:  # Special case as spotify doesn't return a json content type for this error???
                         raise exceptions.RequestEntityTooLarge(response=response, data={"status": 413, "message": "Request entity too large."})
 
-                    if response.status == 429:  # Retry after specified amount of time has passed.
+                    if response.status == 429:  # Retry request after returned amount of time has passed.
                         retry_after = float(response.headers["Retry-After"])
                         __log__.warning(f"{route.method} @ {route.url} is being ratelimited, retrying in {retry_after:.2f} seconds.")
                         await asyncio.sleep(retry_after)
                         __log__.debug(f"{route.method} @ {route.url} is done sleeping for ratelimit, retrying...")
                         continue
 
-                    if response.status in {500, 502, 503}:  # Retry after delay.
+                    if response.status in {500, 502, 503}:  # Retry request after a delay.
                         await asyncio.sleep(1 + tries * 2)
                         continue
 
                     if error := response_data.get("error"):
-                        print(error)
                         raise values.EXCEPTION_MAPPING[response.status](response, error)
 
             except OSError as error:
