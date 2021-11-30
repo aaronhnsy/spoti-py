@@ -16,6 +16,7 @@ __all__ = (
     "Unauthorized",
     "Forbidden",
     "NotFound",
+    "RequestEntityTooLarge",
     "TooManyRequests",
     "InternalServerError",
     "BadGatewayError",
