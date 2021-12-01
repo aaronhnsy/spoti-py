@@ -4,6 +4,7 @@ from __future__ import annotations
 # Standard Library
 import asyncio
 import base64
+import json
 import logging
 import urllib.parse
 from collections.abc import Sequence
@@ -170,7 +171,7 @@ class HTTPClient:
                         url=route.url,
                         headers=headers,
                         params=parameters,
-                        data=data
+                        data=json.dumps(data) if data else None
                 ) as response:
 
                     response_data = await utils.json_or_text(response)
@@ -1392,7 +1393,9 @@ class HTTPClient:
         credentials: Credentials,
     ) -> dict[str, Any]:
 
-        parameters = {"additional_types": "track"}
+        parameters = {
+            "additional_types": "track"
+        }  # TODO: Support all types
         if market:
             parameters["market"] = market
 
@@ -1402,13 +1405,15 @@ class HTTPClient:
         self,
         *,
         device_id: str,
-        play: bool | None,
+        ensure_playback: bool | None,
         credentials: Credentials,
     ) -> None:
 
-        data: dict[str, Any] = {"device_ids": [device_id]}
-        if play:
-            data["play"] = play
+        data: dict[str, Any] = {
+            "device_ids": [device_id]
+        }
+        if ensure_playback:
+            data["play"] = ensure_playback
 
         return await self.request(Route("PUT", "/me/player"), data=data, credentials=credentials)
 
@@ -1426,7 +1431,9 @@ class HTTPClient:
         credentials: Credentials,
     ) -> dict[str, Any]:
 
-        parameters = {"additional_types": "track"}
+        parameters = {
+            "additional_types": "track"
+        }  # TODO: Support all types
         if market:
             parameters["market"] = market
 
@@ -1435,16 +1442,59 @@ class HTTPClient:
     async def start_playback(
         self,
         *,
+        device_id: str | None,
+        context_uri: str | None,
+        uris: list[str] | None,
+        offset: int | str | None,
+        position_ms: int | None,
         credentials: Credentials,
     ) -> None:
-        pass
+
+        if context_uri and uris:
+            raise ValueError("'context_uri' and 'uris' can not both be specified.")
+
+        parameters = {}
+        if device_id:
+            parameters["device_id"] = device_id
+
+        data = {}
+
+        if context_uri or uris:
+
+            if context_uri:
+                data["context_uri"] = context_uri
+            if uris:
+                data["uris"] = uris
+
+            if offset:
+                data["offset"] = {}
+                if isinstance(offset, int):
+                    data["offset"]["position"] = offset
+                else:
+                    data["offset"]["uri"] = offset
+
+            if position_ms:
+                data["position_ms"] = position_ms
+
+        return await self.request(Route("PUT", "/me/player/play"), parameters=parameters, data=data, credentials=credentials)
 
     async def resume_playback(
         self,
         *,
+        device_id: str | None,
+        offset: int | str | None,
+        position_ms: int | None,
         credentials: Credentials,
     ) -> None:
-        await self.start_playback(credentials=credentials)
+
+        return await self.start_playback(
+            device_id=device_id,
+            context_uri=None,
+            uris=None,
+            offset=offset,
+            position_ms=position_ms,
+            credentials=credentials
+        )
 
     async def pause_playback(
         self,
@@ -1493,7 +1543,9 @@ class HTTPClient:
         credentials: Credentials,
     ) -> None:
 
-        parameters: dict[str, Any] = {"position_ms": position_ms}
+        parameters: dict[str, Any] = {
+            "position_ms": position_ms
+        }
         if device_id:
             parameters["device_id"] = device_id
 
@@ -1507,7 +1559,9 @@ class HTTPClient:
         credentials: Credentials,
     ) -> None:
 
-        parameters = {"state": repeat_mode.value}
+        parameters = {
+            "state": repeat_mode.value
+        }
         if device_id:
             parameters["device_id"] = device_id
 
@@ -1521,10 +1575,11 @@ class HTTPClient:
         credentials: Credentials,
     ) -> None:
 
-        if volume_percent < 0 or volume_percent > 100:
-            raise ValueError("'volume_percent' must between 1 and 100 inclusive.")
+        utils.limit_value("volume_percent", volume_percent, 0, 100)
 
-        parameters: dict[str, Any] = {"volume_percent": volume_percent}
+        parameters: dict[str, Any] = {
+            "volume_percent": volume_percent
+        }
         if device_id:
             parameters["device_id"] = device_id
 
@@ -1538,7 +1593,9 @@ class HTTPClient:
         credentials: Credentials,
     ) -> None:
 
-        parameters: dict[str, Any] = {"state": state}
+        parameters: dict[str, Any] = {
+            "state": "true" if state else "false"
+        }
         if device_id:
             parameters["device_id"] = device_id
 
@@ -1574,7 +1631,9 @@ class HTTPClient:
         credentials: Credentials,
     ) -> None:
 
-        parameters = {"uri": uri}
+        parameters = {
+            "uri": uri
+        }
         if device_id:
             parameters["device_id"] = device_id
 
