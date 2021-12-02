@@ -8,8 +8,8 @@ from aiospotify.typings.objects import ContextData, CurrentlyPlayingContextData,
 
 __all__ = (
     "Context",
+    "CurrentlyPlayingContext",
     "CurrentlyPlaying",
-    "CurrentlyPlayingContext"
 )
 
 

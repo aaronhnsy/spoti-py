@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
 
     # My stuff
-    from aiospotify import objects
+    from aiospotify.objects.token import ClientCredentials, UserCredentials
 
-    Credentials = objects.ClientCredentials | objects.UserCredentials
-    OptionalCredentials = objects.ClientCredentials | objects.UserCredentials | None
+    Credentials = ClientCredentials | UserCredentials
+    OptionalCredentials = ClientCredentials | UserCredentials | None

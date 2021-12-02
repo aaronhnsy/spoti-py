@@ -9,8 +9,8 @@ from aiospotify.typings.objects import EpisodeData, EpisodeRestrictionData, Epis
 __all__ = (
     "EpisodeRestriction",
     "EpisodeResumePoint",
+    "SimpleEpisode",
     "Episode",
-    "SimpleEpisode"
 )
 
 
