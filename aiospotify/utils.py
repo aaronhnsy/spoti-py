@@ -10,9 +10,16 @@ import aiohttp
 
 
 __all__ = (
+    "to_json",
+    "from_json",
+    "limit_value",
     "json_or_text",
-    "MISSING"
+    "to_json",
+    "MISSING",
 )
+
+to_json = json.dumps
+from_json = json.loads
 
 
 async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str:
@@ -21,11 +28,17 @@ async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str
 
     try:
         if response.headers["content-type"] in ["application/json", "application/json; charset=utf-8"]:
-            return json.loads(text)
+            return from_json(text)
     except KeyError:
         pass
 
     return text
+
+
+def limit_value(name: str, value: int, minimum: int, maximum: int) -> None:
+
+    if value < minimum or value > maximum:
+        raise ValueError(f"'{name}' must be more than {minimum} and less than {maximum}")
 
 
 class _MissingSentinel:
@@ -41,14 +54,3 @@ class _MissingSentinel:
 
 
 MISSING: Any = _MissingSentinel()
-
-
-def limit_value(
-    name: str,
-    value: int,
-    minimum: int,
-    maximum: int
-) -> None:
-
-    if value < minimum or value > maximum:
-        raise ValueError(f"'{name}' must be more than {minimum} and less than {maximum}")
