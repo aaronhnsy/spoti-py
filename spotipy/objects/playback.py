@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import ContextData, CurrentlyPlayingData, PlaybackStateData
+from spotipy import objects
+from spotipy.typings.objects import ContextData, CurrentlyPlayingData, PlaybackStateData
 
 
 __all__ = (
@@ -22,7 +22,7 @@ class Context:
         self.uri = data["uri"]
 
     def __repr__(self) -> str:
-        return "<aiospotify.Context"
+        return "<spotipy.Context"
 
 
 class PlaybackState:
@@ -40,7 +40,7 @@ class PlaybackState:
         self.timestamp: int = data["timestamp"]
 
     def __repr__(self) -> str:
-        return "<aiospotify.CurrentlyPlayingContext>"
+        return "<spotipy.CurrentlyPlayingContext>"
 
 
 class CurrentlyPlaying:
@@ -54,4 +54,4 @@ class CurrentlyPlaying:
         self.timestamp: int = data["timestamp"]
 
     def __repr__(self) -> str:
-        return "<aiospotify.CurrentlyPlaying>"
+        return "<spotipy.CurrentlyPlaying>"

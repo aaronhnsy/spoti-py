@@ -13,7 +13,7 @@ from typing import Any
 import aiohttp
 
 # My stuff
-from aiospotify import exceptions, objects, typings, utils, values
+from spotipy import exceptions, objects, typings, utils, values
 
 
 __all__ = (
@@ -21,7 +21,7 @@ __all__ = (
     "HTTPClient"
 )
 
-__log__: logging.Logger = logging.getLogger("aiospotify.http")
+__log__: logging.Logger = logging.getLogger("spotipy.http")
 
 
 class Route:
@@ -44,7 +44,7 @@ class Route:
         self.url: str = url
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Route method='{self.method}', url='{self.url}'>"
+        return f"<spotipy.Route method='{self.method}', url='{self.url}'>"
 
 
 class HTTPClient:
@@ -64,7 +64,7 @@ class HTTPClient:
         self._client_credentials: objects.ClientCredentials | None = None
 
     def __repr__(self) -> str:
-        return "<aiospotify.HTTPClient>"
+        return "<spotipy.HTTPClient>"
 
     #
 

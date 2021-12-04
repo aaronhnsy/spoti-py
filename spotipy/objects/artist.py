@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import ArtistData, SimpleArtistData
+from spotipy import objects
+from spotipy.typings.objects import ArtistData, SimpleArtistData
 
 
 __all__ = (
@@ -20,7 +20,7 @@ class SimpleArtist(objects.BaseObject):
         self.external_urls = data["external_urls"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.SimpleArtist id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.SimpleArtist id='{self.id}', name='{self.name}'>"
 
     #
 
@@ -41,4 +41,4 @@ class Artist(SimpleArtist):
         self.popularity = data["popularity"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Artist id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.Artist id='{self.id}', name='{self.name}'>"

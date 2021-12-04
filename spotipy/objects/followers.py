@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.typings.objects import FollowersData
+from spotipy.typings.objects import FollowersData
 
 
 __all__ = (
@@ -17,4 +17,4 @@ class Followers:
         self.total = data["total"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Followers total={self.total}>"
+        return f"<spotipy.Followers total={self.total}>"

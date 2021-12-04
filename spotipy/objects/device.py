@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.typings.objects import DeviceData
+from spotipy.typings.objects import DeviceData
 
 
 __all__ = (
@@ -22,4 +22,4 @@ class Device:
         self.volume_percent = data["volume_percent"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Device id='{self.id}' name='{self.name}'>"
+        return f"<spotipy.Device id='{self.id}' name='{self.name}'>"

@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import EpisodeData, EpisodeRestrictionData, EpisodeResumePointData, SimpleEpisodeData
+from spotipy import objects
+from spotipy.typings.objects import EpisodeData, EpisodeRestrictionData, EpisodeResumePointData, SimpleEpisodeData
 
 
 __all__ = (
@@ -20,7 +20,7 @@ class EpisodeRestriction:
         self.reason = data["reason"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.EpisodeRestriction reason='{self.reason}'>"
+        return f"<spotipy.EpisodeRestriction reason='{self.reason}'>"
 
 
 class EpisodeResumePoint:
@@ -30,7 +30,7 @@ class EpisodeResumePoint:
         self.resume_position_ms = data["resume_position_ms"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.EpisodeResumePoint fully_played={self.fully_played} resume_position_ms={self.resume_position_ms}>"
+        return f"<spotipy.EpisodeResumePoint fully_played={self.fully_played} resume_position_ms={self.resume_position_ms}>"
 
 
 class SimpleEpisode(objects.BaseObject):
@@ -54,7 +54,7 @@ class SimpleEpisode(objects.BaseObject):
         self.resume_point = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
 
     def __repr__(self) -> str:
-        return f"<aiospotify.SimpleEpisode id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.SimpleEpisode id='{self.id}', name='{self.name}'>"
 
     #
 
@@ -85,7 +85,7 @@ class Episode(objects.BaseObject):
         self.resume_point = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Episode id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.Episode id='{self.id}', name='{self.name}'>"
 
     #
 

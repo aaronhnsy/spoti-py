@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.objects import album, artist, base, enums, user
-from aiospotify.typings.objects import (
+from spotipy.objects import album, artist, base, enums, user
+from spotipy.typings.objects import (
     AudioFeaturesData,
     PlaylistTrackData,
     SimpleTrackData,
@@ -44,7 +44,7 @@ class AudioFeatures:
         self.valence = data["valence"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.AudioFeatures id='{self.id}'>"
+        return f"<spotipy.AudioFeatures id='{self.id}'>"
 
 
 class TrackRestriction:
@@ -53,7 +53,7 @@ class TrackRestriction:
         self.reason = data["reason"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.TrackRestriction reason='{self.reason}'>"
+        return f"<spotipy.TrackRestriction reason='{self.reason}'>"
 
 
 class SimpleTrack(base.BaseObject):
@@ -73,7 +73,7 @@ class SimpleTrack(base.BaseObject):
         self.track_number = data["track_number"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.SimpleTrack id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.SimpleTrack id='{self.id}', name='{self.name}'>"
 
     #
 
@@ -102,7 +102,7 @@ class Track(base.BaseObject):
         self.track_number = data["track_number"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Track id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.Track id='{self.id}', name='{self.name}'>"
 
     #
 
@@ -138,7 +138,7 @@ class PlaylistTrack(base.BaseObject):
         self.track_number = track["track_number"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.PlaylistTrack id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.PlaylistTrack id='{self.id}', name='{self.name}'>"
 
     #
 

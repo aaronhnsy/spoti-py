@@ -1,13 +1,11 @@
 *.pyc
 *.log*
 
-aiospotify.egg-info/
+spotipy.egg-info/
 node_modules/
 resources/
 static/
 venv/
 build/
 .idea/
-
-test.py
-dashboard.py
+tests/

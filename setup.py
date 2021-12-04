@@ -14,7 +14,7 @@ with open("README.md", "r") as file:
 with open("requirements.txt") as file:
     INSTALL_REQUIRES = file.read().splitlines()
 
-with open("aiospotify/__init__.py") as file:
+with open("spotipy/__init__.py") as file:
     VERSION = re.search(r"^__version__: [^=]* = \"([^\"]*)\"", file.read(), re.MULTILINE).group(1)
 
 CLASSIFIERS = [
@@ -36,9 +36,9 @@ CLASSIFIERS = [
 ]
 
 PROJECT_URLS = {
-    "Documentation": "https://aiospotify.readthedocs.io/en/latest/",
-    "Issue Tracker": "https://github.com/Axelancerr/aiospotify/issues",
-    "Source":        "https://github.com/Axelancerr/aiospotify",
+    "Documentation": "https://spoti-py.readthedocs.io/en/latest/",
+    "Issue Tracker": "https://github.com/Axelancerr/spoti.py/issues",
+    "Source":        "https://github.com/Axelancerr/spoti.py",
 }
 
 EXTRAS_REQUIRE = {
@@ -50,9 +50,9 @@ EXTRAS_REQUIRE = {
 }
 
 PACKAGES = [
-    "aiospotify",
-    "aiospotify.objects",
-    "aiospotify.typings"
+    "spotipy",
+    "spotipy.objects",
+    "spotipy.typings"
 ]
 
 setuptools.setup(
@@ -63,11 +63,11 @@ setuptools.setup(
     install_requires=INSTALL_REQUIRES,
     include_package_data=True,
     license="MIT",
-    name="aiospotify",
-    packages=["aiospotify", "aiospotify.objects", "aiospotify.typings"],
+    name="spotipy",
+    packages=["spotipy", "spotipy.objects", "spotipy.typings"],
     project_urls=PROJECT_URLS,
-    python_requires=">=3.9.0",
-    url="https://github.com/Axelancerr/aiospotify",
+    python_requires=">=3.10.0",
+    url="https://github.com/Axelancerr/spoti.py",
     version=VERSION,
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",

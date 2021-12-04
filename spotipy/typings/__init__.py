@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 # My stuff
-from aiospotify.typings.objects import *
+from spotipy.typings.objects import *
 
 
 HTTPMethod = Literal["GET", "POST", "DELETE", "PATCH", "PUT"]

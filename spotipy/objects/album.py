@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import AlbumData, AlbumRestrictionData, SimpleAlbumData
+from spotipy import objects
+from spotipy.typings.objects import AlbumData, AlbumRestrictionData, SimpleAlbumData
 
 
 __all__ = (
@@ -19,7 +19,7 @@ class AlbumRestriction:
         self.reason = data["reason"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.AlbumRestriction reason='{self.reason}'>"
+        return f"<spotipy.AlbumRestriction reason='{self.reason}'>"
 
 
 class SimpleAlbum(objects.BaseObject):
@@ -38,7 +38,7 @@ class SimpleAlbum(objects.BaseObject):
         self.total_tracks = data.get("total_tracks")
 
     def __repr__(self) -> str:
-        return f"<aiospotify.SimpleAlbum id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
+        return f"<spotipy.SimpleAlbum id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
 
     #
 
@@ -71,7 +71,7 @@ class Album(objects.BaseObject):
         self.tracks = [objects.SimpleTrack(track) for track in self._tracks_paging.items]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Album id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
+        return f"<spotipy.Album id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
 
     #
 

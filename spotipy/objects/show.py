@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import ShowData
+from spotipy import objects
+from spotipy.typings.objects import ShowData
 
 
 __all__ = (
@@ -30,7 +30,7 @@ class Show(objects.BaseObject):
         self.total_episodes = data["total_episodes"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Show id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.Show id='{self.id}', name='{self.name}'>"
 
     #
 

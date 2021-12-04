@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import ExplicitContentSettingsData, UserData
+from spotipy import objects
+from spotipy.typings.objects import ExplicitContentSettingsData, UserData
 
 
 __all__ = (
@@ -19,7 +19,7 @@ class ExplicitContentSettings:
         self.filter_locked = data["filter_locked"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.ExplicitContentSettings filter_enabled={self.filter_enabled}, filter_locked={self.filter_locked}"
+        return f"<spotipy.ExplicitContentSettings filter_enabled={self.filter_enabled}, filter_locked={self.filter_locked}"
 
 
 class User(objects.BaseObject):
@@ -37,7 +37,7 @@ class User(objects.BaseObject):
         self.product = data.get("product")
 
     def __repr__(self) -> str:
-        return f"<aiospotify.User id='{self.id}', name='{self.display_name}'>"
+        return f"<spotipy.User id='{self.id}', name='{self.display_name}'>"
 
     #
 

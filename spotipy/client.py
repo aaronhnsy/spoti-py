@@ -10,13 +10,13 @@ from typing import TYPE_CHECKING, TypeVar
 import aiohttp
 
 # My stuff
-from aiospotify import http, objects, utils
+from spotipy import http, objects, utils
 
 
 if TYPE_CHECKING:
 
     # My stuff
-    from aiospotify.typings import Credentials, OptionalCredentials
+    from spotipy.typings import Credentials, OptionalCredentials
 
 
 __all__ = (
@@ -47,7 +47,7 @@ class Client:
         )
 
     def __repr__(self) -> str:
-        return "<aiospotify.Client>"
+        return "<spotipy.Client>"
 
     #
 

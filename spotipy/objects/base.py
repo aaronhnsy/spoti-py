@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.typings.objects import AlternativePagingObjectData, BaseObjectData, PagingObjectData
+from spotipy.typings.objects import AlternativePagingObjectData, BaseObjectData, PagingObjectData
 
 
 __all__ = (
@@ -21,7 +21,7 @@ class BaseObject:
         self.uri = data["uri"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.BaseObject id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.BaseObject id='{self.id}', name='{self.name}'>"
 
 
 class PagingObject:

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.typings.objects import ImageData
+from spotipy.typings.objects import ImageData
 
 
 __all__ = (
@@ -18,4 +18,4 @@ class Image:
         self.height = data["height"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Image url='<{self.url}>', width={self.width}, height={self.height}>"
+        return f"<spotipy.Image url='<{self.url}>', width={self.width}, height={self.height}>"

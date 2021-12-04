@@ -1,6 +1,6 @@
 {
   "include": [
-    "aiospotify"
+    "spotify"
   ],
   "exclude": [
     "**/node_modules",
@@ -9,7 +9,7 @@
   "ignore": [],
   "strict": [],
 
-  "stubPath": "aiospotify/stubs",
+  "stubPath": "spotipy/stubs",
   "venvPath": "venv",
   "verboseOutput": false,
   "extraPaths": [],
@@ -18,7 +18,7 @@
 
   "executionEnvironments": [
     {
-      "root": "aiospotify"
+      "root": "spotipy"
     }
   ],
   "typeCheckingMode": "basic",

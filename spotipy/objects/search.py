@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import SearchResultData
+from spotipy import objects
+from spotipy.typings.objects import SearchResultData
 
 
 __all__ = (
@@ -42,4 +42,4 @@ class SearchResult:
         #  self.episodes = ...
 
     def __repr__(self) -> str:
-        return f"<aiospotify.SearchResult albums={len(self.albums)}, artists={len(self.artists)}, playlists={len(self.playlists)}, tracks={len(self.tracks)}>"
+        return f"<spotipy.SearchResult albums={len(self.albums)}, artists={len(self.artists)}, playlists={len(self.playlists)}, tracks={len(self.tracks)}>"

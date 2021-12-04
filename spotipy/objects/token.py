@@ -8,8 +8,8 @@ import time
 import aiohttp
 
 # My stuff
-from aiospotify import exceptions, values
-from aiospotify.typings.objects import ClientCredentialsData, UserCredentialsData
+from spotipy import exceptions, values
+from spotipy.typings.objects import ClientCredentialsData, UserCredentialsData
 
 
 __all__ = (
@@ -32,7 +32,7 @@ class ClientCredentials:
         self._last_authorized_time: float = time.time()
 
     def __repr__(self) -> str:
-        return "<aiospotify.ClientCredentials>"
+        return "<spotipy.ClientCredentials>"
 
     #
 
@@ -119,7 +119,7 @@ class UserCredentials:
         self._last_authorized_time: float = time.time()
 
     def __repr__(self) -> str:
-        return "<aiospotify.UserCredentials>"
+        return "<spotipy.UserCredentials>"
 
     #
 

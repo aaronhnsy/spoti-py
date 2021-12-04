@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import CopyrightData
+from spotipy import objects
+from spotipy.typings.objects import CopyrightData
 
 
 __all__ = (
@@ -18,4 +18,4 @@ class Copyright:
         self.type = objects.CopyrightType(data["type"])
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Copyright type={self.type!r}>"
+        return f"<spotipy.Copyright type={self.type!r}>"

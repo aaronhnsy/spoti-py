@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.typings.objects import ActionsData
+from spotipy.typings.objects import ActionsData
 
 
 __all__ = (
@@ -25,4 +25,4 @@ class Actions:
         self.transferring_playback = data.get("transferring_playback", False)
 
     def __repr__(self) -> str:
-        return "<aiospotify.Disallows>"
+        return "<spotipy.Disallows>"

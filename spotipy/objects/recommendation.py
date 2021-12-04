@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify import objects
-from aiospotify.typings.objects import RecommendationData, RecommendationSeedData
+from spotipy import objects
+from spotipy.typings.objects import RecommendationData, RecommendationSeedData
 
 
 __all__ = (
@@ -23,7 +23,7 @@ class RecommendationSeed:
         self.type = data["type"]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.RecommendationSeed id='{self.id}', type='{self.type}'>"
+        return f"<spotipy.RecommendationSeed id='{self.id}', type='{self.type}'>"
 
 
 class Recommendation:
@@ -33,4 +33,4 @@ class Recommendation:
         self.seeds = [objects.RecommendationSeed(data) for data in data["seeds"]]
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Recommendation tracks={len(self.tracks)}, seeds={len(self.seeds)}>"
+        return f"<spotipy.Recommendation tracks={len(self.tracks)}, seeds={len(self.seeds)}>"
