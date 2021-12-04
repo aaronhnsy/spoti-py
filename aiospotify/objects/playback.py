@@ -16,7 +16,6 @@ __all__ = (
 class Context:
 
     def __init__(self, data: ContextData) -> None:
-
         self.external_urls = data["external_urls"]
         self.href = data["href"]
         self.type = data["type"]
@@ -29,7 +28,6 @@ class Context:
 class PlaybackState:
 
     def __init__(self, data: PlaybackStateData) -> None:
-
         self.actions = objects.Actions(data["actions"])
         self.context = Context(data["context"])
         self.currently_playing_type = data["currently_playing_type"]
@@ -48,7 +46,6 @@ class PlaybackState:
 class CurrentlyPlaying:
 
     def __init__(self, data: CurrentlyPlayingData) -> None:
-
         self.context = Context(data["context"])
         self.currently_playing_type = data["currently_playing_type"]
         self.is_playing = data["is_playing"]

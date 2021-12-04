@@ -17,7 +17,6 @@ __all__ = (
 class EpisodeRestriction:
 
     def __init__(self, data: EpisodeRestrictionData) -> None:
-
         self.reason = data["reason"]
 
     def __repr__(self) -> str:
@@ -27,7 +26,6 @@ class EpisodeRestriction:
 class EpisodeResumePoint:
 
     def __init__(self, data: EpisodeResumePointData) -> None:
-
         self.fully_played = data["fully_played"]
         self.resume_position_ms = data["resume_position_ms"]
 

@@ -14,7 +14,6 @@ __all__ = (
 class SearchResult:
 
     def __init__(self, data: SearchResultData) -> None:
-
         self._albums_paging: objects.PagingObject | None = objects.PagingObject(paging) if (paging := data["albums"]) else None
         self._artists_paging: objects.PagingObject | None = objects.PagingObject(paging) if (paging := data["artists"]) else None
         self._playlists_paging: objects.PagingObject | None = objects.PagingObject(paging) if (paging := data["playlists"]) else None

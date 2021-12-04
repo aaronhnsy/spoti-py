@@ -14,7 +14,6 @@ __all__ = (
 class Copyright:
 
     def __init__(self, data: CopyrightData) -> None:
-
         self.text = data["text"]
         self.type = objects.CopyrightType(data["type"])
 

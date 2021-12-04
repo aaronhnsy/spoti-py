@@ -13,7 +13,6 @@ __all__ = (
 class Image:
 
     def __init__(self, data: ImageData) -> None:
-
         self.url = data["url"]
         self.width = data["width"]
         self.height = data["height"]

@@ -15,7 +15,6 @@ __all__ = (
 class RecommendationSeed:
 
     def __init__(self, data: RecommendationSeedData) -> None:
-
         self.initial_pool_size = data["initialPoolSize"]
         self.after_filtering_size = data["afterFilteringSize"]
         self.after_relinking_size = data["afterRelinkingSize"]
@@ -30,7 +29,6 @@ class RecommendationSeed:
 class Recommendation:
 
     def __init__(self, data: RecommendationData) -> None:
-
         self.tracks = [objects.Track(data) for data in data["tracks"]]
         self.seeds = [objects.RecommendationSeed(data) for data in data["seeds"]]
 

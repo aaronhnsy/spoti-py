@@ -1,4 +1,3 @@
-
 # Future
 from __future__ import annotations
 
@@ -14,7 +13,6 @@ __all__ = (
 class Actions:
 
     def __init__(self, data: ActionsData) -> None:
-
         self.interrupting_playback = data.get("interrupting_playback", False)
         self.pausing = data.get("pausing", False)
         self.resuming = data.get("resuming", False)

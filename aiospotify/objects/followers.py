@@ -13,7 +13,6 @@ __all__ = (
 class Followers:
 
     def __init__(self, data: FollowersData) -> None:
-
         self.href = data["href"]
         self.total = data["total"]
 

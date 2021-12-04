@@ -152,7 +152,7 @@ class HTTPClient:
                         case 413:
                             raise exceptions.RequestEntityTooLarge(
                                 response,
-                                data={"error": {"status":  413, "message": "Image was too large."}}
+                                data={"error": {"status": 413, "message": "Image was too large."}}
                             )
 
                         case 429:
@@ -820,7 +820,7 @@ class HTTPClient:
     ) -> typings.SearchResultData:
 
         parameters: typings.Parameters = {
-            "q": query.replace(" ", "+"),
+            "q":    query.replace(" ", "+"),
             "type": ",".join(search_type.value for search_type in search_types)
         }
 
@@ -973,7 +973,7 @@ class HTTPClient:
 
         parameters: typings.Parameters = {
             "type": "user",
-            "ids": ",".join(ids)
+            "ids":  ",".join(ids)
         }
 
         return await self.request(Route("PUT", "/me/following"), parameters=parameters, credentials=credentials)
@@ -990,7 +990,7 @@ class HTTPClient:
 
         parameters: typings.Parameters = {
             "type": "artist",
-            "ids": ",".join(ids)
+            "ids":  ",".join(ids)
         }
 
         return await self.request(Route("PUT", "/me/following"), parameters=parameters, credentials=credentials)
@@ -1173,7 +1173,7 @@ class HTTPClient:
     ) -> typings.PlaylistSnapshotId:
 
         data: typings.Data = {
-            "range_start": range_start,
+            "range_start":   range_start,
             "insert_before": insert_before
         }
         if range_length:

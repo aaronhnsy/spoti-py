@@ -24,7 +24,6 @@ __all__ = (
 class AudioFeatures:
 
     def __init__(self, data: AudioFeaturesData) -> None:
-
         self.acousticness = data["acousticness"]
         self.analysis_url = data["analysis_url"]
         self.danceability = data["danceability"]
@@ -51,7 +50,6 @@ class AudioFeatures:
 class TrackRestriction:
 
     def __init__(self, data: TrackRestrictionData) -> None:
-
         self.reason = data["reason"]
 
     def __repr__(self) -> str:

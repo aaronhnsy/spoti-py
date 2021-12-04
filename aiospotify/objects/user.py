@@ -15,7 +15,6 @@ __all__ = (
 class ExplicitContentSettings:
 
     def __init__(self, data: ExplicitContentSettingsData) -> None:
-
         self.filter_enabled = data["filter_enabled"]
         self.filter_locked = data["filter_locked"]
 

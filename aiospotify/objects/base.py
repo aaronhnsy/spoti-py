@@ -14,7 +14,6 @@ __all__ = (
 class BaseObject:
 
     def __init__(self, data: BaseObjectData) -> None:
-
         self.href = data["href"]
         self.id = data["id"]
         self.name = data.get("name")
@@ -28,7 +27,6 @@ class BaseObject:
 class PagingObject:
 
     def __init__(self, data: PagingObjectData) -> None:
-
         self.href = data["href"]
         self.items = data["items"]
         self.limit = data["limit"]
@@ -44,7 +42,6 @@ class PagingObject:
 class AlternativePagingObject:
 
     def __init__(self, data: AlternativePagingObjectData) -> None:
-
         self.href = data["href"]
         self.items = data["items"]
         self.limit = data["limit"]

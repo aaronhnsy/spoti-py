@@ -16,7 +16,6 @@ __all__ = (
 class AlbumRestriction:
 
     def __init__(self, data: AlbumRestrictionData) -> None:
-
         self.reason = data["reason"]
 
     def __repr__(self) -> str:

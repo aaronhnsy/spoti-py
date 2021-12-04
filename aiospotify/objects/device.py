@@ -13,7 +13,6 @@ __all__ = (
 class Device:
 
     def __init__(self, data: DeviceData) -> None:
-
         self.id = data["id"]
         self.is_active = data["is_active"]
         self.is_private_session = data["is_private_session"]

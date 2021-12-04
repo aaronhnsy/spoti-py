@@ -14,7 +14,6 @@ __all__ = (
 class Category:
 
     def __init__(self, data: CategoryData) -> None:
-
         self.href = data["href"]
         self.icons = [objects.Image(image) for image in data["icons"]]
         self.id = data["id"]
