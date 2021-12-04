@@ -189,7 +189,10 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.AlbumData:
 
-        parameters = {"market": market} if market else None
+        parameters: typings.Parameters = {}
+        if market:
+            parameters["market"] = market
+
         return await self.request(Route("GET", "/albums/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_albums(
@@ -203,7 +206,7 @@ class HTTPClient:
         if len(ids) > 20:
             raise ValueError("'ids' can not contain more than 20 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {"ids": ",".join(ids)}
         if market:
             parameters["market"] = market
 
@@ -220,7 +223,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if market:
             parameters["market"] = market
         if limit:
@@ -240,7 +243,7 @@ class HTTPClient:
         credentials: objects.UserCredentials,
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if market:
             parameters["market"] = market
         if limit:
@@ -261,7 +264,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("PUT", "/me/albums"), parameters=parameters, credentials=credentials)
 
     async def remove_albums(
@@ -274,7 +279,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("DELETE", "/me/albums"), parameters=parameters, credentials=credentials)
 
     async def check_saved_albums(
@@ -287,7 +294,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("GET", "/me/albums/contains"), parameters=parameters, credentials=credentials)
 
     async def get_new_releases(
@@ -299,7 +308,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.NewReleasesData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if country:
             parameters["country"] = country
         if limit:
@@ -321,7 +330,10 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.ArtistData:
 
-        parameters = {"market": market} if market else None
+        parameters: typings.Parameters = {}
+        if market:
+            parameters["market"] = market
+
         return await self.request(Route("GET", "/artists/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_artists(
@@ -335,7 +347,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         if market:
             parameters["market"] = market
 
@@ -353,7 +367,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if market:
             parameters["market"] = market
         if limit:
@@ -375,7 +389,9 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.ArtistTopTracksData:
 
-        parameters = {"market": market}
+        parameters: typings.Parameters = {
+            "market": market
+        }
         return await self.request(Route("GET", "/artists/{id}/top-tracks", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_related_artists(
@@ -387,7 +403,10 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.ArtistRelatedArtistsData:
 
-        parameters = {"market": market} if market else None
+        parameters: typings.Parameters = {}
+        if market:
+            parameters["market"] = market
+
         return await self.request(Route("GET", "/artists/{id}/related-artists", id=_id), parameters=parameters, credentials=credentials)
 
     # SHOWS API
@@ -401,7 +420,10 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.ShowData:
 
-        parameters = {"market": market} if market else None
+        parameters: typings.Parameters = {}
+        if market:
+            parameters["market"] = market
+
         return await self.request(Route("GET", "/shows/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_shows(
@@ -415,7 +437,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         if market:
             parameters["market"] = market
 
@@ -432,7 +456,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if market:
             parameters["market"] = market
         if limit:
@@ -451,7 +475,7 @@ class HTTPClient:
         credentials: objects.UserCredentials,
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if limit:
             utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
@@ -470,7 +494,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("PUT", "/me/shows"), parameters=parameters, credentials=credentials)
 
     async def remove_shows(
@@ -483,7 +509,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("DELETE", "/me/shows"), parameters=parameters, credentials=credentials)
 
     async def check_saved_shows(
@@ -496,7 +524,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("GET", "/me/shows/contains"), parameters=parameters, credentials=credentials)
 
     # EPISODE API
@@ -510,7 +540,10 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.EpisodeData:
 
-        parameters = {"market": market} if market else None
+        parameters: typings.Parameters = {}
+        if market:
+            parameters["market"] = market
+
         return await self.request(Route("GET", "/episodes/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_episodes(
@@ -524,7 +557,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         if market:
             parameters["market"] = market
 
@@ -539,7 +574,7 @@ class HTTPClient:
         credentials: objects.UserCredentials,
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if market:
             parameters["market"] = market
         if limit:
@@ -560,7 +595,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("PUT", "/me/episodes"), parameters=parameters, credentials=credentials)
 
     async def remove_episodes(
@@ -574,7 +611,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("DELETE", "/me/episodes"), parameters=parameters, credentials=credentials)
 
     async def check_saved_episodes(
@@ -587,7 +626,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("GET", "/me/episodes/contains"), parameters=parameters, credentials=credentials)
 
     # TRACKS API
@@ -601,7 +642,10 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.TrackData:
 
-        parameters = {"market": market} if market else None
+        parameters: typings.Parameters = {}
+        if market:
+            parameters["market"] = market
+
         return await self.request(Route("GET", "/tracks/{id}", id=_id), parameters=parameters, credentials=credentials)
 
     async def get_tracks(
@@ -615,7 +659,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         if market:
             parameters["market"] = market
 
@@ -630,7 +676,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if market:
             parameters["market"] = market
         if limit:
@@ -651,7 +697,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("PUT", "/me/tracks"), parameters=parameters, credentials=credentials)
 
     async def remove_tracks(
@@ -665,7 +713,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("DELETE", "/me/tracks"), parameters=parameters, credentials=credentials)
 
     async def check_saved_tracks(
@@ -679,7 +729,9 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("GET", "/me/tracks/contains"), parameters=parameters, credentials=credentials)
 
     async def get_track_audio_features(
@@ -701,7 +753,9 @@ class HTTPClient:
         if len(ids) > 100:
             raise ValueError("'ids' can not contain more than 100 ids.")
 
-        parameters = {"ids": ",".join(ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(ids)
+        }
         return await self.request(Route("GET", "/audio-features"), parameters=parameters, credentials=credentials)
 
     async def get_track_audio_analysis(
@@ -710,7 +764,7 @@ class HTTPClient:
         /,
         *,
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any]:  # TODO: create TypedDict for this
         return await self.request(Route("GET", "/audio-analysis/{id}", id=_id), credentials=credentials)
 
     async def get_recommendations(
@@ -729,7 +783,7 @@ class HTTPClient:
         if seeds < 1 or seeds > 5:
             raise ValueError("too many or no seed values provided. min 1, max 5.")
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if seed_artist_ids:
             parameters["seed_artists"] = ",".join(seed_artist_ids)
         if seed_genres:
@@ -765,7 +819,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.SearchResultData:
 
-        parameters: dict[str, Any] = {
+        parameters: typings.Parameters = {
             "q": query.replace(" ", "+"),
             "type": ",".join(search_type.value for search_type in search_types)
         }
@@ -800,7 +854,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if limit:
             utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
@@ -820,7 +874,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if limit:
             utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
@@ -849,7 +903,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        data = {}
+        data: typings.Data = {}
         if public:
             data["public"] = public
 
@@ -876,7 +930,9 @@ class HTTPClient:
         if len(user_ids) > 5:
             raise ValueError("'ids' can not contain more than 5 ids.")
 
-        parameters = {"ids": ",".join(user_ids)}
+        parameters: typings.Parameters = {
+            "ids": ",".join(user_ids)
+        }
         route = Route("GET", "/playlists/{playlist_id}/followers/contains", playlist_id=playlist_id)
 
         return await self.request(route, parameters=parameters, credentials=credentials)
@@ -890,18 +946,18 @@ class HTTPClient:
         self,
         *,
         limit: int | None,
-        offset: str | None,
+        after: str | None,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.AlternativePagingObjectData:
 
-        parameters: dict[str, Any] = {
+        parameters: typings.Parameters = {
             "type": "artist"
         }
         if limit:
             utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
-        if offset:
-            parameters["offset"] = offset
+        if after:
+            parameters["after"] = after
 
         return await self.request(Route("GET", "/me/following"), parameters=parameters, credentials=credentials)
 
@@ -915,7 +971,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {
+        parameters: typings.Parameters = {
             "type": "user",
             "ids": ",".join(ids)
         }
@@ -932,7 +988,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {
+        parameters: typings.Parameters = {
             "type": "artist",
             "ids": ",".join(ids)
         }
@@ -949,7 +1005,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {
+        parameters: typings.Parameters = {
             "type": "user",
             "ids":  ",".join(ids)
         }
@@ -966,7 +1022,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {
+        parameters: typings.Parameters = {
             "type": "artist",
             "ids":  ",".join(ids)
         }
@@ -983,7 +1039,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {
+        parameters: typings.Parameters = {
             "type": "user",
             "ids":  ",".join(ids)
         }
@@ -1000,7 +1056,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        parameters = {
+        parameters: typings.Parameters = {
             "type": "artist",
             "ids":  ",".join(ids)
         }
@@ -1019,7 +1075,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.PlaylistData:
 
-        parameters = {
+        parameters: typings.Parameters = {
             "additional_types": "track"
         }  # TODO: Support all types
         if market:
@@ -1044,7 +1100,7 @@ class HTTPClient:
         if collaborative and public:
             raise ValueError("collaborative playlists can not be public.")
 
-        data = {}
+        data: typings.Data = {}
         if name:
             data["name"] = name
         if public:
@@ -1068,7 +1124,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.PagingObjectData:
 
-        parameters: dict[str, Any] = {
+        parameters: typings.Parameters = {
             "additional_types": "track"
         }  # TODO: Support all types
         if market:
@@ -1091,12 +1147,12 @@ class HTTPClient:
         uris: Sequence[str],
         position: int | None,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.PlaylistSnapshotId:
 
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")
 
-        data: dict[str, Any] = {
+        data: typings.Data = {
             "uris": uris
         }
         if position:
@@ -1114,9 +1170,9 @@ class HTTPClient:
         range_length: int | None,
         snapshot_id: str | None,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.PlaylistSnapshotId:
 
-        data: dict[str, Any] = {
+        data: typings.Data = {
             "range_start": range_start,
             "insert_before": insert_before
         }
@@ -1139,7 +1195,9 @@ class HTTPClient:
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")
 
-        data = {"uris": uris}
+        data: typings.Data = {
+            "uris": uris
+        }
         return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), json=data, credentials=credentials)
 
     async def remove_items_from_playlist(
@@ -1150,12 +1208,12 @@ class HTTPClient:
         uris: Sequence[str],
         snapshot_id: str | None,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.PlaylistSnapshotId:
 
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")
 
-        data: dict[str, Any] = {
+        data: typings.Data = {
             "tracks": [{"uri": uri} for uri in uris]
         }
         if snapshot_id:
@@ -1171,7 +1229,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if limit:
             utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
@@ -1190,7 +1248,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.PagingObjectData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if limit:
             utils.limit_value("limit", limit, 1, 50)
             parameters["limit"] = limit
@@ -1208,12 +1266,12 @@ class HTTPClient:
         collaborative: bool | None,
         description: str | None,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.PlaylistData:
 
         if collaborative and public:
             raise ValueError("collaborative playlists can not be public.")
 
-        data: dict[str, Any] = {
+        data: typings.Data = {
             "name": name
         }
         if public:
@@ -1236,7 +1294,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.FeaturedPlaylistsData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if country:
             parameters["country"] = country
         if locale:
@@ -1262,7 +1320,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.CategoryPlaylistsData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if country:
             parameters["country"] = country
         if limit:
@@ -1316,7 +1374,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.MultipleCategoriesData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if country:
             parameters["country"] = country
         if locale:
@@ -1339,7 +1397,7 @@ class HTTPClient:
         credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> typings.CategoryData:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if country:
             parameters["country"] = country
         if locale:
@@ -1363,9 +1421,9 @@ class HTTPClient:
         *,
         market: str | None,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.PlaybackStateData:
 
-        parameters = {
+        parameters: typings.Parameters = {
             "additional_types": "track"
         }  # TODO: Support all types
         if market:
@@ -1381,7 +1439,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        data: dict[str, Any] = {
+        data: typings.Data = {
             "device_ids": [device_id]
         }
         if ensure_playback:
@@ -1393,7 +1451,7 @@ class HTTPClient:
         self,
         *,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.MultipleDevicesData:
         return await self.request(Route("GET", "/me/player/devices"), credentials=credentials)
 
     async def get_currently_playing_track(
@@ -1401,9 +1459,9 @@ class HTTPClient:
         *,
         market: str | None,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.CurrentlyPlayingData:
 
-        parameters = {
+        parameters: typings.Parameters = {
             "additional_types": "track"
         }  # TODO: Support all types
         if market:
@@ -1425,11 +1483,11 @@ class HTTPClient:
         if context_uri and uris:
             raise ValueError("'context_uri' and 'uris' can not both be specified.")
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if device_id:
             parameters["device_id"] = device_id
 
-        data = {}
+        data: typings.Data = {}
 
         if context_uri or uris:
 
@@ -1475,7 +1533,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if device_id:
             parameters["device_id"] = device_id
 
@@ -1488,7 +1546,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if device_id:
             parameters["device_id"] = device_id
 
@@ -1501,7 +1559,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if device_id:
             parameters["device_id"] = device_id
 
@@ -1515,7 +1573,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        parameters: dict[str, Any] = {
+        parameters: typings.Parameters = {
             "position_ms": position_ms
         }
         if device_id:
@@ -1531,7 +1589,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        parameters = {
+        parameters: typings.Parameters = {
             "state": repeat_mode.value
         }
         if device_id:
@@ -1549,7 +1607,7 @@ class HTTPClient:
 
         utils.limit_value("volume_percent", volume_percent, 0, 100)
 
-        parameters: dict[str, Any] = {
+        parameters: typings.Parameters = {
             "volume_percent": volume_percent
         }
         if device_id:
@@ -1565,7 +1623,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        parameters: dict[str, Any] = {
+        parameters: typings.Parameters = {
             "state": "true" if state else "false"
         }
         if device_id:
@@ -1580,12 +1638,12 @@ class HTTPClient:
         before: int | None,
         after: int | None,
         credentials: objects.UserCredentials
-    ) -> dict[str, Any]:
+    ) -> typings.AlternativePagingObjectData:
 
         if before and after:
             raise ValueError("'before' and 'after' can not both be specified.")
 
-        parameters = {}
+        parameters: typings.Parameters = {}
         if limit:
             parameters["limit"] = limit
         if before:
@@ -1603,7 +1661,7 @@ class HTTPClient:
         credentials: objects.UserCredentials
     ) -> None:
 
-        parameters = {
+        parameters: typings.Parameters = {
             "uri": uri
         }
         if device_id:
