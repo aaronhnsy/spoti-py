@@ -8,6 +8,7 @@ from typing import Any, Optional, TypedDict
 __all__ = (
     "BaseObjectData",
     "PagingObjectData",
+    "AlternativePagingObjectData",
     "ImageData",
     "FollowersData",
     "CopyrightData",
@@ -41,6 +42,7 @@ __all__ = (
     "SearchResultData",
     "ExplicitContentSettingsData",
     "UserData",
+    "PlaylistSnapshotId",
     "PlaylistTrackData",
     "PlaylistTrackRefData",
     "SimplePlaylistData",
@@ -51,9 +53,10 @@ __all__ = (
     "MultipleCategoriesData",
     "RecommendationGenresData",
     "DeviceData",
-    "DisallowsData",
+    "MultipleDevicesData",
+    "ActionsData",
     "ContextData",
-    "CurrentlyPlayingContextData",
+    "PlaybackStateData",
     "CurrentlyPlayingData",
     "AvailableMarketsData",
     "ClientCredentialsData",
@@ -79,6 +82,15 @@ class PagingObjectData(TypedDict):
     offset: int
     previous: Optional[str | None]
     total: int
+
+
+class AlternativePagingObjectData(TypedDict):
+    href: str
+    items: list[Any]  # type: ignore
+    limit: int
+    next: Optional[str | None]
+    before: str
+    after: str
 
 
 class ImageData(TypedDict):
@@ -354,6 +366,10 @@ class UserData(BaseObjectData):
 
 # PLAYLISTS API
 
+class PlaylistSnapshotId(TypedDict):
+    snapshot_id: str
+
+
 class PlaylistTrackData(BaseObjectData):
     added_at: str
     added_by: UserData
@@ -433,7 +449,11 @@ class DeviceData(TypedDict):
     volume_percent: int
 
 
-class DisallowsData(TypedDict):
+class MultipleDevicesData(TypedDict):
+    devices: list[DeviceData]
+
+
+class ActionsData(TypedDict):
     interrupting_playback: bool
     pausing: bool
     resuming: bool
@@ -453,8 +473,8 @@ class ContextData(TypedDict):
     uri: str
 
 
-class CurrentlyPlayingContextData(TypedDict):
-    actions: DisallowsData
+class PlaybackStateData(TypedDict):
+    actions: ActionsData
     context: ContextData
     currently_playing_type: str
     device: DeviceData

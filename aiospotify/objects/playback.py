@@ -3,12 +3,12 @@ from __future__ import annotations
 
 # My stuff
 from aiospotify import objects
-from aiospotify.typings.objects import ContextData, CurrentlyPlayingContextData, CurrentlyPlayingData
+from aiospotify.typings.objects import ContextData, CurrentlyPlayingData, PlaybackStateData
 
 
 __all__ = (
     "Context",
-    "CurrentlyPlayingContext",
+    "PlaybackState",
     "CurrentlyPlaying",
 )
 
@@ -26,11 +26,11 @@ class Context:
         return "<aiospotify.Context"
 
 
-class CurrentlyPlayingContext:
+class PlaybackState:
 
-    def __init__(self, data: CurrentlyPlayingContextData) -> None:
+    def __init__(self, data: PlaybackStateData) -> None:
 
-        self.actions = objects.Disallows(data["actions"])
+        self.actions = objects.Actions(data["actions"])
         self.context = Context(data["context"])
         self.currently_playing_type = data["currently_playing_type"]
         self.device = objects.Device(data["device"])

@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.typings.objects import DisallowsData
+from aiospotify.typings.objects import ActionsData
 
 
 __all__ = (
-    "Disallows",
+    "Actions",
 )
 
 
-class Disallows:
+class Actions:
 
-    def __init__(self, data: DisallowsData) -> None:
+    def __init__(self, data: ActionsData) -> None:
 
         self.interrupting_playback = data.get("interrupting_playback", False)
         self.pausing = data.get("pausing", False)

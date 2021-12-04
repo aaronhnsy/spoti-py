@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 # My stuff
-from aiospotify.typings.objects import BaseObjectData, PagingObjectData
+from aiospotify.typings.objects import AlternativePagingObjectData, BaseObjectData, PagingObjectData
 
 
 __all__ = (
@@ -39,3 +39,18 @@ class PagingObject:
 
     def __repr__(self) -> str:
         return f"<spotify.PagingObject total={self.total}, limit={self.limit}, offset={self.offset}>"
+
+
+class AlternativePagingObject:
+
+    def __init__(self, data: AlternativePagingObjectData) -> None:
+
+        self.href = data["href"]
+        self.items = data["items"]
+        self.limit = data["limit"]
+        self.next = data["next"]
+        self.after = data["after"]
+        self.before = data.get("before")
+
+    def __repr__(self) -> str:
+        return f"<spotify.AlternativePagingObject limit={self.limit}, before={self.before}, after={self.after}>"

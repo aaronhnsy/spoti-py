@@ -7,12 +7,12 @@ from aiospotify.objects.base import *
 # isort: on
 
 # My stuff
+from aiospotify.objects.actions import *
 from aiospotify.objects.album import *
 from aiospotify.objects.artist import *
 from aiospotify.objects.category import *
 from aiospotify.objects.copyright import *
 from aiospotify.objects.device import *
-from aiospotify.objects.disallows import *
 from aiospotify.objects.enums import *
 from aiospotify.objects.episode import *
 from aiospotify.objects.followers import *
