@@ -8,7 +8,7 @@ import time
 import aiohttp
 
 # My stuff
-from aiospotify import exceptions
+from aiospotify import exceptions, values
 from aiospotify.typings.objects import ClientCredentialsData, UserCredentialsData
 
 
@@ -16,9 +16,6 @@ __all__ = (
     "ClientCredentials",
     "UserCredentials"
 )
-
-
-TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 
 class ClientCredentials:
@@ -68,12 +65,12 @@ class ClientCredentials:
             "client_secret": self._client_secret
         }
 
-        async with session.post(url=TOKEN_URL, data=data) as post:
+        async with session.post(url=values.TOKEN_URL, data=data) as response:
 
-            data = await post.json()
+            data = await response.json()
 
             if data.get("error"):
-                raise exceptions.AuthenticationError(data)
+                raise exceptions.AuthenticationError(response, data=data)
 
             self._access_token = data["access_token"]
             self._token_type = data["token_type"]
@@ -96,12 +93,12 @@ class ClientCredentials:
             "client_secret": client_secret
         }
 
-        async with session.post(url=TOKEN_URL, data=data) as response:
+        async with session.post(url=values.TOKEN_URL, data=data) as response:
 
             data = await response.json()
 
             if data.get("error"):
-                raise exceptions.AuthenticationError(data)
+                raise exceptions.AuthenticationError(response, data=data)
 
             return cls(data, client_id=client_id, client_secret=client_secret)
 
@@ -160,12 +157,12 @@ class UserCredentials:
             "client_secret": self._client_secret
         }
 
-        async with session.post(url=TOKEN_URL, data=data) as post:
+        async with session.post(url=values.TOKEN_URL, data=data) as response:
 
-            data = await post.json()
+            data = await response.json()
 
             if data.get("error"):
-                raise exceptions.AuthenticationError(data)
+                raise exceptions.AuthenticationError(response, data=data)
 
             self._access_token = data["access_token"]
             self._token_type = data["token_type"]
@@ -191,12 +188,12 @@ class UserCredentials:
             "refresh_token": refresh_token,
         }
 
-        async with session.post(url=TOKEN_URL, data=data) as response:
+        async with session.post(url=values.TOKEN_URL, data=data) as response:
 
             data = await response.json()
 
             if data.get("error"):
-                raise exceptions.AuthenticationError(data)
+                raise exceptions.AuthenticationError(response, data=data)
 
             data["refresh_token"] = refresh_token
 
