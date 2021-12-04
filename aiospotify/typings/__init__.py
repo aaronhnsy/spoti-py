@@ -2,13 +2,10 @@
 from __future__ import annotations
 
 # Standard Library
-from typing import TYPE_CHECKING
+from typing import Literal
+
+# My stuff
+from aiospotify.typings.objects import *
 
 
-if TYPE_CHECKING:
-
-    # My stuff
-    from aiospotify.objects.token import ClientCredentials, UserCredentials
-
-    Credentials = ClientCredentials | UserCredentials
-    OptionalCredentials = ClientCredentials | UserCredentials | None
+HTTPMethod = Literal["GET", "POST", "DELETE", "PATCH", "PUT"]

@@ -4,52 +4,16 @@ from __future__ import annotations
 # Standard Library
 import asyncio
 import base64
-import json
 import logging
 import urllib.parse
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar
+from typing import Any
 
 # Packages
 import aiohttp
 
 # My stuff
-from aiospotify import exceptions, objects, utils, values
-from aiospotify.typings.objects import (
-    AlbumData,
-    ArtistData,
-    ArtistRelatedArtistsData,
-    ArtistTopTracksData,
-    AudioFeaturesData,
-    AvailableMarketsData,
-    CategoryData,
-    CategoryPlaylistsData,
-    EpisodeData,
-    FeaturedPlaylistsData,
-    ImageData,
-    MultipleAlbumsData,
-    MultipleArtistsData,
-    MultipleCategoriesData,
-    MultipleEpisodesData,
-    MultipleShowsData,
-    MultipleTracksData,
-    NewReleasesData,
-    PagingObjectData,
-    PlaylistData,
-    RecommendationData,
-    RecommendationGenresData,
-    SearchResultData,
-    SeveralAudioFeaturesData,
-    ShowData,
-    TrackData,
-    UserData,
-)
-
-
-if TYPE_CHECKING:
-
-    # My stuff
-    from aiospotify.typings import Credentials, OptionalCredentials
+from aiospotify import exceptions, objects, typings, utils, values
 
 
 __all__ = (
@@ -59,33 +23,28 @@ __all__ = (
 
 __log__: logging.Logger = logging.getLogger("aiospotify.http")
 
-HTTPMethod = Literal["GET", "POST", "DELETE", "PATCH", "PUT"]
-ID = TypeVar("ID", bound=str)
-
 
 class Route:
 
-    BASE_URL: ClassVar[str] = f"https://api.spotify.com/v1"
-
     def __init__(
         self,
-        method: HTTPMethod,
+        method: typings.HTTPMethod,
         path: str,
         /,
         **parameters: Any
     ) -> None:
 
-        self.method: HTTPMethod = method
-        self.path: str = path
-
-        url = self.BASE_URL + self.path
+        url = values.BASE_URL + path
         if parameters:
             url = url.format_map({key: urllib.parse.quote(value) if isinstance(value, str) else value for key, value in parameters.items()})
 
+        self.method: typings.HTTPMethod = method
+        self.path: str = path
+        self.parameters: dict[str, Any] | None = parameters
         self.url: str = url
 
     def __repr__(self) -> str:
-        return f"<aiospotify.Route method={self.method} url={self.url}>"
+        return f"<aiospotify.Route method='{self.method}', url='{self.url}'>"
 
 
 class HTTPClient:
@@ -109,14 +68,18 @@ class HTTPClient:
 
     #
 
-    async def _ensure_session_exists(self) -> None:
+    async def _get_session(self) -> aiohttp.ClientSession:
 
-        if self._session and not self._session.closed:
-            return
+        if not self._session or self._session.closed:
+            self._session = aiohttp.ClientSession()
 
-        self._session = aiohttp.ClientSession()
+        return self._session
 
-    async def _get_credentials(self, credentials: OptionalCredentials) -> Credentials:
+    async def _get_credentials(
+        self,
+        _credentials: objects.ClientCredentials | objects.UserCredentials | None = None,
+        /
+    ) -> objects.ClientCredentials | objects.UserCredentials:
 
         if not self._client_credentials:
             self._client_credentials = await objects.ClientCredentials.from_client_secret(
@@ -125,87 +88,93 @@ class HTTPClient:
                 session=self._session
             )
 
-        _credentials = credentials or self._client_credentials
+        credentials = _credentials or self._client_credentials
 
-        if _credentials.is_expired():
-            await _credentials.refresh(session=self._session)
+        if credentials.is_expired():
+            await credentials.refresh(session=self._session)
 
-        return _credentials
+        return credentials
 
     #
-
-    async def close(self) -> None:
-
-        if not self._session or self._session.closed:
-            return
-
-        await self._session.close()
-        self._session = None
 
     async def request(
         self,
         route: Route,
         /,
         *,
-        credentials: OptionalCredentials,
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None,
         parameters: dict[str, Any] | None = None,
-        data: Any = None,
+        data: dict[str, Any] | str | None = None,
+        json: dict[str, Any] | None = None
     ) -> Any:
 
-        await self._ensure_session_exists()
-        assert self._session is not None
-
-        credentials = await self._get_credentials(credentials)
+        _session = await self._get_session()
+        _credentials = await self._get_credentials(credentials)
 
         headers = {
-            "Content-Type":  "application/json",
-            "Authorization": f"Bearer {credentials.access_token}"
+            "Authorization": f"Bearer {_credentials.access_token}"
         }
+
+        if json:
+            headers["Content-Type"] = "application/json"
+            data = utils.to_json(json)
+
+        response: aiohttp.ClientResponse | None = None
+        response_data: dict[str, Any] | str | None = None
 
         for tries in range(3):
 
             try:
 
-                async with self._session.request(
+                async with _session.request(
                         method=route.method,
                         url=route.url,
                         headers=headers,
                         params=parameters,
-                        data=json.dumps(data) if data else None
+                        data=data
                 ) as response:
 
                     response_data = await utils.json_or_text(response)
 
-                    if 200 <= response.status < 300:
+                    match response.status:
 
-                        __log__.debug(f"{route.method} @ {route.url} received payload: {response_data}")
-                        return response_data
+                        case 200 | 201 | 202 | 204:
+                            return response_data
 
-                    if response.status == 413:  # Special case as spotify doesn't return a json content type for this error???
-                        raise exceptions.RequestEntityTooLarge(response=response, data={"status": 413, "message": "Request entity too large."})
+                        case 400:
+                            raise exceptions.BadRequest(response, data=response_data)
+                        case 401:
+                            raise exceptions.Unauthorized(response, data=response_data)
+                        case 403:
+                            raise exceptions.Forbidden(response, data=response_data)
+                        case 404:
+                            raise exceptions.NotFound(response, data=response_data)
+                        case 413:
+                            raise exceptions.RequestEntityTooLarge(
+                                response,
+                                data={"error": {"status":  413, "message": "Image was too large."}}
+                            )
 
-                    if response.status == 429:  # Retry request after returned amount of time has passed.
-                        retry_after = float(response.headers["Retry-After"])
-                        __log__.warning(f"{route.method} @ {route.url} is being ratelimited, retrying in {retry_after:.2f} seconds.")
-                        await asyncio.sleep(retry_after)
-                        __log__.debug(f"{route.method} @ {route.url} is done sleeping for ratelimit, retrying...")
-                        continue
+                        case 429:
+                            await asyncio.sleep(float(response.headers["Retry-After"]))
+                            continue
 
-                    if response.status in {500, 502, 503}:  # Retry request after a delay.
-                        await asyncio.sleep(1 + tries * 2)
-                        continue
-
-                    if error := response_data.get("error"):
-                        raise values.EXCEPTION_MAPPING[response.status](response, error)
+                        case 500 | 502 | 503:
+                            await asyncio.sleep(1 + tries * 2)
+                            continue
 
             except OSError as error:
-                if tries < 4 and error.errno in (54, 10054):
+                if tries < 2 and error.errno in (54, 10054):
                     await asyncio.sleep(1 + tries * 2)
                     continue
                 raise
 
         if response:
-            raise exceptions.HTTPError(response, response_data["error"])
+
+            if response.status >= 500:
+                raise exceptions.SpotifyServerError(response, data=response_data)
+
+            raise exceptions.HTTPError(response, data=response_data)
 
         raise RuntimeError("This shouldn't happen.")
 
@@ -217,8 +186,8 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> AlbumData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.AlbumData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/albums/{id}", id=_id), parameters=parameters, credentials=credentials)
@@ -228,8 +197,8 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> MultipleAlbumsData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.MultipleAlbumsData:
 
         if len(ids) > 20:
             raise ValueError("'ids' can not contain more than 20 ids.")
@@ -248,8 +217,8 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> PagingObjectData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if market:
@@ -268,8 +237,8 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: Credentials,
-    ) -> PagingObjectData:
+        credentials: objects.UserCredentials,
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if market:
@@ -286,7 +255,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials,
     ) -> None:
 
         if len(ids) > 50:
@@ -299,7 +268,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials,
     ) -> None:
 
         if len(ids) > 50:
@@ -312,7 +281,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials,
     ) -> list[bool]:
 
         if len(ids) > 50:
@@ -327,8 +296,8 @@ class HTTPClient:
         country: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> NewReleasesData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.NewReleasesData:
 
         parameters = {}
         if country:
@@ -349,8 +318,8 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> ArtistData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.ArtistData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/artists/{id}", id=_id), parameters=parameters, credentials=credentials)
@@ -360,8 +329,8 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> MultipleArtistsData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.MultipleArtistsData:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
@@ -381,8 +350,8 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         include_groups: Sequence[objects.IncludeGroup] | None,
-        credentials: OptionalCredentials = None,
-    ) -> PagingObjectData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if market:
@@ -403,8 +372,8 @@ class HTTPClient:
         /,
         *,
         market: str,
-        credentials: OptionalCredentials = None,
-    ) -> ArtistTopTracksData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.ArtistTopTracksData:
 
         parameters = {"market": market}
         return await self.request(Route("GET", "/artists/{id}/top-tracks", id=_id), parameters=parameters, credentials=credentials)
@@ -415,8 +384,8 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> ArtistRelatedArtistsData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.ArtistRelatedArtistsData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/artists/{id}/related-artists", id=_id), parameters=parameters, credentials=credentials)
@@ -429,8 +398,8 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> ShowData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.ShowData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/shows/{id}", id=_id), parameters=parameters, credentials=credentials)
@@ -440,8 +409,8 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> MultipleShowsData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.MultipleShowsData:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
@@ -460,8 +429,8 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> PagingObjectData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if market:
@@ -479,8 +448,8 @@ class HTTPClient:
         *,
         limit: int | None,
         offset: int | None,
-        credentials: Credentials,
-    ) -> PagingObjectData:
+        credentials: objects.UserCredentials,
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if limit:
@@ -495,7 +464,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials,
     ) -> None:
 
         if len(ids) > 50:
@@ -508,7 +477,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials,
     ) -> None:
 
         if len(ids) > 50:
@@ -521,7 +490,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials,
     ) -> list[bool]:
 
         if len(ids) > 50:
@@ -538,8 +507,8 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> EpisodeData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.EpisodeData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/episodes/{id}", id=_id), parameters=parameters, credentials=credentials)
@@ -549,8 +518,8 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> MultipleEpisodesData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.MultipleEpisodesData:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
@@ -567,8 +536,8 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: Credentials,
-    ) -> PagingObjectData:
+        credentials: objects.UserCredentials,
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if market:
@@ -585,7 +554,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(ids) > 50:
@@ -599,7 +568,7 @@ class HTTPClient:
         ids: list[str],
         /,
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(ids) > 50:
@@ -612,7 +581,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> list[bool]:
 
         if len(ids) > 50:
@@ -629,8 +598,8 @@ class HTTPClient:
         /,
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> TrackData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.TrackData:
 
         parameters = {"market": market} if market else None
         return await self.request(Route("GET", "/tracks/{id}", id=_id), parameters=parameters, credentials=credentials)
@@ -640,8 +609,8 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> MultipleTracksData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.MultipleTracksData:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
@@ -658,8 +627,8 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: Credentials,
-    ) -> PagingObjectData:
+        credentials: objects.UserCredentials
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if market:
@@ -676,7 +645,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(ids) > 50:
@@ -690,7 +659,7 @@ class HTTPClient:
         ids: list[str],
         /,
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(ids) > 50:
@@ -701,10 +670,10 @@ class HTTPClient:
 
     async def check_saved_tracks(
         self,
-        ids: list[ID],
+        ids: list[str],
         /,
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> list[bool]:
 
         if len(ids) > 50:
@@ -718,16 +687,16 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: OptionalCredentials = None,
-    ) -> AudioFeaturesData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.AudioFeaturesData:
         return await self.request(Route("GET", "/audio-features/{id}", id=_id), credentials=credentials)
 
     async def get_several_tracks_audio_features(
         self,
         ids: Sequence[str],
         *,
-        credentials: OptionalCredentials = None,
-    ) -> SeveralAudioFeaturesData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.SeveralAudioFeaturesData:
 
         if len(ids) > 100:
             raise ValueError("'ids' can not contain more than 100 ids.")
@@ -740,7 +709,7 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: OptionalCredentials = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> dict[str, Any]:
         return await self.request(Route("GET", "/audio-analysis/{id}", id=_id), credentials=credentials)
 
@@ -752,9 +721,9 @@ class HTTPClient:
         seed_track_ids: Sequence[str] | None,
         limit: int | None,
         market: str | None,
-        credentials: OptionalCredentials = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None,
         **kwargs: int
-    ) -> RecommendationData:
+    ) -> typings.RecommendationData:
 
         seeds = len([seed for seeds in [seed_artist_ids or [], seed_genres or [], seed_track_ids or []] for seed in seeds])
         if seeds < 1 or seeds > 5:
@@ -793,8 +762,8 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> SearchResultData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.SearchResultData:
 
         parameters: dict[str, Any] = {
             "q": query.replace(" ", "+"),
@@ -818,8 +787,8 @@ class HTTPClient:
     async def get_current_user_profile(
         self,
         *,
-        credentials: Credentials,
-    ) -> UserData:
+        credentials: objects.UserCredentials
+    ) -> typings.UserData:
         return await self.request(Route("GET", "/me"), credentials=credentials)
 
     async def get_current_user_top_artists(
@@ -828,8 +797,8 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         time_range: objects.TimeRange | None,
-        credentials: Credentials,
-    ) -> PagingObjectData:
+        credentials: objects.UserCredentials
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if limit:
@@ -848,8 +817,8 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         time_range: objects.TimeRange | None,
-        credentials: Credentials,
-    ) -> PagingObjectData:
+        credentials: objects.UserCredentials
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if limit:
@@ -867,8 +836,8 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: OptionalCredentials = None,
-    ) -> UserData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.UserData:
         return await self.request(Route("GET", "/users/{id}", id=_id), credentials=credentials)
 
     async def follow_playlist(
@@ -877,18 +846,21 @@ class HTTPClient:
         /,
         *,
         public: bool | None,
-        credentials: Credentials
+        credentials: objects.UserCredentials
     ) -> None:
 
-        data = {"public": public} if public else None
-        return await self.request(Route("PUT", "playlists/{id}/followers", id=_id), data=data, credentials=credentials)
+        data = {}
+        if public:
+            data["public"] = public
+
+        return await self.request(Route("PUT", "playlists/{id}/followers", id=_id), json=data, credentials=credentials)
 
     async def unfollow_playlist(
         self,
         _id: str,
         /,
         *,
-        credentials: Credentials
+        credentials: objects.UserCredentials
     ) -> None:
         return await self.request(Route("DELETE", "playlists/{id}/followers", id=_id), credentials=credentials)
 
@@ -898,7 +870,7 @@ class HTTPClient:
         /,
         *,
         user_ids: list[str],
-        credentials: OptionalCredentials = None,
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
     ) -> None:
 
         if len(user_ids) > 5:
@@ -919,7 +891,7 @@ class HTTPClient:
         *,
         limit: int | None,
         offset: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
 
         parameters: dict[str, Any] = {
@@ -937,7 +909,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(ids) > 50:
@@ -954,7 +926,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(ids) > 50:
@@ -971,7 +943,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(ids) > 50:
@@ -988,7 +960,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(ids) > 50:
@@ -1005,7 +977,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> list[bool]:
 
         if len(ids) > 50:
@@ -1022,7 +994,7 @@ class HTTPClient:
         self,
         ids: list[str],
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> list[bool]:
 
         if len(ids) > 50:
@@ -1044,8 +1016,8 @@ class HTTPClient:
         *,
         market: str | None,
         fields: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> PlaylistData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.PlaylistData:
 
         parameters = {
             "additional_types": "track"
@@ -1066,7 +1038,7 @@ class HTTPClient:
         public: bool | None,
         collaborative: bool | None,
         description: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if collaborative and public:
@@ -1082,7 +1054,7 @@ class HTTPClient:
         if description:
             data["description"] = description
 
-        return await self.request(Route("PUT", "/playlists/{id}", id=_id), data=data, credentials=credentials)
+        return await self.request(Route("PUT", "/playlists/{id}", id=_id), json=data, credentials=credentials)
 
     async def get_playlist_items(
         self,
@@ -1093,8 +1065,8 @@ class HTTPClient:
         fields: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> PagingObjectData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.PagingObjectData:
 
         parameters: dict[str, Any] = {
             "additional_types": "track"
@@ -1118,7 +1090,7 @@ class HTTPClient:
         *,
         uris: Sequence[str],
         position: int | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
 
         if len(uris) > 100:
@@ -1130,7 +1102,7 @@ class HTTPClient:
         if position:
             data["position"] = position
 
-        return await self.request(Route("POST", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
+        return await self.request(Route("POST", "/playlists/{id}/tracks", id=_id), json=data, credentials=credentials)
 
     async def reorder_playlist_items(
         self,
@@ -1141,7 +1113,7 @@ class HTTPClient:
         insert_before: int,
         range_length: int | None,
         snapshot_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
 
         data: dict[str, Any] = {
@@ -1153,7 +1125,7 @@ class HTTPClient:
         if snapshot_id:
             data["snapshot_id"] = snapshot_id
 
-        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
+        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), json=data, credentials=credentials)
 
     async def replace_playlist_items(
         self,
@@ -1161,14 +1133,14 @@ class HTTPClient:
         /,
         *,
         uris: Sequence[str],
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")
 
         data = {"uris": uris}
-        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
+        return await self.request(Route("PUT", "/playlists/{id}/tracks", id=_id), json=data, credentials=credentials)
 
     async def remove_items_from_playlist(
         self,
@@ -1177,7 +1149,7 @@ class HTTPClient:
         *,
         uris: Sequence[str],
         snapshot_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
 
         if len(uris) > 100:
@@ -1189,15 +1161,15 @@ class HTTPClient:
         if snapshot_id:
             data["snapshot_id"] = snapshot_id
 
-        return await self.request(Route("DELETE", "/playlists/{id}/tracks", id=_id), data=data, credentials=credentials)
+        return await self.request(Route("DELETE", "/playlists/{id}/tracks", id=_id), json=data, credentials=credentials)
 
     async def get_current_user_playlists(
         self,
         *,
         limit: int | None,
         offset: int | None,
-        credentials: Credentials,
-    ) -> PagingObjectData:
+        credentials: objects.UserCredentials
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if limit:
@@ -1215,8 +1187,8 @@ class HTTPClient:
         *,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> PagingObjectData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.PagingObjectData:
 
         parameters = {}
         if limit:
@@ -1235,7 +1207,7 @@ class HTTPClient:
         public: bool | None,
         collaborative: bool | None,
         description: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
 
         if collaborative and public:
@@ -1251,7 +1223,7 @@ class HTTPClient:
         if description:
             data["description"] = description
 
-        return await self.request(Route("POST", "/users/{user_id}/playlists", user_id=user_id), data=data, credentials=credentials)
+        return await self.request(Route("POST", "/users/{user_id}/playlists", user_id=user_id), json=data, credentials=credentials)
 
     async def get_featured_playlists(
         self,
@@ -1261,8 +1233,8 @@ class HTTPClient:
         timestamp: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> FeaturedPlaylistsData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.FeaturedPlaylistsData:
 
         parameters = {}
         if country:
@@ -1287,8 +1259,8 @@ class HTTPClient:
         country: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> CategoryPlaylistsData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.CategoryPlaylistsData:
 
         parameters = {}
         if country:
@@ -1306,8 +1278,8 @@ class HTTPClient:
         _id: str,
         /,
         *,
-        credentials: OptionalCredentials = None,
-    ) -> Sequence[ImageData]:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> Sequence[typings.ImageData]:
         return await self.request(Route("GET", "/playlists/{id}/images", id=_id), credentials=credentials)
 
     async def upload_playlist_cover_image(
@@ -1316,7 +1288,7 @@ class HTTPClient:
         /,
         *,
         url: str,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if not self._session:
@@ -1341,8 +1313,8 @@ class HTTPClient:
         locale: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: OptionalCredentials = None,
-    ) -> MultipleCategoriesData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.MultipleCategoriesData:
 
         parameters = {}
         if country:
@@ -1364,8 +1336,8 @@ class HTTPClient:
         *,
         country: str | None,
         locale: str | None,
-        credentials: OptionalCredentials = None,
-    ) -> CategoryData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.CategoryData:
 
         parameters = {}
         if country:
@@ -1380,8 +1352,8 @@ class HTTPClient:
     async def get_available_genre_seeds(
         self,
         *,
-        credentials: OptionalCredentials = None,
-    ) -> RecommendationGenresData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.RecommendationGenresData:
         return await self.request(Route("GET", "/recommendations/available-genre-seeds"), credentials=credentials)
 
     # PLAYER API
@@ -1390,7 +1362,7 @@ class HTTPClient:
         self,
         *,
         market: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
 
         parameters = {
@@ -1406,7 +1378,7 @@ class HTTPClient:
         *,
         device_id: str,
         ensure_playback: bool | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         data: dict[str, Any] = {
@@ -1415,12 +1387,12 @@ class HTTPClient:
         if ensure_playback:
             data["play"] = ensure_playback
 
-        return await self.request(Route("PUT", "/me/player"), data=data, credentials=credentials)
+        return await self.request(Route("PUT", "/me/player"), json=data, credentials=credentials)
 
     async def get_available_devices(
         self,
         *,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
         return await self.request(Route("GET", "/me/player/devices"), credentials=credentials)
 
@@ -1428,7 +1400,7 @@ class HTTPClient:
         self,
         *,
         market: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
 
         parameters = {
@@ -1447,7 +1419,7 @@ class HTTPClient:
         uris: list[str] | None,
         offset: int | str | None,
         position_ms: int | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         if context_uri and uris:
@@ -1476,7 +1448,7 @@ class HTTPClient:
             if position_ms:
                 data["position_ms"] = position_ms
 
-        return await self.request(Route("PUT", "/me/player/play"), parameters=parameters, data=data, credentials=credentials)
+        return await self.request(Route("PUT", "/me/player/play"), parameters=parameters, json=data, credentials=credentials)
 
     async def resume_playback(
         self,
@@ -1484,7 +1456,7 @@ class HTTPClient:
         device_id: str | None,
         offset: int | str | None,
         position_ms: int | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         return await self.start_playback(
@@ -1500,7 +1472,7 @@ class HTTPClient:
         self,
         *,
         device_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         parameters = {}
@@ -1513,7 +1485,7 @@ class HTTPClient:
         self,
         *,
         device_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         parameters = {}
@@ -1526,7 +1498,7 @@ class HTTPClient:
         self,
         *,
         device_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         parameters = {}
@@ -1540,7 +1512,7 @@ class HTTPClient:
         *,
         position_ms: int,
         device_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         parameters: dict[str, Any] = {
@@ -1556,7 +1528,7 @@ class HTTPClient:
         *,
         repeat_mode: objects.RepeatMode,
         device_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         parameters = {
@@ -1572,7 +1544,7 @@ class HTTPClient:
         *,
         volume_percent: int,
         device_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         utils.limit_value("volume_percent", volume_percent, 0, 100)
@@ -1590,7 +1562,7 @@ class HTTPClient:
         *,
         state: bool,
         device_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         parameters: dict[str, Any] = {
@@ -1607,7 +1579,7 @@ class HTTPClient:
         limit: int | None,
         before: int | None,
         after: int | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> dict[str, Any]:
 
         if before and after:
@@ -1628,7 +1600,7 @@ class HTTPClient:
         *,
         uri: str,
         device_id: str | None,
-        credentials: Credentials,
+        credentials: objects.UserCredentials
     ) -> None:
 
         parameters = {
@@ -1644,6 +1616,6 @@ class HTTPClient:
     async def get_available_markets(
         self,
         *,
-        credentials: OptionalCredentials = None,
-    ) -> AvailableMarketsData:
+        credentials: objects.ClientCredentials | objects.UserCredentials | None = None
+    ) -> typings.AvailableMarketsData:
         return await self.request(Route("GET", "/markets"), credentials=credentials)

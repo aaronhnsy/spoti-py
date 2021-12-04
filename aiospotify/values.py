@@ -1,28 +1,11 @@
 # Future
 from __future__ import annotations
 
-# My stuff
-from aiospotify import exceptions
-
 
 __all__ = (
-    "EXCEPTION_MAPPING",
     "SCOPES",
     "VALID_SEED_KWARGS",
 )
-
-
-EXCEPTION_MAPPING = {
-    400: exceptions.BadRequest,
-    401: exceptions.Unauthorized,
-    403: exceptions.Forbidden,
-    404: exceptions.NotFound,
-    413: exceptions.RequestEntityTooLarge,
-    429: exceptions.TooManyRequests,
-    500: exceptions.InternalServerError,
-    502: exceptions.BadGatewayError,
-    503: exceptions.ServiceUnavailable
-}
 
 
 SCOPES = [
@@ -98,3 +81,5 @@ VALID_SEED_KWARGS = [
     "max_valence",
     "target_valence"
 ]
+
+BASE_URL = "https://api.spotify.com/v1"
