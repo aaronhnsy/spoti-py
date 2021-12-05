@@ -1,11 +1,6 @@
 *.pyc
 *.log*
 
-spotipy.egg-info/
-node_modules/
-resources/
-static/
-venv/
-build/
 .idea/
+dist/
 tests/

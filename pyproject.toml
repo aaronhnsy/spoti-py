@@ -1,3 +1,65 @@
+[tool.poetry]
+name = "spoti.py"
+version = "0.1.0"
+description = "An async Spotify Web API wrapper."
+authors = ["Axel <axelancerr@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+homepage = "https://github.com/Axelware/spoti.py"
+repository = "https://github.com/Axelware/spoti.py"
+documentation = "https://spoti-py.readthedocs.io/en/latest/"
+
+keywords = ["spotify", "api", "wrapper", "async"]
+classifiers = [
+    "Framework :: AsyncIO",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Operating System :: OS Independent",
+    "Environment :: Other Environment",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Typing :: Typed"
+]
+
+packages = [
+    { include = "spotipy" },
+    { include = "spotipy/**/*.py" },
+    { include = "spotipy/py.typed" },
+]
+include = ["LICENSE"]
+
+
+[tool.poetry.dependencies]
+python = ">=3.10.0,<4.0"
+aiohttp = ">=3.6.0"
+
+orjson = { version = "^3.5.4", optional = true }
+
+sphinx = { version = "^4.3.1", optional = true }
+sphinxcontrib-trio = { version = "^1.1.2", optional = true }
+sphinx-copybutton = { version = "^0.4.0", optional = true }
+sphinxext-opengraph = { version = "^0.5.0", optional = true }
+furo = { version = "^2021.11.23", optional = true }
+
+
+[tool.poetry.extras]
+speed = ["orjson"]
+docs = ["sphinx sphinxcontrib-trio sphinx-copybutton sphinxext-opengraph furo"]
+
+
+[tool.poetry.group.dev.dependencies]
+isort = "^5.10.1"
+
+
+[tool.poetry.urls]
+"Issue Tracker" = "https://github.com/Axelancerr/spoti.py/issues"
+"Discord" = "https://discord.com/invite/w9f6NkQbde"
+
+
 [tool.isort]
 line_length = 120
 multi_line_output = 3
@@ -10,3 +72,8 @@ import_heading_stdlib = "Standard Library"
 import_heading_thirdparty = "Packages"
 import_heading_firstparty="My stuff"
 import_heading_localfolder="My stuff"
+
+
+[build-system]
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
