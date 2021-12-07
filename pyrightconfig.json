@@ -1,6 +1,6 @@
 {
   "include": [
-    "spotify"
+    "spotipy"
   ],
   "exclude": [
     "**/node_modules",
@@ -9,8 +9,8 @@
   "ignore": [],
   "strict": [],
 
-  "stubPath": "spotipy/stubs",
-  "venvPath": "venv",
+  "stubPath": "spoti.py/stubs",
+  "venvPath": "C:\\Users\\Axel\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\spoti.py-_amaB5wF-py3.10",
   "verboseOutput": false,
   "extraPaths": [],
   "pythonVersion": "3.10",
@@ -18,7 +18,7 @@
 
   "executionEnvironments": [
     {
-      "root": "spotipy"
+      "root": "spoti.py"
     }
   ],
   "typeCheckingMode": "basic",

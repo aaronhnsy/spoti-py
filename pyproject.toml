@@ -37,7 +37,7 @@ include = ["LICENSE"]
 python = ">=3.10.0,<4.0"
 aiohttp = ">=3.6.0"
 
-orjson = { version = "^3.5.4", optional = true }
+orjson = { version = "^3.6.4", optional = true }
 
 sphinx = { version = "^4.3.1", optional = true }
 sphinxcontrib-trio = { version = "^1.1.2", optional = true }
