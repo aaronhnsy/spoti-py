@@ -51,7 +51,7 @@ speed = ["orjson"]
 docs = ["sphinx", "sphinxcontrib-trio", "sphinx-copybutton", "sphinxext-opengraph", "furo"]
 
 
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.dev-dependencies]
 isort = "^5.10.1"
 
 
