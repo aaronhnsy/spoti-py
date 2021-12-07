@@ -48,7 +48,7 @@ furo = { version = "^2021.11.23", optional = true }
 
 [tool.poetry.extras]
 speed = ["orjson"]
-docs = ["sphinx sphinxcontrib-trio sphinx-copybutton sphinxext-opengraph furo"]
+docs = ["sphinx", "sphinxcontrib-trio", "sphinx-copybutton", "sphinxext-opengraph", "furo"]
 
 
 [tool.poetry.group.dev.dependencies]

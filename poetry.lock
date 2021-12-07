@@ -459,13 +459,13 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [extras]
-docs = []
+docs = ["sphinx", "sphinxcontrib-trio", "sphinx-copybutton", "sphinxext-opengraph", "furo"]
 speed = ["orjson"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10.0,<4.0"
-content-hash = "37bf195e46a23f1fb040d4cab8dd63293feb2082bcdf13216be3c090cc2c1e84"
+content-hash = "6436fa5b8a1386cb7711072365518e9a4ef2039b8cfa7704f83c4bb0496bc32f"
 
 [metadata.files]
 aiohttp = [
