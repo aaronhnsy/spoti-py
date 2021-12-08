@@ -12,7 +12,7 @@ project = "spoti.py"
 author = "Axel#3456"
 copyright = "2021-present - Axelancerr"
 
-with open(os.path.abspath(os.path.join(os.path.dirname(__file__), '../slate/__init__.py'))) as file:
+with open(os.path.abspath(os.path.join(os.path.dirname(__file__), '../spotipy/__init__.py'))) as file:
     version = re.search(r"^__version__: [^=]* = \"([^\"]*)\"", file.read(), re.MULTILINE).group(1)
     release = version
 
