@@ -46,13 +46,13 @@ sphinxext-opengraph = { version = "^0.5.0", optional = true }
 furo = { version = "^2021.11.23", optional = true }
 
 
+[tool.poetry.dev-dependencies]
+isort = "^5.10.1"
+
+
 [tool.poetry.extras]
 speed = ["orjson"]
 docs = ["sphinx", "sphinxcontrib-trio", "sphinx-copybutton", "sphinxext-opengraph", "furo"]
-
-
-[tool.poetry.dev-dependencies]
-isort = "^5.10.1"
 
 
 [tool.poetry.urls]
