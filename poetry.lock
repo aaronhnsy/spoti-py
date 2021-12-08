@@ -465,7 +465,7 @@ speed = ["orjson"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10.0,<4.0"
-content-hash = "6436fa5b8a1386cb7711072365518e9a4ef2039b8cfa7704f83c4bb0496bc32f"
+content-hash = "618303232415dbf5c3270fa914a6bbcd2e95a9607c7bbfa8e2dc95fd64cb20c4"
 
 [metadata.files]
 aiohttp = [

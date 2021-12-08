@@ -28,8 +28,8 @@ __title__: Final[str] = "spotipy"
 __author__: Final[str] = "Axelancerr"
 __copyright__: Final[str] = "Copyright 2021-present Axelancerr"
 __license__: Final[str] = "MIT"
-__version__: Final[str] = "2021.09.19"
+__version__: Final[str] = "0.1.0"
 __maintainer__: Final[str] = "Aaron Hennessey"
-__source__: Final[str] = "https://github.com/Axelancerr/spotipy"
+__source__: Final[str] = "https://github.com/Axelware/spoti.py"
 
 logging.getLogger("spotipy")
