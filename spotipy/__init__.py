@@ -28,7 +28,7 @@ __title__: Final[str] = "spotipy"
 __author__: Final[str] = "Axelancerr"
 __copyright__: Final[str] = "Copyright 2021-present Axelancerr"
 __license__: Final[str] = "MIT"
-__version__: Final[str] = "0.1.1"
+__version__: Final[str] = "0.1.2"
 __maintainer__: Final[str] = "Aaron Hennessey"
 __source__: Final[str] = "https://github.com/Axelware/spoti.py"
 
