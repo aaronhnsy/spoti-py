@@ -22,7 +22,7 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: Final[VersionInfo] = VersionInfo(major=0, minor=1, micro=1, releaselevel="final", serial=0)
+version_info: Final[VersionInfo] = VersionInfo(major=0, minor=1, micro=2, releaselevel="final", serial=0)
 
 __title__: Final[str] = "spotipy"
 __author__: Final[str] = "Axelancerr"
