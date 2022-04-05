@@ -56,7 +56,7 @@ class Client:
         if not self.http._session:
             return
 
-        await self.http.close()
+        await self.http._session.close()
 
     # ALBUMS API
 
