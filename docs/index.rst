@@ -1,32 +1,45 @@
 .. py:currentmodule:: spotipy
 
 Welcome to spoti.py
-====================================
+===================
+spoti.py is an async python wrapper for the Spotify Web API.
 
-.. image:: /images/slate.jpg
+Installation
+------------
+From PyPI
 
-spoti.py is aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+.. tab:: Linux
 
-**Features:**
+    .. code:: bash
 
-- stuff 1
-- stuff 2
-- stuff  3
+        python3 -m pip install -U spoti.py
 
+.. tab:: Windows
 
-Support
-------------------------------------
-If you need help with anything, the following might help:
+    .. code:: bash
 
-- Open an :resource:`issue <issues>` or start a :resource:`discussion <discussions>` on the :resource:`github <github>`.
-- Join the :resource:`discord <discord>` server.
+        py -3 -m pip install -U spoti.py
 
+From GitHub:
 
-Contents:
-------------------------------------
+.. tab:: Linux
 
+    .. code:: bash
+
+        git clone https://github.com/Axelware/spoti.py
+        cd spotipy
+        python3 -m pip install .
+
+.. tab:: Windows
+
+    .. code:: bash
+
+        git clone https://github.com/Axelware/spoti.py
+        cd spotipy
+        py -3 -m pip install .
+
+Contents
+--------
 .. toctree::
-    :maxdepth: 5
-
-    reference/index
+    pages/api
+    pages/examples

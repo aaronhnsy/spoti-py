@@ -1,16 +1,16 @@
 [tool.poetry]
-name = "spoti.py"
-version = "0.1.3"
-description = "An async wrapper for the Spotify Web API."
-authors = ["Axel <axelancerr@gmail.com>"]
-license = "MIT"
-readme = "README.md"
-
-homepage = "https://github.com/Axelware/spoti.py"
-repository = "https://github.com/Axelware/spoti.py"
-documentation = "https://spoti-py.readthedocs.io/en/latest/"
-
-keywords = ["spotify", "api", "wrapper", "async"]
+name            = "spoti.py"
+version         = "0.1.3"
+description     = "An async wrapper for the Spotify Web API."
+authors         = ["Axel <axelancerr@gmail.com>"]
+license         = "MIT"
+readme          = "README.md"
+homepage        = "https://github.com/Axelware/spoti.py"
+repository      = "https://github.com/Axelware/spoti.py"
+documentation   = "https://spoti-py.readthedocs.io/en/latest/"
+keywords = [
+    "spotify", "api", "wrapper", "async"
+]
 classifiers = [
     "Framework :: AsyncIO",
     "Topic :: Software Development",
@@ -24,56 +24,73 @@ classifiers = [
     "Natural Language :: English",
     "Typing :: Typed"
 ]
-
 packages = [
     { include = "spotipy" },
     { include = "spotipy/**/*.py" },
     { include = "spotipy/py.typed" },
 ]
-include = ["LICENSE"]
+include = [
+    "LICENSE",
+]
 
 
 [tool.poetry.dependencies]
-python = ">=3.10.0,<4.0.0"
-aiohttp = "^3.8.0"
-
-orjson = { version = "^3.6.4", optional = true }
-
-sphinx = { version = "^4.3.1", optional = true }
-sphinxcontrib-trio = { version = "^1.1.2", optional = true }
-sphinx-copybutton = { version = "^0.4.0", optional = true }
-sphinxext-opengraph = { version = "^0.5.0", optional = true }
-furo = { version = "^2021.11.23", optional = true }
+python              = "^3.10.0"
+aiohttp             = "^3.8.0"
+sphinx              = { version = "^4.5.0", optional = true }
+sphinxcontrib-trio  = { version = "*",      optional = true }
+sphinx-copybutton   = { version = "*",      optional = true }
+sphinx-inline-tabs  = { version = "*",      optional = true }
+furo                = { version = "*",      optional = true }
+sphinx-autobuild    = { version = "*",      optional = true }
 
 
 [tool.poetry.dev-dependencies]
-isort = "^5.10.1"
+isort = "*"
 
 
 [tool.poetry.extras]
-speed = ["orjson"]
-docs = ["sphinx", "sphinxcontrib-trio", "sphinx-copybutton", "sphinxext-opengraph", "furo"]
+docs        = ["discord.py", "sphinx", "sphinxcontrib-trio", "sphinx-copybutton", "sphinx-inline-tabs", "furo"]
+docs-dev    = ["discord.py", "sphinx", "sphinxcontrib-trio", "sphinx-copybutton", "sphinx-inline-tabs", "furo", "sphinx-autobuild"]
 
 
 [tool.poetry.urls]
 "Issue Tracker" = "https://github.com/Axelware/spoti.py/issues"
-"Discord" = "https://discord.com/invite/w9f6NkQbde"
+"Discord"       = "https://discord.com/invite/w9f6NkQbde"
 
 
 [tool.isort]
-line_length = 120
-multi_line_output = 3
-lines_after_imports = 2
-combine_star = true
-include_trailing_comma = true
-star_first = true
-import_heading_future = "Future"
-import_heading_stdlib = "Standard Library"
-import_heading_thirdparty = "Packages"
-import_heading_firstparty="My stuff"
-import_heading_localfolder="My stuff"
+line_length                 = 120
+multi_line_output           = 3
+lines_after_imports         = 2
+combine_star                = true
+star_first                  = true
+include_trailing_comma      = true
+dedup_headings              = true
+src_paths                   = ["spotipy"]
+import_heading_future       = "Future"
+import_heading_stdlib       = "Standard Library"
+import_heading_thirdparty   = "Packages"
+import_heading_firstparty   = "Local"
+import_heading_localfolder  = "Local"
 
 
 [build-system]
-requires = ["poetry_core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires        = ["poetry_core>=1.0.0"]
+build-backend   = "poetry.core.masonry.api"
+
+
+[tool.pyright]
+include                     = ["spotipy"]
+verboseOutput               = false
+pythonVersion               = "3.10"
+typeCheckingMode            = "strict"
+useLibraryCodeForTypes      = true
+reportMissingTypeStubs      = false
+reportPrivateImportUsage    = false
+reportPrivateUsage          = false
+reportFunctionMemberAccess  = false
+reportUnknownMemberType     = false
+reportUnknownVariableType   = false
+reportUnknownArgumentType   = false
+reportImportCycles          = false
