@@ -2,6 +2,7 @@
 *.log*
 
 .idea/
-dist/
 tests/
-docs/_build
+dist/
+_build/
+build/
