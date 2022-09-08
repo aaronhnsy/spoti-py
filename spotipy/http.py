@@ -1,7 +1,5 @@
-# Future
 from __future__ import annotations
 
-# Standard Library
 import asyncio
 import base64
 import logging
@@ -9,10 +7,8 @@ import urllib.parse
 from collections.abc import Sequence
 from typing import Any
 
-# Packages
 import aiohttp
 
-# My stuff
 from spotipy import exceptions, objects, typings, utils, values
 
 

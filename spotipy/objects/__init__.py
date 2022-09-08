@@ -1,12 +1,5 @@
-# Future
-from __future__ import annotations
-
-
-# isort: off
 from spotipy.objects.base import *
-# isort: on
 
-# My stuff
 from spotipy.objects.actions import *
 from spotipy.objects.album import *
 from spotipy.objects.artist import *

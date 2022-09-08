@@ -1,7 +1,5 @@
-# Future
 from __future__ import annotations
 
-# My stuff
 from spotipy.objects import album, artist, base, enums, user
 from spotipy.typings.objects import (
     AudioFeaturesData,

@@ -1,21 +1,15 @@
-# Future
 from __future__ import annotations
 
-# Standard Library
 import math
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, TypeVar
 
-# Packages
 import aiohttp
 
-# My stuff
 from spotipy import http, objects, utils
 
 
 if TYPE_CHECKING:
-
-    # My stuff
     from spotipy.typings import Credentials, OptionalCredentials
 
 

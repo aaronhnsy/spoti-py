@@ -1,7 +1,5 @@
-# Future
 from __future__ import annotations
 
-# My stuff
 from spotipy import objects
 from spotipy.typings.objects import SearchResultData
 

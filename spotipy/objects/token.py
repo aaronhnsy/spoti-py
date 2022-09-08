@@ -1,13 +1,9 @@
-# Future
 from __future__ import annotations
 
-# Standard Library
 import time
 
-# Packages
 import aiohttp
 
-# My stuff
 from spotipy import exceptions, values
 from spotipy.typings.objects import ClientCredentialsData, UserCredentialsData
 

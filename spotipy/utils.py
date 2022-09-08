@@ -1,11 +1,8 @@
-# Future
 from __future__ import annotations
 
-# Standard Library
 import json
 from typing import Any, Literal
 
-# Packages
 import aiohttp
 
 
