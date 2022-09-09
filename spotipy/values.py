@@ -7,7 +7,7 @@ __all__ = (
 )
 
 
-SCOPES = [
+SCOPES: list[str] = [
     "ugc-image-upload",
 
     "playlist-modify-private",
@@ -36,7 +36,7 @@ SCOPES = [
     "user-follow-read",
 ]
 
-VALID_SEED_KWARGS = [
+VALID_SEED_KWARGS: list[str] = [
     "min_acousticness",
     "max_acousticness",
     "target_acousticness",
@@ -80,6 +80,3 @@ VALID_SEED_KWARGS = [
     "max_valence",
     "target_valence"
 ]
-
-BASE_URL = "https://api.spotify.com/v1"
-TOKEN_URL = "https://accounts.spotify.com/api/token"

@@ -1,12 +1,24 @@
 from __future__ import annotations
 
-from spotipy.typings.objects import AlternativePagingObjectData, BaseObjectData, PagingObjectData
+from typing import TypedDict, Any
 
 
 __all__ = (
+    "BaseObjectData",
     "BaseObject",
+    "PagingObjectData",
     "PagingObject",
+    "AlternativePagingObjectData",
+    "AlternativePagingObject",
 )
+
+
+class BaseObjectData(TypedDict):
+    href: str
+    id: str
+    name: str
+    type: str
+    uri: str
 
 
 class BaseObject:
@@ -22,6 +34,16 @@ class BaseObject:
         return f"<spotipy.BaseObject id='{self.id}', name='{self.name}'>"
 
 
+class PagingObjectData(TypedDict):
+    href: str
+    items: list[Any]
+    limit: int
+    next: str | None
+    offset: int
+    previous: str | None
+    total: int
+
+
 class PagingObject:
 
     def __init__(self, data: PagingObjectData) -> None:
@@ -35,6 +57,15 @@ class PagingObject:
 
     def __repr__(self) -> str:
         return f"<spotify.PagingObject total={self.total}, limit={self.limit}, offset={self.offset}>"
+
+
+class AlternativePagingObjectData(TypedDict):
+    href: str
+    items: list[Any]
+    limit: int
+    next: str | None
+    before: str
+    after: str
 
 
 class AlternativePagingObject:

@@ -1,11 +1,22 @@
 from __future__ import annotations
 
-from spotipy.typings.objects import DeviceData
+from typing import TypedDict
 
 
 __all__ = (
+    "DeviceData",
     "Device",
 )
+
+
+class DeviceData(TypedDict):
+    id: str
+    is_active: bool
+    is_private_session: bool
+    is_restricted: bool
+    name: str
+    type: str
+    volume_percent: int
 
 
 class Device:

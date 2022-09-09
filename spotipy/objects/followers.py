@@ -1,11 +1,17 @@
 from __future__ import annotations
 
-from spotipy.typings.objects import FollowersData
+from typing import TypedDict
 
 
 __all__ = (
+    "FollowersData",
     "Followers",
 )
+
+
+class FollowersData(TypedDict):
+    href: str | None
+    total: int
 
 
 class Followers:

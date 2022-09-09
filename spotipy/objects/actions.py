@@ -1,11 +1,25 @@
 from __future__ import annotations
 
-from spotipy.typings.objects import ActionsData
+from typing import TypedDict
 
 
 __all__ = (
+    "ActionsData",
     "Actions",
 )
+
+
+class ActionsData(TypedDict):
+    interrupting_playback: bool
+    pausing: bool
+    resuming: bool
+    seeking: bool
+    skipping_next: bool
+    skipping_prev: bool
+    toggling_repeat_context: bool
+    toggling_repeat_track: bool
+    toggling_shuffle: bool
+    transferring_playback: bool
 
 
 class Actions:
@@ -23,4 +37,4 @@ class Actions:
         self.transferring_playback = data.get("transferring_playback", False)
 
     def __repr__(self) -> str:
-        return "<spotipy.Disallows>"
+        return "<spotipy.Actions>"

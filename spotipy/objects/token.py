@@ -1,20 +1,30 @@
 from __future__ import annotations
 
 import time
+from typing import TypedDict, ClassVar
 
 import aiohttp
 
-from spotipy import exceptions, values
-from spotipy.typings.objects import ClientCredentialsData, UserCredentialsData
+from ..exceptions import AuthenticationError
 
 
 __all__ = (
+    "ClientCredentialsData",
     "ClientCredentials",
+    "UserCredentialsData",
     "UserCredentials"
 )
 
 
+class ClientCredentialsData(TypedDict):
+    access_token: str
+    token_type: str
+    expires_in: int
+
+
 class ClientCredentials:
+
+    TOKEN_URL: ClassVar[str] = "https://accounts.spotify.com/api/token"
 
     def __init__(self, data: ClientCredentialsData, client_id: str, client_secret: str) -> None:
 
@@ -61,12 +71,12 @@ class ClientCredentials:
             "client_secret": self._client_secret
         }
 
-        async with session.post(url=values.TOKEN_URL, data=data) as response:
+        async with session.post(url=self.TOKEN_URL, data=data) as response:
 
             data = await response.json()
 
             if data.get("error"):
-                raise exceptions.AuthenticationError(response, data=data)
+                raise AuthenticationError(response, data=data)
 
             self._access_token = data["access_token"]
             self._token_type = data["token_type"]
@@ -89,17 +99,27 @@ class ClientCredentials:
             "client_secret": client_secret
         }
 
-        async with session.post(url=values.TOKEN_URL, data=data) as response:
+        async with session.post(url=cls.TOKEN_URL, data=data) as response:
 
             data = await response.json()
 
             if data.get("error"):
-                raise exceptions.AuthenticationError(response, data=data)
+                raise AuthenticationError(response, data=data)
 
             return cls(data, client_id=client_id, client_secret=client_secret)
 
 
+class UserCredentialsData(TypedDict):
+    access_token: str
+    token_type: str
+    expires_in: int
+    scope: str
+    refresh_token: str
+
+
 class UserCredentials:
+
+    TOKEN_URL: ClassVar[str] = "https://accounts.spotify.com/api/token"
 
     def __init__(self, data: UserCredentialsData, client_id: str, client_secret: str) -> None:
 
@@ -153,12 +173,12 @@ class UserCredentials:
             "client_secret": self._client_secret
         }
 
-        async with session.post(url=values.TOKEN_URL, data=data) as response:
+        async with session.post(url=self.TOKEN_URL, data=data) as response:
 
             data = await response.json()
 
             if data.get("error"):
-                raise exceptions.AuthenticationError(response, data=data)
+                raise AuthenticationError(response, data=data)
 
             self._access_token = data["access_token"]
             self._token_type = data["token_type"]
@@ -184,12 +204,12 @@ class UserCredentials:
             "refresh_token": refresh_token,
         }
 
-        async with session.post(url=values.TOKEN_URL, data=data) as response:
+        async with session.post(url=cls.TOKEN_URL, data=data) as response:
 
             data = await response.json()
 
             if data.get("error"):
-                raise exceptions.AuthenticationError(response, data=data)
+                raise AuthenticationError(response, data=data)
 
             data["refresh_token"] = refresh_token
 

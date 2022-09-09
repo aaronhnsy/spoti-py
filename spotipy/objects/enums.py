@@ -15,55 +15,55 @@ __all__ = (
 
 
 class IncludeGroup(enum.Enum):
-    ALBUM = "album"
-    SINGLE = "single"
-    APPEARS_ON = "appears_on"
-    COMPILATION = "compilation"
-    ALL = "album,single,appears_on,compilation"
+    Album = "album"
+    Single = "single"
+    AppearsOn = "appears_on"
+    Compilation = "compilation"
+    All = f"{Album},{Single},{AppearsOn},{Compilation}"
 
 
 class Key(enum.Enum):
     C = 0
-    C_SHARP = 1
+    C_Sharp = 1
     D = 2
-    D_SHARP = 3
+    D_Sharp = 3
     E = 4
     F = 5
-    F_SHARP = 6
+    F_Sharp = 6
     G = 7
-    G_SHARP = 8
+    G_Sharp = 8
     A = 9
-    A_SHARP = 10
+    A_Sharp = 10
     B = 11
 
 
 class Mode(enum.Enum):
-    MAJOR = 1
-    MINOR = 0
+    Major = 1
+    Minor = 0
 
 
 class SearchType(enum.Enum):
-    ALBUM = "album"
-    ARTIST = "artist"
-    PLAYLIST = "playlist"
-    TRACK = "track"
-    SHOW = "show"
-    EPISODE = "episode"
-    ALL = "album,artist,playlist,track,show,episode"
+    Album = "album"
+    Artist = "artist"
+    Playlist = "playlist"
+    Track = "track"
+    Show = "show"
+    Episode = "episode"
+    All = f"{Album},{Artist},{Playlist},{Track},{Show},{Episode}"
 
 
 class CopyrightType(enum.Enum):
-    NORMAL = "C"
-    PERFORMANCE = "P"
+    Normal = "C"
+    Performance = "P"
 
 
 class RepeatMode(enum.Enum):
-    TRACK = "track"
-    CONTEXT = "context"
-    OFF = "off"
+    Track = "track"
+    Context = "context"
+    Off = "off"
 
 
 class TimeRange(enum.Enum):
-    LONG_TERM = "long_term"
-    MEDIUM_TERM = "medium_term"
-    SHORT_TERM = "short_term"
+    LongTerm = "long_term"
+    MediumTerm = "medium_term"
+    ShortTerm = "short_term"

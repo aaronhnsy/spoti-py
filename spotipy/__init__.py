@@ -7,7 +7,7 @@ from .client import *
 from .exceptions import *
 from .http import *
 from .objects import *
-from .utils import *
+from .utilities import *
 from .values import *
 
 

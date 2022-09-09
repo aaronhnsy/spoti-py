@@ -1,26 +1,44 @@
 from __future__ import annotations
 
-from spotipy import objects
-from spotipy.typings.objects import ShowData
+from .base import BaseObject, BaseObjectData
+from .common import ExternalUrlsData
+from .copyright import Copyright, CopyrightData
+from .image import Image, ImageData
 
 
 __all__ = (
+    "ShowData",
     "Show",
 )
 
 
-class Show(objects.BaseObject):
+class ShowData(BaseObjectData):
+    available_markets: list[str]
+    copyrights: list[CopyrightData]
+    description: str
+    explicit: bool
+    external_urls: ExternalUrlsData
+    html_description: str
+    images: list[ImageData]
+    is_externally_hosted: bool
+    languages: list[str]
+    media_type: str
+    publisher: str
+    total_episodes: int
+
+
+class Show(BaseObject):
 
     def __init__(self, data: ShowData) -> None:
         super().__init__(data)
 
         self.available_markets = data.get("available_markets")
-        self.copyrights = [objects.Copyright(copyright) for copyright in data["copyrights"]]
+        self.copyrights = [Copyright(copyright) for copyright in data["copyrights"]]
         self.description = data["description"]
         self.explicit = data["explicit"]
         self.external_urls = data["external_urls"]
         self.html_description = data["html_description"]
-        self.images = [objects.Image(image) for image in data["images"]]
+        self.images = [Image(image) for image in data["images"]]
         self.is_externally_hosted = data["is_externally_hosted"]
         self.languages = data["languages"]
         self.media_type = data["media_type"]

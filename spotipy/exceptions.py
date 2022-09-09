@@ -15,6 +15,7 @@ __all__ = (
     "NotFound",
     "RequestEntityTooLarge",
     "TooManyRequests",
+    "SpotifyServerError",
 )
 
 
@@ -27,11 +28,9 @@ class AuthenticationError(SpotifyException):
     def __init__(
         self,
         response: aiohttp.ClientResponse,
-        /,
-        *,
+        /, *,
         data: dict[str, Any]
     ) -> None:
-
         self._response: aiohttp.ClientResponse = response
         self._error: str = data["error"]
         self._error_description: str = data["error_description"]
@@ -54,8 +53,7 @@ class HTTPError(SpotifyException):
     def __init__(
         self,
         response: aiohttp.ClientResponse,
-        /,
-        *,
+        /, *,
         data: dict[str, dict[str, Any]] | None
     ) -> None:
 

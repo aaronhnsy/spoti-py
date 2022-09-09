@@ -1,19 +1,28 @@
 from __future__ import annotations
 
-from spotipy import objects
-from spotipy.typings.objects import CategoryData
+from typing import TypedDict
+
+from .image import Image, ImageData
 
 
 __all__ = (
+    "CategoryData",
     "Category",
 )
+
+
+class CategoryData(TypedDict):
+    href: str
+    icons: list[ImageData]
+    id: str
+    name: str
 
 
 class Category:
 
     def __init__(self, data: CategoryData) -> None:
         self.href = data["href"]
-        self.icons = [objects.Image(image) for image in data["icons"]]
+        self.icons = [Image(image) for image in data["icons"]]
         self.id = data["id"]
         self.name = data["name"]
 

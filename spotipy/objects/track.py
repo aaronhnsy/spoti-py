@@ -1,22 +1,48 @@
 from __future__ import annotations
 
-from spotipy.objects import album, artist, base, enums, user
-from spotipy.typings.objects import (
-    AudioFeaturesData,
-    PlaylistTrackData,
-    SimpleTrackData,
-    TrackData,
-    TrackRestrictionData,
-)
+from typing import TypedDict, Any
+
+from . import album
+from .artist import SimpleArtist, SimpleArtistData
+from .base import BaseObject, BaseObjectData
+from .common import ExternalUrlsData, ExternalIdsData
+from .enums import Key, Mode
+from .user import User, UserData
 
 
 __all__ = (
+    "AudioFeaturesData",
     "AudioFeatures",
+    "TrackRestrictionData",
     "TrackRestriction",
+    "SimpleTrackData",
     "SimpleTrack",
+    "TrackData",
     "Track",
+    "PlaylistTrackData",
     "PlaylistTrack",
 )
+
+
+class AudioFeaturesData(TypedDict):
+    acousticness: float
+    analysis_url: str
+    danceability: float
+    duration_ms: int
+    energy: float
+    id: str
+    instrumentalness: float
+    key: int
+    liveness: float
+    loudness: float
+    mode: int
+    speechiness: float
+    tempo: float
+    time_signature: int
+    track_href: str
+    type: str
+    uri: str
+    valence: float
 
 
 class AudioFeatures:
@@ -29,10 +55,10 @@ class AudioFeatures:
         self.energy = data["energy"]
         self.id = data["id"]
         self.instrumentalness = data["instrumentalness"]
-        self.key = enums.Key(data["key"])
+        self.key = Key(data["key"])
         self.liveness = data["liveness"]
         self.loudness = data["loudness"]
-        self.mode = enums.Mode(data["mode"])
+        self.mode = Mode(data["mode"])
         self.speechiness = data["speechiness"]
         self.tempo = data["tempo"]
         self.time_signature = data["time_signature"]
@@ -45,6 +71,10 @@ class AudioFeatures:
         return f"<spotipy.AudioFeatures id='{self.id}'>"
 
 
+class TrackRestrictionData(TypedDict):
+    reason: str
+
+
 class TrackRestriction:
 
     def __init__(self, data: TrackRestrictionData) -> None:
@@ -54,12 +84,27 @@ class TrackRestriction:
         return f"<spotipy.TrackRestriction reason='{self.reason}'>"
 
 
-class SimpleTrack(base.BaseObject):
+class SimpleTrackData(BaseObjectData):
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    disc_number: int
+    duration_ms: int
+    explicit: bool
+    external_urls: ExternalUrlsData
+    is_local: bool
+    is_playable: bool
+    #  linked_from: LinkedTrackData
+    preview_url: str
+    restrictions: TrackRestrictionData
+    track_number: int
+
+
+class SimpleTrack(BaseObject):
 
     def __init__(self, data: SimpleTrackData) -> None:
         super().__init__(data)
 
-        self.artists = [artist.SimpleArtist(artist_data) for artist_data in data["artists"]]
+        self.artists = [SimpleArtist(artist_data) for artist_data in data["artists"]]
         self.available_markets = data["available_markets"]
         self.disc_number = data["disc_number"]
         self.duration_ms = data["duration_ms"]
@@ -80,13 +125,31 @@ class SimpleTrack(base.BaseObject):
         return self.external_urls.get("spotify")
 
 
-class Track(base.BaseObject):
+class TrackData(BaseObjectData):
+    album: album.SimpleAlbumData
+    artists: list[SimpleArtistData]
+    available_markets: list[str]
+    disc_number: int
+    duration_ms: int
+    explicit: bool
+    external_ids: ExternalIdsData
+    external_urls: ExternalUrlsData
+    is_local: bool
+    is_playable: bool
+    #  linked_from: LinkedTrackData
+    popularity: int
+    preview_url: str
+    restrictions: TrackRestrictionData
+    track_number: int
+
+
+class Track(BaseObject):
 
     def __init__(self, data: TrackData) -> None:
         super().__init__(data)
 
         self.album = album.SimpleAlbum(data["album"])
-        self.artists = [artist.SimpleArtist(artist_data) for artist_data in data["artists"]]
+        self.artists = [SimpleArtist(artist_data) for artist_data in data["artists"]]
         self.available_markets = data.get("available_markets")
         self.disc_number = data["disc_number"]
         self.duration_ms = data["duration_ms"]
@@ -109,20 +172,29 @@ class Track(base.BaseObject):
         return self.external_urls.get("spotify")
 
 
-class PlaylistTrack(base.BaseObject):
+class PlaylistTrackData(BaseObjectData):
+    added_at: str
+    added_by: UserData
+    is_local: bool
+    primary_color: Any
+    video_thumbnail: Any
+    track: TrackData
+
+
+class PlaylistTrack(BaseObject):
 
     def __init__(self, data: PlaylistTrackData) -> None:
         super().__init__(data["track"])
 
         self.added_at = data["added_at"]
-        self.added_by = user.User(data["added_by"])
+        self.added_by = User(data["added_by"])
         self.is_local = data["is_local"]
         self.primary_colour = data["primary_color"]
         self.video_thumbnail = data["video_thumbnail"]["url"]
 
         track = data["track"]
         self.album = album.SimpleAlbum(track["album"])
-        self.artists = [artist.SimpleArtist(artist_data) for artist_data in track["artists"]]
+        self.artists = [SimpleArtist(artist_data) for artist_data in track["artists"]]
         self.available_markets = track.get("available_markets")
         self.disc_number = track["disc_number"]
         self.duration_ms = track["duration_ms"]

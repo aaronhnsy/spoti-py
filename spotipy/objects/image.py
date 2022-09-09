@@ -1,11 +1,18 @@
 from __future__ import annotations
 
-from spotipy.typings.objects import ImageData
+from typing import TypedDict
 
 
 __all__ = (
+    "ImageData",
     "Image",
 )
+
+
+class ImageData(TypedDict):
+    url: str
+    width: int
+    height: int
 
 
 class Image:
