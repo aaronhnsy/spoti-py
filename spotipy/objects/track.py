@@ -92,8 +92,6 @@ class SimpleTrackData(BaseObjectData):
     explicit: bool
     external_urls: ExternalURLs
     is_local: bool
-    is_playable: bool
-    #  linked_from: LinkedTrackData
     preview_url: str
     restrictions: TrackRestrictionData
     track_number: int
@@ -111,7 +109,6 @@ class SimpleTrack(BaseObject):
         self.explicit: bool = data["explicit"]
         self.external_urls: ExternalURLs = data["external_urls"]
         self.is_local: bool = data["is_local"]
-        self.is_playable: bool = data["is_playable"]
         self.preview_url: str = data["preview_url"]
         self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.track_number: int = data["track_number"]
@@ -136,8 +133,6 @@ class TrackData(BaseObjectData):
     external_ids: ExternalIDs
     external_urls: ExternalURLs
     is_local: bool
-    is_playable: bool
-    #  linked_from: LinkedTrackData
     popularity: int
     preview_url: str
     restrictions: TrackRestrictionData
@@ -158,7 +153,6 @@ class Track(BaseObject):
         self.external_ids: ExternalIDs = data["external_ids"]
         self.external_urls: ExternalURLs = data["external_urls"]
         self.is_local: bool = data["is_local"]
-        self.is_playable: bool = data["is_playable"]
         self.popularity: int = data["popularity"]
         self.preview_url: str = data["preview_url"]
         self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := data.get("restrictions")) else None
@@ -204,7 +198,6 @@ class PlaylistTrack(BaseObject):
         self.external_ids: ExternalIDs = track["external_ids"]
         self.external_urls: ExternalURLs = track["external_urls"]
         self.is_local: bool = track["is_local"]
-        self.is_playable: bool = track["is_playable"]
         self.popularity: int = track["popularity"]
         self.preview_url: str = track["preview_url"]
         self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := track.get("restrictions")) else None
