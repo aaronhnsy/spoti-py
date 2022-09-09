@@ -8,7 +8,7 @@ from .common import ExternalURLs, ExternalIDs
 from .copyright import CopyrightData, Copyright
 from .enums import ReleaseDatePrecision
 from .image import ImageData, Image
-from .track import SimpleTrack
+from .track import SimpleTrack, SimpleTrackData
 
 
 __all__ = (
@@ -86,7 +86,7 @@ class AlbumData(BaseObjectData):
     release_date_precision: str
     restrictions: AlbumRestrictionData
     total_tracks: int
-    tracks: PagingObjectData
+    tracks: PagingObjectData[SimpleTrackData]
 
 
 class Album(BaseObject):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TypedDict, Any
+from typing import TypedDict, TypeVar, Generic
 
 from typing_extensions import NotRequired
 
@@ -13,6 +13,9 @@ __all__ = (
     "AlternativePagingObjectData",
     "AlternativePagingObject",
 )
+
+
+T = TypeVar("T")
 
 
 class BaseObjectData(TypedDict):
@@ -36,9 +39,9 @@ class BaseObject:
         return f"<spotipy.BaseObject id='{self.id}', name='{self.name}'>"
 
 
-class PagingObjectData(TypedDict):
+class PagingObjectData(TypedDict, Generic[T]):
     href: str
-    items: list[Any]
+    items: list[T]
     limit: int
     next: str | None
     offset: int
@@ -46,11 +49,11 @@ class PagingObjectData(TypedDict):
     total: int
 
 
-class PagingObject:
+class PagingObject(Generic[T]):
 
-    def __init__(self, data: PagingObjectData) -> None:
+    def __init__(self, data: PagingObjectData[T]) -> None:
         self.href: str = data["href"]
-        self.items: list[Any] = data["items"]
+        self.items: list[T] = data["items"]
         self.limit: int = data["limit"]
         self.next: str | None = data["next"]
         self.offset: int = data["offset"]
@@ -61,20 +64,20 @@ class PagingObject:
         return f"<spotify.PagingObject total={self.total}, limit={self.limit}, offset={self.offset}>"
 
 
-class AlternativePagingObjectData(TypedDict):
+class AlternativePagingObjectData(TypedDict, Generic[T]):
     href: str
-    items: list[Any]
+    items: list[T]
     limit: int
     next: str | None
     before: NotRequired[str]
     after: str
 
 
-class AlternativePagingObject:
+class AlternativePagingObject(Generic[T]):
 
-    def __init__(self, data: AlternativePagingObjectData) -> None:
+    def __init__(self, data: AlternativePagingObjectData[T]) -> None:
         self.href: str = data["href"]
-        self.items: list[Any] = data["items"]
+        self.items: list[T] = data["items"]
         self.limit: int = data["limit"]
         self.next: str | None = data["next"]
         self.before: str | None = data.get("before")

@@ -21,6 +21,7 @@ __all__ = (
 
 
 ID = TypeVar("ID", bound=str)
+AnyCredentials = ClientCredentials | UserCredentials
 
 
 class Client:
@@ -52,9 +53,8 @@ class Client:
         _id: str,
         /, *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Album:
-
         response = await self.http.get_album(_id, market=market, credentials=credentials)
         return Album(response)
 
@@ -63,9 +63,8 @@ class Client:
         ids: Sequence[ID],
         *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> dict[ID, Album | None]:
-
         response = await self.http.get_albums(ids=ids, market=market, credentials=credentials)
         return dict(zip(ids, [Album(data) if data else None for data in response["albums"]]))
 
@@ -76,9 +75,8 @@ class Client:
         market: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimpleTrack]:
-
         response = await self.http.get_album_tracks(
             _id,
             market=market,
@@ -93,7 +91,7 @@ class Client:
         _id: str,
         /, *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimpleTrack]:
 
         response = await self.http.get_album_tracks(_id, market=market, limit=50, offset=0, credentials=credentials)
@@ -101,7 +99,7 @@ class Client:
 
         tracks = [SimpleTrack(data) for data in paging.items]
 
-        if paging.total <= 50:  # There are 50 or fewer tracks, and we already have them so just return them
+        if paging.total <= 50:
             return tracks
 
         for _ in range(1, math.ceil(paging.total / 50)):
@@ -121,7 +119,7 @@ class Client:
         _id: str,
         /, *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Album:
 
         album = await self.get_album(_id, market=market, credentials=credentials)
@@ -129,12 +127,12 @@ class Client:
         if album._tracks_paging.total <= 50:
             return album
 
-        for _ in range(2, math.ceil(album._tracks_paging.total / 50)):
+        for i in range(2, math.ceil(album._tracks_paging.total / 50)):
             response = await self.http.get_album_tracks(
                 _id,
                 market=market,
                 limit=50,
-                offset=_ * 50,
+                offset=i * 50,
                 credentials=credentials
             )
             album.tracks.extend([SimpleTrack(data) for data in PagingObject(response).items])
@@ -159,7 +157,7 @@ class Client:
         country: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimpleAlbum]:
 
         response = await self.http.get_new_releases(
@@ -177,7 +175,7 @@ class Client:
         _id: str,
         /, *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Artist:
 
         response = await self.http.get_artist(_id, market=market, credentials=credentials)
@@ -188,7 +186,7 @@ class Client:
         ids: Sequence[ID],
         *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> dict[ID, Artist | None]:
 
         response = await self.http.get_artists(ids=ids, market=market, credentials=credentials)
@@ -202,7 +200,7 @@ class Client:
         include_groups: list[IncludeGroup] | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimpleAlbum]:
 
         if include_groups is None:
@@ -224,7 +222,7 @@ class Client:
         /, *,
         market: str | None = None,
         include_groups: list[IncludeGroup] | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimpleAlbum]:
 
         if include_groups is None:
@@ -263,7 +261,7 @@ class Client:
         _id: str,
         /, *,
         market: str = "GB",
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[Track]:
 
         response = await self.http.get_artist_top_tracks(_id, market=market, credentials=credentials)
@@ -274,7 +272,7 @@ class Client:
         _id: str,
         /, *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[Artist]:
 
         response = await self.http.get_related_artists(_id, market=market, credentials=credentials)
@@ -287,7 +285,7 @@ class Client:
         _id: str,
         /, *,
         market: str | None = "GB",
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Show:
 
         response = await self.http.get_show(_id, market=market, credentials=credentials)
@@ -298,7 +296,7 @@ class Client:
         ids: Sequence[ID],
         *,
         market: str | None = "GB",
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> dict[ID, Show | None]:
 
         response = await self.http.get_shows(ids, market=market, credentials=credentials)
@@ -311,7 +309,7 @@ class Client:
         market: str | None = "GB",
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimpleEpisode]:
 
         response = await self.http.get_show_episodes(
@@ -328,7 +326,7 @@ class Client:
         _id: str,
         /, *,
         market: str | None = "GB",
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimpleEpisode]:
 
         response = await self.http.get_show_episodes(_id, market=market, limit=50, offset=0, credentials=credentials)
@@ -370,7 +368,7 @@ class Client:
         _id: str,
         /, *,
         market: str | None = "GB",
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Episode:
 
         response = await self.http.get_episode(_id, market=market, credentials=credentials)
@@ -381,7 +379,7 @@ class Client:
         ids: Sequence[ID],
         *,
         market: str | None = "GB",
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> dict[ID, Episode | None]:
 
         response = await self.http.get_episodes(ids=ids, market=market, credentials=credentials)
@@ -406,7 +404,7 @@ class Client:
         _id: str,
         /, *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Track:
 
         response = await self.http.get_track(_id, market=market, credentials=credentials)
@@ -417,7 +415,7 @@ class Client:
         ids: Sequence[ID],
         *,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> dict[ID, Track | None]:
 
         response = await self.http.get_tracks(ids=ids, market=market, credentials=credentials)
@@ -439,7 +437,7 @@ class Client:
         self,
         ids: Sequence[ID],
         *,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> dict[ID, AudioFeatures | None]:
 
         response = await self.http.get_several_tracks_audio_features(ids, credentials=credentials)
@@ -449,7 +447,7 @@ class Client:
         self,
         _id: str,
         /, *,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> AudioFeatures:
 
         response = await self.http.get_track_audio_features(_id, credentials=credentials)
@@ -466,7 +464,7 @@ class Client:
         seed_track_ids: list[str] | None = None,
         limit: int | None = None,
         market: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
         **kwargs: int
     ) -> Recommendation:
 
@@ -492,7 +490,7 @@ class Client:
         limit: int | None = None,
         offset: int | None = None,
         include_external: bool = False,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> SearchResult:
 
         if search_types is None:
@@ -605,7 +603,7 @@ class Client:
         /, *,
         market: str | None = None,
         fields: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Playlist:
 
         response = await self.http.get_playlist(_id, market=market, fields=fields, credentials=credentials)
@@ -622,7 +620,7 @@ class Client:
         fields: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[PlaylistTrack]:
 
         response = await self.http.get_playlist_items(
@@ -641,7 +639,7 @@ class Client:
         /, *,
         market: str | None = None,
         fields: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[PlaylistTrack]:
 
         response = await self.http.get_playlist_items(
@@ -678,7 +676,7 @@ class Client:
         /, *,
         market: str | None = None,
         fields: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Playlist:
 
         playlist = await self.get_playlist(_id, market=market, fields=fields, credentials=credentials)
@@ -748,7 +746,7 @@ class Client:
         /, *,
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimplePlaylist]:
 
         response = await self.http.get_user_playlists(_id, limit=limit, offset=offset, credentials=credentials)
@@ -758,7 +756,7 @@ class Client:
         self,
         _id: str,
         /, *,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimplePlaylist]:
 
         response = await self.http.get_user_playlists(_id, limit=50, offset=0, credentials=credentials)
@@ -786,7 +784,7 @@ class Client:
         timestamp: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> tuple[str, list[SimplePlaylist]]:
 
         response = await self.http.get_featured_playlists(
@@ -806,7 +804,7 @@ class Client:
         country: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[SimplePlaylist]:
 
         response = await self.http.get_category_playlists(
@@ -822,7 +820,7 @@ class Client:
         self,
         _id: str,
         /, *,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> list[Image]:
 
         response = await self.http.get_playlist_cover_image(_id, credentials=credentials)
@@ -840,7 +838,7 @@ class Client:
         locale: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[Category]:
 
         response = await self.http.get_categories(
@@ -858,7 +856,7 @@ class Client:
         /, *,
         country: str | None = None,
         locale: str | None = None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> Category:
 
         response = await self.http.get_category(_id, country=country, locale=locale, credentials=credentials)
@@ -869,7 +867,7 @@ class Client:
     async def get_available_genre_seeds(
         self,
         *,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[str]:
 
         response = await self.http.get_available_genre_seeds(credentials=credentials)
@@ -927,7 +925,7 @@ class Client:
     async def get_available_markets(
         self,
         *,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
     ) -> list[str]:
 
         response = await self.http.get_available_markets(credentials=credentials)

@@ -6,7 +6,7 @@ from .base import BaseObject, BaseObjectData, PagingObjectData, PagingObject
 from .common import ExternalURLs
 from .followers import Followers, FollowersData
 from .image import Image, ImageData
-from .track import PlaylistTrack
+from .track import PlaylistTrack, PlaylistTrackData
 from .user import User, UserData
 
 
@@ -77,7 +77,7 @@ class PlaylistData(BaseObjectData):
     primary_color: str | None
     public: bool | None
     snapshot_id: str
-    tracks: PagingObjectData
+    tracks: PagingObjectData[PlaylistTrackData]
 
 
 class Playlist(BaseObject):

@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from .album import SimpleAlbum
-from .artist import Artist
+from .album import SimpleAlbum, SimpleAlbumData
+from .artist import Artist, ArtistData
 from .base import PagingObject, PagingObjectData
-from .playlist import SimplePlaylist
-from .track import Track
+from .playlist import SimplePlaylist, SimplePlaylistData
+from .track import Track, TrackData
+# from .show import ShowData
+# from .episode import SimpleEpisodeData
 
 
 __all__ = (
@@ -16,23 +18,23 @@ __all__ = (
 
 
 class SearchResultData(TypedDict):
-    albums: PagingObjectData
-    artists: PagingObjectData
-    tracks: PagingObjectData
-    playlists: PagingObjectData
-    shows: PagingObjectData
-    episodes: PagingObjectData
+    albums: PagingObjectData[SimpleAlbumData]
+    artists: PagingObjectData[ArtistData]
+    playlists: PagingObjectData[SimplePlaylistData]
+    tracks: PagingObjectData[TrackData]
+    # shows: PagingObjectData[ShowData]
+    # episodes: PagingObjectData[SimpleEpisodeData]
 
 
 class SearchResult:
 
     def __init__(self, data: SearchResultData) -> None:
-        self._albums_paging: PagingObject | None = PagingObject(paging) if (paging := data["albums"]) else None
-        self._artists_paging: PagingObject | None = PagingObject(paging) if (paging := data["artists"]) else None
-        self._playlists_paging: PagingObject | None = PagingObject(paging) if (paging := data["playlists"]) else None
-        self._tracks_paging: PagingObject | None = PagingObject(paging) if (paging := data["tracks"]) else None
-        self._shows_paging: PagingObject | None = PagingObject(paging) if (paging := data["shows"]) else None
-        self._episodes_paging: PagingObject | None = PagingObject(paging) if (paging := data["episodes"]) else None
+        self._albums_paging: PagingObject[SimpleAlbumData] | None = PagingObject(paging) if (paging := data["albums"]) else None
+        self._artists_paging: PagingObject[ArtistData] | None = PagingObject(paging) if (paging := data["artists"]) else None
+        self._playlists_paging: PagingObject[SimplePlaylistData] | None = PagingObject(paging) if (paging := data["playlists"]) else None
+        self._tracks_paging: PagingObject[TrackData] | None = PagingObject(paging) if (paging := data["tracks"]) else None
+        # self._shows_paging: PagingObject | None = PagingObject(paging) if (paging := data["shows"]) else None
+        # self._episodes_paging: PagingObject | None = PagingObject(paging) if (paging := data["episodes"]) else None
 
         self.albums: list[SimpleAlbum] = [
             SimpleAlbum(album) for album in self._albums_paging.items
@@ -51,7 +53,6 @@ class SearchResult:
         ] if self._tracks_paging else []
 
         #  self.shows = ...
-
         #  self.episodes = ...
 
     def __repr__(self) -> str:

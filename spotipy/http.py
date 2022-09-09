@@ -17,7 +17,8 @@ from .objects import (
     IncludeGroup, ShowData, EpisodeData, TrackData, AudioFeaturesData, RecommendationData,
     SearchType, SearchResultData, UserData, TimeRange, AlternativePagingObjectData,
     PlaylistData, ImageData, CategoryData, PlaybackStateData, CurrentlyPlayingData,
-    RepeatMode, PlaylistSnapshotID,
+    RepeatMode, PlaylistSnapshotID, SimpleTrackData, SimpleAlbumData, SimplePlaylistData,
+    PlaylistTrackData,
 )
 from .types.http import (
     HTTPMethod, Query, Body, Headers, Data, MultipleAlbumsData, NewReleasesData,
@@ -257,7 +258,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: ClientCredentials | UserCredentials | None = None
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[SimpleTrackData]:
 
         query: Query = {}
         if market:
@@ -281,7 +282,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: UserCredentials,
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[AlbumData]:
 
         query: Query = {}
         if market:
@@ -431,7 +432,7 @@ class HTTPClient:
         offset: int | None,
         include_groups: list[IncludeGroup] | None,
         credentials: ClientCredentials | UserCredentials | None = None
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[SimpleAlbumData]:
 
         query: Query = {}
         if market:
@@ -536,7 +537,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: ClientCredentials | UserCredentials | None = None
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[EpisodeData]:
 
         query: Query = {}
         if market:
@@ -559,7 +560,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: UserCredentials,
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[ShowData]:
 
         query: Query = {}
         if limit:
@@ -681,7 +682,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: UserCredentials,
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[EpisodeData]:
 
         query: Query = {}
         if market:
@@ -805,7 +806,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: UserCredentials
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[TrackData]:
 
         query: Query = {}
         if market:
@@ -1017,7 +1018,7 @@ class HTTPClient:
         offset: int | None,
         time_range: TimeRange | None,
         credentials: UserCredentials
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[ArtistData]:
 
         query: Query = {}
         if limit:
@@ -1041,7 +1042,7 @@ class HTTPClient:
         offset: int | None,
         time_range: TimeRange | None,
         credentials: UserCredentials
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[TrackData]:
 
         query: Query = {}
         if limit:
@@ -1130,7 +1131,7 @@ class HTTPClient:
         limit: int | None,
         after: str | None,
         credentials: UserCredentials
-    ) -> AlternativePagingObjectData:
+    ) -> AlternativePagingObjectData[ArtistData]:
 
         query: Query = {
             "type": "artist"
@@ -1332,7 +1333,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: ClientCredentials | UserCredentials | None = None
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[PlaylistTrackData]:
 
         query: Query = {
             "additional_types": "track"
@@ -1454,7 +1455,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: UserCredentials
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[SimplePlaylistData]:
 
         query: Query = {}
         if limit:
@@ -1476,7 +1477,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: ClientCredentials | UserCredentials | None = None
-    ) -> PagingObjectData:
+    ) -> PagingObjectData[SimplePlaylistData]:
 
         query: Query = {}
         if limit:
@@ -1945,7 +1946,7 @@ class HTTPClient:
         before: int | None,
         after: int | None,
         credentials: UserCredentials
-    ) -> AlternativePagingObjectData:
+    ) -> AlternativePagingObjectData[SimpleTrackData]:
 
         if before and after:
             raise ValueError("'before' and 'after' can not both be specified.")

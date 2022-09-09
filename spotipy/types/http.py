@@ -6,7 +6,7 @@ from typing_extensions import NotRequired
 
 from ..objects import (
     AlbumData, ArtistData, PagingObjectData, TrackData, ShowData, EpisodeData, AudioFeaturesData,
-    DeviceData,
+    DeviceData, SimpleAlbumData, CategoryData, SimplePlaylistData
 )
 
 
@@ -54,7 +54,7 @@ class MultipleAlbumsData(TypedDict):
 
 
 class NewReleasesData(TypedDict):
-    albums: PagingObjectData
+    albums: PagingObjectData[SimpleAlbumData]
 
 
 class MultipleArtistsData(TypedDict):
@@ -87,15 +87,15 @@ class SeveralAudioFeaturesData(TypedDict):
 
 class FeaturedPlaylistsData(TypedDict):
     message: str
-    playlists: PagingObjectData
+    playlists: PagingObjectData[SimplePlaylistData]
 
 
 class CategoryPlaylistsData(TypedDict):
-    playlists: PagingObjectData
+    playlists: PagingObjectData[SimplePlaylistData]
 
 
 class MultipleCategoriesData(TypedDict):
-    categories: PagingObjectData
+    categories: PagingObjectData[CategoryData]
 
 
 class RecommendationGenresData(TypedDict):
