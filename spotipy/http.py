@@ -17,7 +17,7 @@ from .objects import (
     IncludeGroup, ShowData, EpisodeData, TrackData, AudioFeaturesData, RecommendationData,
     SearchType, SearchResultData, UserData, TimeRange, AlternativePagingObjectData,
     PlaylistData, ImageData, CategoryData, PlaybackStateData, CurrentlyPlayingData,
-    RepeatMode, PlaylistSnapshotId,
+    RepeatMode, PlaylistSnapshotID,
 )
 from .types.http import (
     HTTPMethod, Query, Body, Headers, Data, MultipleAlbumsData, NewReleasesData,
@@ -1361,7 +1361,7 @@ class HTTPClient:
         uris: list[str],
         position: int | None,
         credentials: UserCredentials
-    ) -> PlaylistSnapshotId:
+    ) -> PlaylistSnapshotID:
 
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")
@@ -1387,7 +1387,7 @@ class HTTPClient:
         range_length: int | None,
         snapshot_id: str | None,
         credentials: UserCredentials
-    ) -> PlaylistSnapshotId:
+    ) -> PlaylistSnapshotID:
 
         body: Body = {
             "range_start":   range_start,
@@ -1431,7 +1431,7 @@ class HTTPClient:
         uris: list[str],
         snapshot_id: str | None,
         credentials: UserCredentials
-    ) -> PlaylistSnapshotId:
+    ) -> PlaylistSnapshotID:
 
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")

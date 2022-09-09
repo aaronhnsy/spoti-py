@@ -22,13 +22,13 @@ class DeviceData(TypedDict):
 class Device:
 
     def __init__(self, data: DeviceData) -> None:
-        self.id = data["id"]
-        self.is_active = data["is_active"]
-        self.is_private_session = data["is_private_session"]
-        self.is_restricted = data["is_restricted"]
-        self.name = data["name"]
-        self.type = data["type"]
-        self.volume_percent = data["volume_percent"]
+        self.id: str = data["id"]
+        self.is_active: bool = data["is_active"]
+        self.is_private_session: bool = data["is_private_session"]
+        self.is_restricted: bool = data["is_restricted"]
+        self.name: str = data["name"]
+        self.type: str = data["type"]
+        self.volume_percent: int = data["volume_percent"]
 
     def __repr__(self) -> str:
         return f"<spotipy.Device id='{self.id}' name='{self.name}'>"

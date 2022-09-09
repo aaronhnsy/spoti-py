@@ -18,9 +18,9 @@ class ImageData(TypedDict):
 class Image:
 
     def __init__(self, data: ImageData) -> None:
-        self.url = data["url"]
-        self.width = data["width"]
-        self.height = data["height"]
+        self.url: str = data["url"]
+        self.width: int = data["width"]
+        self.height: int = data["height"]
 
     def __repr__(self) -> str:
         return f"<spotipy.Image url='<{self.url}>', width={self.width}, height={self.height}>"

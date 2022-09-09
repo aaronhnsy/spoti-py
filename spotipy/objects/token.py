@@ -28,9 +28,9 @@ class ClientCredentials:
 
     def __init__(self, data: ClientCredentialsData, client_id: str, client_secret: str) -> None:
 
-        self._access_token = data["access_token"]
-        self._token_type = data["token_type"]
-        self._expires_in = data["expires_in"]
+        self._access_token: str = data["access_token"]
+        self._token_type: str = data["token_type"]
+        self._expires_in: int = data["expires_in"]
 
         self._client_id: str = client_id
         self._client_secret: str = client_secret
@@ -123,11 +123,11 @@ class UserCredentials:
 
     def __init__(self, data: UserCredentialsData, client_id: str, client_secret: str) -> None:
 
-        self._access_token = data["access_token"]
-        self._token_type = data["token_type"]
-        self._scope = data["scope"]
-        self._expires_in = data["expires_in"]
-        self._refresh_token = data.get("refresh_token")
+        self._access_token: str = data["access_token"]
+        self._token_type: str = data["token_type"]
+        self._expires_in: int = data["expires_in"]
+        self._scope: str = data["scope"]
+        self._refresh_token: str | None = data.get("refresh_token")
 
         self._client_id: str = client_id
         self._client_secret: str = client_secret

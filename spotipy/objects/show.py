@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .base import BaseObject, BaseObjectData
-from .common import ExternalUrlsData
+from .common import ExternalURLs
 from .copyright import Copyright, CopyrightData
 from .image import Image, ImageData
 
@@ -17,7 +17,7 @@ class ShowData(BaseObjectData):
     copyrights: list[CopyrightData]
     description: str
     explicit: bool
-    external_urls: ExternalUrlsData
+    external_urls: ExternalURLs
     html_description: str
     images: list[ImageData]
     is_externally_hosted: bool
@@ -32,18 +32,18 @@ class Show(BaseObject):
     def __init__(self, data: ShowData) -> None:
         super().__init__(data)
 
-        self.available_markets = data.get("available_markets")
-        self.copyrights = [Copyright(copyright) for copyright in data["copyrights"]]
-        self.description = data["description"]
-        self.explicit = data["explicit"]
-        self.external_urls = data["external_urls"]
-        self.html_description = data["html_description"]
-        self.images = [Image(image) for image in data["images"]]
-        self.is_externally_hosted = data["is_externally_hosted"]
-        self.languages = data["languages"]
-        self.media_type = data["media_type"]
-        self.publisher = data["publisher"]
-        self.total_episodes = data["total_episodes"]
+        self.available_markets: list[str] = data.get("available_markets")
+        self.copyrights: list[Copyright] = [Copyright(copyright) for copyright in data["copyrights"]]
+        self.description: str = data["description"]
+        self.explicit: bool = data["explicit"]
+        self.external_urls: ExternalURLs = data["external_urls"]
+        self.html_description: str = data["html_description"]
+        self.images: list[Image] = [Image(image) for image in data["images"]]
+        self.is_externally_hosted: bool = data["is_externally_hosted"]
+        self.languages: list[str] = data["languages"]
+        self.media_type: str = data["media_type"]
+        self.publisher: str = data["publisher"]
+        self.total_episodes: int = data["total_episodes"]
 
     def __repr__(self) -> str:
         return f"<spotipy.Show id='{self.id}', name='{self.name}'>"

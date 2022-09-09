@@ -21,10 +21,10 @@ class CategoryData(TypedDict):
 class Category:
 
     def __init__(self, data: CategoryData) -> None:
-        self.href = data["href"]
-        self.icons = [Image(image) for image in data["icons"]]
-        self.id = data["id"]
-        self.name = data["name"]
+        self.href: str = data["href"]
+        self.icons: list[Image] = [Image(image) for image in data["icons"]]
+        self.id: str = data["id"]
+        self.name: str = data["name"]
 
     def __repr__(self) -> str:
         return f"<spotipy.Category id='{self.id}' name='{self.name}'>"

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+from typing_extensions import NotRequired
+
 from .base import BaseObject, BaseObjectData
-from .common import ExternalUrlsData
+from .common import ExternalURLs
 from .followers import Followers, FollowersData
 from .image import Image, ImageData
 
@@ -24,8 +26,8 @@ class ExplicitContentSettingsData(TypedDict):
 class ExplicitContentSettings:
 
     def __init__(self, data: ExplicitContentSettingsData) -> None:
-        self.filter_enabled = data["filter_enabled"]
-        self.filter_locked = data["filter_locked"]
+        self.filter_enabled: bool = data["filter_enabled"]
+        self.filter_locked: bool = data["filter_locked"]
 
     def __repr__(self) -> str:
         return f"<spotipy.ExplicitContentSettings filter_enabled={self.filter_enabled}, filter_locked=" \
@@ -33,14 +35,14 @@ class ExplicitContentSettings:
 
 
 class UserData(BaseObjectData):
-    country: str
+    country: NotRequired[str]
     display_name: str
-    email: str
-    explicit_content: ExplicitContentSettingsData
-    external_urls: ExternalUrlsData
-    followers: FollowersData
-    images: list[ImageData]
-    product: str
+    email: NotRequired[str]
+    explicit_content: NotRequired[ExplicitContentSettingsData]
+    external_urls: ExternalURLs
+    followers: NotRequired[FollowersData]
+    images: NotRequired[list[ImageData]]
+    product: NotRequired[str]
 
 
 class User(BaseObject):
@@ -48,15 +50,14 @@ class User(BaseObject):
     def __init__(self, data: UserData) -> None:
         super().__init__(data)
 
-        self.country = data.get("country")
-        self.display_name = data.get("display_name")
-        self.email = data.get("email")
-        self.explicit_content_settings = ExplicitContentSettings(explicit_content) if (
-            explicit_content := data.get("explicit_content")) else None
-        self.external_urls = data["external_urls"]
-        self.followers = Followers(followers) if (followers := data.get("followers")) else None
-        self.images = [Image(image) for image in images] if (images := data.get("images")) else None
-        self.product = data.get("product")
+        self.country: str | None = data.get("country")
+        self.display_name: str | None = data["display_name"]
+        self.email: str | None = data.get("email")
+        self.explicit_content_settings: ExplicitContentSettings | None = ExplicitContentSettings(explicit_content) if (explicit_content := data.get("explicit_content")) else None
+        self.external_urls: ExternalURLs = data["external_urls"]
+        self.followers: Followers | None = Followers(followers) if (followers := data.get("followers")) else None
+        self.images: list[Image] | None = [Image(image) for image in images] if (images := data.get("images")) else None
+        self.product: str | None = data.get("product")
 
     def __repr__(self) -> str:
         return f"<spotipy.User id='{self.id}', name='{self.display_name}'>"

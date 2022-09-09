@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TypedDict, Any
 
+from typing_extensions import NotRequired
+
 
 __all__ = (
     "BaseObjectData",
@@ -16,7 +18,7 @@ __all__ = (
 class BaseObjectData(TypedDict):
     href: str
     id: str
-    name: str
+    name: NotRequired[str]
     type: str
     uri: str
 
@@ -24,11 +26,11 @@ class BaseObjectData(TypedDict):
 class BaseObject:
 
     def __init__(self, data: BaseObjectData) -> None:
-        self.href = data["href"]
-        self.id = data["id"]
-        self.name = data.get("name")
-        self.type = data["type"]
-        self.uri = data["uri"]
+        self.href: str = data["href"]
+        self.id: str = data["id"]
+        self.name: str | None = data.get("name")
+        self.type: str = data["type"]
+        self.uri: str = data["uri"]
 
     def __repr__(self) -> str:
         return f"<spotipy.BaseObject id='{self.id}', name='{self.name}'>"
@@ -47,13 +49,13 @@ class PagingObjectData(TypedDict):
 class PagingObject:
 
     def __init__(self, data: PagingObjectData) -> None:
-        self.href = data["href"]
-        self.items = data["items"]
-        self.limit = data["limit"]
-        self.next = data["next"]
-        self.offset = data["offset"]
-        self.previous = data["previous"]
-        self.total = data["total"]
+        self.href: str = data["href"]
+        self.items: list[Any] = data["items"]
+        self.limit: int = data["limit"]
+        self.next: str | None = data["next"]
+        self.offset: int = data["offset"]
+        self.previous: str | None = data["previous"]
+        self.total: int = data["total"]
 
     def __repr__(self) -> str:
         return f"<spotify.PagingObject total={self.total}, limit={self.limit}, offset={self.offset}>"
@@ -64,19 +66,19 @@ class AlternativePagingObjectData(TypedDict):
     items: list[Any]
     limit: int
     next: str | None
-    before: str
+    before: NotRequired[str]
     after: str
 
 
 class AlternativePagingObject:
 
     def __init__(self, data: AlternativePagingObjectData) -> None:
-        self.href = data["href"]
-        self.items = data["items"]
-        self.limit = data["limit"]
-        self.next = data["next"]
-        self.after = data["after"]
-        self.before = data.get("before")
+        self.href: str = data["href"]
+        self.items: list[Any] = data["items"]
+        self.limit: int = data["limit"]
+        self.next: str | None = data["next"]
+        self.before: str | None = data.get("before")
+        self.after: str = data["after"]
 
     def __repr__(self) -> str:
         return f"<spotify.AlternativePagingObject limit={self.limit}, before={self.before}, after={self.after}>"

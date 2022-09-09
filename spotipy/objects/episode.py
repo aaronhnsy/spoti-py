@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TypedDict
 
 from .base import BaseObject, BaseObjectData
-from .common import ExternalUrlsData
+from .common import ExternalURLs
 from .image import Image, ImageData
 from .show import ShowData, Show
 
@@ -27,7 +27,7 @@ class EpisodeRestrictionData(TypedDict):
 class EpisodeRestriction:
 
     def __init__(self, data: EpisodeRestrictionData) -> None:
-        self.reason = data["reason"]
+        self.reason: str = data["reason"]
 
     def __repr__(self) -> str:
         return f"<spotipy.EpisodeRestriction reason='{self.reason}'>"
@@ -41,8 +41,8 @@ class EpisodeResumePointData(TypedDict):
 class EpisodeResumePoint:
 
     def __init__(self, data: EpisodeResumePointData) -> None:
-        self.fully_played = data["fully_played"]
-        self.resume_position_ms = data["resume_position_ms"]
+        self.fully_played: bool = data["fully_played"]
+        self.resume_position_ms: int = data["resume_position_ms"]
 
     def __repr__(self) -> str:
         return f"<spotipy.EpisodeResumePoint fully_played={self.fully_played} resume_position_ms=" \
@@ -54,7 +54,7 @@ class SimpleEpisodeData(BaseObjectData):
     description: str
     duration_ms: int
     explicit: bool
-    external_urls: ExternalUrlsData
+    external_urls: ExternalURLs
     html_description: str
     images: list[ImageData]
     is_externally_hosted: bool
@@ -71,20 +71,20 @@ class SimpleEpisode(BaseObject):
     def __init__(self, data: SimpleEpisodeData) -> None:
         super().__init__(data)
 
-        self.audio_preview_url = data["audio_preview_url"]
-        self.description = data["description"]
-        self.duration_ms = data["duration_ms"]
-        self.explicit = data["explicit"]
-        self.external_urls = data["external_urls"]
-        self.html_description = data["html_description"]
-        self.images = [Image(image) for image in data["images"]]
-        self.is_externally_hosted = data["is_externally_hosted"]
-        self.is_playable = data["is_playable"]
-        self.languages = data["languages"]
-        self.release_date = data["release_date"]
-        self.release_date_precision = data["release_date_precision"]
-        self.restriction = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
-        self.resume_point = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
+        self.audio_preview_url: str | None = data["audio_preview_url"]
+        self.description: str = data["description"]
+        self.duration_ms: int = data["duration_ms"]
+        self.explicit: bool = data["explicit"]
+        self.external_urls: ExternalURLs = data["external_urls"]
+        self.html_description: str = data["html_description"]
+        self.images: list[Image] = [Image(image) for image in data["images"]]
+        self.is_externally_hosted: bool = data["is_externally_hosted"]
+        self.is_playable: bool = data["is_playable"]
+        self.languages: list[str] = data["languages"]
+        self.release_date: str = data["release_date"]
+        self.release_date_precision: str = data["release_date_precision"]
+        self.restriction: EpisodeRestriction | None = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
+        self.resume_point: EpisodeResumePoint | None = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
 
     def __repr__(self) -> str:
         return f"<spotipy.SimpleEpisode id='{self.id}', name='{self.name}'>"
@@ -101,7 +101,7 @@ class EpisodeData(BaseObjectData):
     description: str
     duration_ms: int
     explicit: bool
-    external_urls: ExternalUrlsData
+    external_urls: ExternalURLs
     html_description: str
     images: list[ImageData]
     is_externally_hosted: bool
@@ -119,21 +119,21 @@ class Episode(BaseObject):
     def __init__(self, data: EpisodeData) -> None:
         super().__init__(data)
 
-        self.audio_preview_url = data["audio_preview_url"]
-        self.description = data["description"]
-        self.duration_ms = data["duration_ms"]
-        self.explicit = data["explicit"]
-        self.external_urls = data["external_urls"]
-        self.html_description = data["html_description"]
-        self.images = [Image(image) for image in data["images"]]
-        self.is_externally_hosted = data["is_externally_hosted"]
-        self.is_playable = data["is_playable"]
-        self.languages = data["languages"]
-        self.release_date = data["release_date"]
-        self.release_date_precision = data["release_date_precision"]
-        self.show = Show(data["show"])
-        self.restriction = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
-        self.resume_point = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
+        self.audio_preview_url: str | None = data["audio_preview_url"]
+        self.description: str = data["description"]
+        self.duration_ms: int = data["duration_ms"]
+        self.explicit: bool = data["explicit"]
+        self.external_urls: ExternalURLs = data["external_urls"]
+        self.html_description: str = data["html_description"]
+        self.images: list[Image] = [Image(image) for image in data["images"]]
+        self.is_externally_hosted: bool = data["is_externally_hosted"]
+        self.is_playable: bool = data["is_playable"]
+        self.languages: list[str] = data["languages"]
+        self.release_date: str = data["release_date"]
+        self.release_date_precision: str = data["release_date_precision"]
+        self.restriction: EpisodeRestriction | None = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
+        self.resume_point: EpisodeResumePoint | None = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
+        self.show: Show = Show(data["show"])
 
     def __repr__(self) -> str:
         return f"<spotipy.Episode id='{self.id}', name='{self.name}'>"

@@ -17,8 +17,8 @@ class FollowersData(TypedDict):
 class Followers:
 
     def __init__(self, data: FollowersData) -> None:
-        self.href = data["href"]
-        self.total = data["total"]
+        self.href: str | None = data["href"]
+        self.total: int = data["total"]
 
     def __repr__(self) -> str:
         return f"<spotipy.Followers total={self.total}>"

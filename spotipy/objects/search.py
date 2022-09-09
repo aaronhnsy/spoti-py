@@ -34,19 +34,19 @@ class SearchResult:
         self._shows_paging: PagingObject | None = PagingObject(paging) if (paging := data["shows"]) else None
         self._episodes_paging: PagingObject | None = PagingObject(paging) if (paging := data["episodes"]) else None
 
-        self.albums: list[SimpleAlbum | None] = [
+        self.albums: list[SimpleAlbum] = [
             SimpleAlbum(album) for album in self._albums_paging.items
         ] if self._albums_paging else []
 
-        self.artists: list[Artist | None] = [
+        self.artists: list[Artist] = [
             Artist(artist) for artist in self._artists_paging.items
         ] if self._artists_paging else []
 
-        self.playlists: list[SimplePlaylist | None] = [
+        self.playlists: list[SimplePlaylist] = [
             SimplePlaylist(playlist) for playlist in self._playlists_paging.items
         ] if self._playlists_paging else []
 
-        self.tracks: list[Track | None] = [
+        self.tracks: list[Track] = [
             Track(track) for track in self._tracks_paging.items
         ] if self._tracks_paging else []
 

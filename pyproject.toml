@@ -58,16 +58,10 @@ furo               = "2022.6.21"
 
 
 [tool.pyright]
-include                     = ["spotipy"]
-pythonVersion               = "3.10"
-typeCheckingMode            = "strict"
-useLibraryCodeForTypes      = true
+include                = ["spotipy"]
+pythonVersion          = "3.10"
+typeCheckingMode       = "strict"
+useLibraryCodeForTypes = true
 
-reportMissingTypeStubs      = false
-reportPrivateImportUsage    = false
-reportPrivateUsage          = false
-reportFunctionMemberAccess  = false
-reportUnknownMemberType     = false
-reportUnknownVariableType   = false
-reportUnknownArgumentType   = false
-reportImportCycles          = false
+reportPrivateUsage      = false
+reportUnknownMemberType = false

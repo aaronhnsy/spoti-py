@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+from collections.abc import Callable
 from typing import Any
 
 import aiohttp
@@ -14,8 +15,9 @@ __all__ = (
     "limit_value",
 )
 
-to_json = json.dumps
-from_json = json.loads
+
+to_json: Callable[[dict[str, Any]], str] = json.dumps
+from_json: Callable[[str], dict[str, Any]] = json.loads
 
 
 async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str:

@@ -2,10 +2,10 @@ from typing import Any
 
 
 __all__ = (
-    "ExternalUrlsData",
-    "ExternalIdsData",
+    "ExternalURLs",
+    "ExternalIDs",
 )
 
 
-ExternalUrlsData = dict[str, Any]
-ExternalIdsData = dict[str, Any]
+ExternalURLs = dict[str, Any]
+ExternalIDs = dict[str, Any]

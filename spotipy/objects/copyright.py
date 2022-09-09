@@ -19,8 +19,8 @@ class CopyrightData(TypedDict):
 class Copyright:
 
     def __init__(self, data: CopyrightData) -> None:
-        self.text = data["text"]
-        self.type = CopyrightType(data["type"])
+        self.text: str = data["text"]
+        self.type: CopyrightType = CopyrightType(data["type"])
 
     def __repr__(self) -> str:
         return f"<spotipy.Copyright type={self.type!r}>"
