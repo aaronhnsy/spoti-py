@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TypedDict, Any
 
-from typing_extensions import NotRequired
-
 from . import album
 from .artist import SimpleArtist, SimpleArtistData
 from .base import BaseObject, BaseObjectData
