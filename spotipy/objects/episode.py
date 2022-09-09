@@ -6,6 +6,7 @@ from .base import BaseObject, BaseObjectData
 from .common import ExternalURLs
 from .image import Image, ImageData
 from .show import ShowData, Show
+from .enums import ReleaseDatePrecision
 
 
 __all__ = (
@@ -82,7 +83,7 @@ class SimpleEpisode(BaseObject):
         self.is_playable: bool = data["is_playable"]
         self.languages: list[str] = data["languages"]
         self.release_date: str = data["release_date"]
-        self.release_date_precision: str = data["release_date_precision"]
+        self.release_data_precision: ReleaseDatePrecision = ReleaseDatePrecision(data["release_date_precision"])
         self.restriction: EpisodeRestriction | None = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.resume_point: EpisodeResumePoint | None = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
 
@@ -130,7 +131,7 @@ class Episode(BaseObject):
         self.is_playable: bool = data["is_playable"]
         self.languages: list[str] = data["languages"]
         self.release_date: str = data["release_date"]
-        self.release_date_precision: str = data["release_date_precision"]
+        self.release_data_precision: ReleaseDatePrecision = ReleaseDatePrecision(data["release_date_precision"])
         self.restriction: EpisodeRestriction | None = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.resume_point: EpisodeResumePoint | None = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
         self.show: Show = Show(data["show"])

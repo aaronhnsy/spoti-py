@@ -6,6 +6,7 @@ from .artist import SimpleArtistData, SimpleArtist
 from .base import BaseObjectData, BaseObject, PagingObjectData, PagingObject
 from .common import ExternalURLs, ExternalIDs
 from .copyright import CopyrightData, Copyright
+from .enums import ReleaseDatePrecision
 from .image import ImageData, Image
 from .track import SimpleTrack
 
@@ -56,12 +57,12 @@ class SimpleAlbum(BaseObject):
         self.external_urls: ExternalURLs = data["external_urls"]
         self.images: list[Image] = [Image(image) for image in data["images"]]
         self.release_date: str = data["release_date"]
-        self.release_data_precision: str = data["release_date_precision"]
+        self.release_data_precision: ReleaseDatePrecision = ReleaseDatePrecision(data["release_date_precision"])
         self.restriction: AlbumRestriction | None = AlbumRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.total_tracks: int | None = data.get("total_tracks")
 
     def __repr__(self) -> str:
-        return f"<spotipy.SimpleAlbum id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
+        return f"<spotipy.SimpleAlbum id='{self.id}', name='{self.name}', artists={self.artists}, total_tracks={self.total_tracks}>"
 
     #
 
@@ -104,7 +105,7 @@ class Album(BaseObject):
         self.label: str = data["label"]
         self.popularity: int = data["popularity"]
         self.release_date: str = data["release_date"]
-        self.release_data_precision: str = data["release_date_precision"]
+        self.release_data_precision: ReleaseDatePrecision = ReleaseDatePrecision(data["release_date_precision"])
         self.restriction: AlbumRestriction | None = AlbumRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.total_tracks: int = data["total_tracks"]
 
