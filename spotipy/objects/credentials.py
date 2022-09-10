@@ -40,6 +40,8 @@ class ClientCredentials:
     def __repr__(self) -> str:
         return "<spotipy.ClientCredentials>"
 
+    # properties
+
     @property
     def access_token(self) -> str:
         return self._access_token
@@ -52,32 +54,13 @@ class ClientCredentials:
     def expires_in(self) -> int:
         return self._expires_in
 
+    # methods
+
     def is_expired(self) -> bool:
         return (time.time() - self._last_authorized_time) >= self.expires_in
 
-    async def refresh(self, session: aiohttp.ClientSession) -> None:
-
-        data = {
-            "grant_type":    "client_credentials",
-            "client_id":     self._client_id,
-            "client_secret": self._client_secret
-        }
-
-        async with session.post(url=self.TOKEN_URL, data=data) as response:
-
-            data = await response.json()
-
-            if data.get("error"):
-                raise AuthenticationError(response, data=data)
-
-            self._access_token = data["access_token"]
-            self._token_type = data["token_type"]
-            self._expires_in = data["expires_in"]
-
-            self._last_authorized_time = time.time()
-
     @classmethod
-    async def from_client_secret(
+    async def from_client_details(
         cls,
         client_id: str,
         client_secret: str,
@@ -91,13 +74,33 @@ class ClientCredentials:
             "client_secret": client_secret
         }
 
-        async with session.post(url=cls.TOKEN_URL, data=data) as response:
+        async with session.post(cls.TOKEN_URL, data=data) as response:
 
             data = await response.json()
-            if data.get("error"):
+            if "error" in data:
                 raise AuthenticationError(response, data)
 
             return cls(data, client_id, client_secret)
+
+    async def refresh(self, session: aiohttp.ClientSession) -> None:
+
+        data = {
+            "grant_type":    "client_credentials",
+            "client_id":     self._client_id,
+            "client_secret": self._client_secret
+        }
+
+        async with session.post(self.TOKEN_URL, data=data) as response:
+
+            data = await response.json()
+            if "error" in data:
+                raise AuthenticationError(response, data)
+
+            self._access_token = data["access_token"]
+            self._token_type = data["token_type"]
+            self._expires_in = data["expires_in"]
+
+            self._last_authorized_time = time.time()
 
 
 class UserCredentialsData(TypedDict):
@@ -118,7 +121,7 @@ class UserCredentials:
         self._token_type: str = data["token_type"]
         self._expires_in: int = data["expires_in"]
         self._scope: str = data["scope"]
-        self._refresh_token: str | None = data.get("refresh_token")
+        self._refresh_token: str = data["refresh_token"]
 
         self._client_id: str = client_id
         self._client_secret: str = client_secret
@@ -128,7 +131,7 @@ class UserCredentials:
     def __repr__(self) -> str:
         return "<spotipy.UserCredentials>"
 
-    #
+    # properties
 
     @property
     def access_token(self) -> str:
@@ -146,33 +149,10 @@ class UserCredentials:
     def expires_in(self) -> int:
         return self._expires_in
 
-    #
+    # methods
 
     def is_expired(self) -> bool:
         return (time.time() - self._last_authorized_time) >= self.expires_in
-
-    async def refresh(self, session: aiohttp.ClientSession) -> None:
-
-        data = {
-            "grant_type":    "refresh_token",
-            "refresh_token": self._refresh_token,
-            "client_id":     self._client_id,
-            "client_secret": self._client_secret
-        }
-
-        async with session.post(url=self.TOKEN_URL, data=data) as response:
-
-            data = await response.json()
-
-            if data.get("error"):
-                raise AuthenticationError(response, data=data)
-
-            self._access_token = data["access_token"]
-            self._token_type = data["token_type"]
-            self._scope = data["scope"]
-            self._expires_in = data["expires_in"]
-
-            self._last_authorized_time = time.time()
 
     @classmethod
     async def from_refresh_token(
@@ -191,13 +171,34 @@ class UserCredentials:
             "refresh_token": refresh_token,
         }
 
-        async with session.post(url=cls.TOKEN_URL, data=data) as response:
+        async with session.post(cls.TOKEN_URL, data=data) as response:
 
             data = await response.json()
+            if "error" in data:
+                raise AuthenticationError(response, data=data)
+            if "refresh_token" not in data:
+                data["refresh_token"] = refresh_token
 
-            if data.get("error"):
+            return cls(data, client_id, client_secret)
+
+    async def refresh(self, session: aiohttp.ClientSession) -> None:
+
+        data = {
+            "client_id":     self._client_id,
+            "client_secret": self._client_secret,
+            "grant_type":    "refresh_token",
+            "refresh_token": self._refresh_token,
+        }
+
+        async with session.post(self.TOKEN_URL, data=data) as response:
+
+            data = await response.json()
+            if "error" in data:
                 raise AuthenticationError(response, data=data)
 
-            data["refresh_token"] = refresh_token
+            self._access_token = data["access_token"]
+            self._token_type = data["token_type"]
+            self._scope = data["scope"]
+            self._expires_in = data["expires_in"]
 
-            return cls(data, client_id=client_id, client_secret=client_secret)
+            self._last_authorized_time = time.time()

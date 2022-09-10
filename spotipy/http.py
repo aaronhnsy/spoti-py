@@ -107,7 +107,7 @@ class HTTPClient:
         session = await self._get_session()
 
         if not self._credentials:
-            self._credentials = await ClientCredentials.from_client_secret(
+            self._credentials = await ClientCredentials.from_client_details(
                 self._client_id, self._client_secret,
                 session=session
             )

@@ -34,6 +34,8 @@ class AuthenticationError(SpotipyError):
         self._error: str = data["error"]
         self._description: str = data["error_description"]
 
+        super().__init__(self._description)
+
     @property
     def response(self) -> aiohttp.ClientResponse:
         return self._response
