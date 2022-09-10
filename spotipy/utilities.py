@@ -32,6 +32,5 @@ async def json_or_text(response: aiohttp.ClientResponse) -> dict[str, Any] | str
 
 
 def limit_value(name: str, value: int, minimum: int, maximum: int) -> None:
-
     if value < minimum or value > maximum:
         raise ValueError(f"'{name}' must be more than {minimum} and less than {maximum}")

@@ -7,12 +7,21 @@ from typing import TypeVar
 import aiohttp
 
 from .http import HTTPClient
-from .objects import (
-    ClientCredentials, UserCredentials, Album, SimpleTrack, SimpleAlbum, Artist, IncludeGroup,
-    PagingObject, Track, Show, SimpleEpisode, AudioFeatures, Recommendation, SearchType,
-    SearchResult, User, TimeRange, Playlist, PlaylistTrack, SimplePlaylist, Category, Image,
-    Episode,
-)
+from .objects.album import Album, SimpleAlbum
+from .objects.artist import Artist
+from .objects.base import PagingObject
+from .objects.category import Category
+from .objects.credentials import UserCredentials
+from .objects.enums import IncludeGroup, SearchType, TimeRange
+from .objects.episode import SimpleEpisode, Episode
+from .objects.image import Image
+from .objects.playlist import Playlist, SimplePlaylist
+from .objects.recommendation import Recommendation
+from .objects.search import SearchResult
+from .objects.show import Show
+from .objects.track import SimpleTrack, Track, AudioFeatures, PlaylistTrack
+from .objects.user import User
+from .types.common import AnyCredentials
 
 
 __all__ = (
@@ -21,7 +30,6 @@ __all__ = (
 
 
 ID = TypeVar("ID", bound=str)
-AnyCredentials = ClientCredentials | UserCredentials
 
 
 class Client:

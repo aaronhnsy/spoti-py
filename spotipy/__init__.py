@@ -4,7 +4,7 @@ import logging
 from typing import Final, Literal, NamedTuple
 
 from .client import *
-from .exceptions import *
+from .errors import *
 from .http import *
 from .objects import *
 from .utilities import *

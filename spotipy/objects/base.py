@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import TypedDict, TypeVar, Generic
+from typing import TypeVar, Generic
 
-from typing_extensions import NotRequired
+from typing_extensions import NotRequired, TypedDict
 
 
 __all__ = (

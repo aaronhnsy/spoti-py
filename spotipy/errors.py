@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
-
 import aiohttp
+
+from .types.errors import HTTPErrorData, AuthenticationErrorData
 
 
 __all__ = (
-    "SpotifyException",
+    "SpotipyError",
     "AuthenticationError",
     "HTTPError",
     "BadRequest",
@@ -14,26 +14,25 @@ __all__ = (
     "Forbidden",
     "NotFound",
     "RequestEntityTooLarge",
-    "TooManyRequests",
     "SpotifyServerError",
+    "HTTPErrorMapping"
 )
 
 
-class SpotifyException(Exception):
+class SpotipyError(Exception):
     pass
 
 
-class AuthenticationError(SpotifyException):
+class AuthenticationError(SpotipyError):
 
     def __init__(
         self,
         response: aiohttp.ClientResponse,
-        /, *,
-        data: dict[str, Any]
+        data: AuthenticationErrorData
     ) -> None:
         self._response: aiohttp.ClientResponse = response
         self._error: str = data["error"]
-        self._error_description: str = data["error_description"]
+        self._description: str = data["error_description"]
 
     @property
     def response(self) -> aiohttp.ClientResponse:
@@ -44,32 +43,22 @@ class AuthenticationError(SpotifyException):
         return self._error
 
     @property
-    def error_description(self) -> str:
-        return self._error_description
+    def description(self) -> str:
+        return self._description
 
 
-class HTTPError(SpotifyException):
+class HTTPError(SpotipyError):
 
     def __init__(
         self,
         response: aiohttp.ClientResponse,
-        /, *,
-        data: dict[str, dict[str, Any]] | None
+        data: HTTPErrorData | str
     ) -> None:
-
         self._response: aiohttp.ClientResponse = response
         self._status: int = response.status
+        self._message: str = data["error"]["message"] if isinstance(data, dict) else (data or "")
 
-        if isinstance(data, dict):
-            self._message: str = data["error"]["message"]
-        else:
-            self._message: str = data or ""
-
-        message = f"{self.response.status} {self.response.reason}"
-        if len(self.message):
-            message += f": {self.message}"
-
-        super().__init__(message)
+        super().__init__(f"{self._status} - {response.reason}: {self._message}")
 
     @property
     def response(self) -> aiohttp.ClientResponse:
@@ -104,9 +93,13 @@ class RequestEntityTooLarge(HTTPError):
     pass
 
 
-class TooManyRequests(HTTPError):
-    pass
-
-
 class SpotifyServerError(HTTPError):
     pass
+
+
+HTTPErrorMapping: dict[int, type[HTTPError]] = {
+    400: BadRequest,
+    401: Unauthorized,
+    403: Forbidden,
+    404: NotFound,
+}

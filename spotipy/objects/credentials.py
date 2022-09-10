@@ -5,7 +5,7 @@ from typing import TypedDict, ClassVar
 
 import aiohttp
 
-from ..exceptions import AuthenticationError
+from ..errors import AuthenticationError
 
 
 __all__ = (
@@ -40,8 +40,6 @@ class ClientCredentials:
     def __repr__(self) -> str:
         return "<spotipy.ClientCredentials>"
 
-    #
-
     @property
     def access_token(self) -> str:
         return self._access_token
@@ -54,16 +52,10 @@ class ClientCredentials:
     def expires_in(self) -> int:
         return self._expires_in
 
-    #
-
     def is_expired(self) -> bool:
         return (time.time() - self._last_authorized_time) >= self.expires_in
 
-    async def refresh(
-        self,
-        *,
-        session: aiohttp.ClientSession
-    ) -> None:
+    async def refresh(self, session: aiohttp.ClientSession) -> None:
 
         data = {
             "grant_type":    "client_credentials",
@@ -102,11 +94,10 @@ class ClientCredentials:
         async with session.post(url=cls.TOKEN_URL, data=data) as response:
 
             data = await response.json()
-
             if data.get("error"):
-                raise AuthenticationError(response, data=data)
+                raise AuthenticationError(response, data)
 
-            return cls(data, client_id=client_id, client_secret=client_secret)
+            return cls(data, client_id, client_secret)
 
 
 class UserCredentialsData(TypedDict):
@@ -160,11 +151,7 @@ class UserCredentials:
     def is_expired(self) -> bool:
         return (time.time() - self._last_authorized_time) >= self.expires_in
 
-    async def refresh(
-        self,
-        *,
-        session: aiohttp.ClientSession
-    ) -> None:
+    async def refresh(self, session: aiohttp.ClientSession) -> None:
 
         data = {
             "grant_type":    "refresh_token",

@@ -1,20 +1,22 @@
 from __future__ import annotations
 
-from typing import Any, Literal, TypedDict
+from typing import Literal, TypedDict
 
 from typing_extensions import NotRequired
 
-from ..objects import (
-    AlbumData, ArtistData, PagingObjectData, TrackData, ShowData, EpisodeData, AudioFeaturesData,
-    DeviceData, SimpleAlbumData, CategoryData, SimplePlaylistData
-)
+from ..objects.album import AlbumData, SimpleAlbumData
+from ..objects.artist import ArtistData
+from ..objects.base import PagingObjectData
+from ..objects.category import CategoryData
+from ..objects.device import DeviceData
+from ..objects.episode import EpisodeData
+from ..objects.playlist import SimplePlaylistData
+from ..objects.show import ShowData
+from ..objects.track import AudioFeaturesData, TrackData
 
 
 __all__ = (
     "HTTPMethod",
-    "Query",
-    "Body",
-    "Data",
     "Headers",
     "MultipleAlbumsData",
     "NewReleasesData",
@@ -35,10 +37,6 @@ __all__ = (
 
 
 HTTPMethod = Literal["GET", "POST", "DELETE", "PATCH", "PUT"]
-
-Query = dict[str, Any]
-Body = dict[str, Any]
-Data = dict[str, Any]
 
 Headers = TypedDict(
     "Headers",

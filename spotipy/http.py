@@ -8,24 +8,28 @@ from urllib.parse import quote
 
 import aiohttp
 
-from .exceptions import (
-    BadRequest, Unauthorized, Forbidden, NotFound, RequestEntityTooLarge, SpotifyServerError,
-    HTTPError, SpotifyException,
-)
-from .objects import (
-    ClientCredentials, UserCredentials, AlbumData, PagingObjectData, ArtistData,
-    IncludeGroup, ShowData, EpisodeData, TrackData, AudioFeaturesData, RecommendationData,
-    SearchType, SearchResultData, UserData, TimeRange, AlternativePagingObjectData,
-    PlaylistData, ImageData, CategoryData, PlaybackStateData, CurrentlyPlayingData,
-    RepeatMode, PlaylistSnapshotID, SimpleTrackData, SimpleAlbumData, SimplePlaylistData,
-    PlaylistTrackData,
-)
+from .errors import RequestEntityTooLarge, HTTPError, SpotipyError, SpotifyServerError, HTTPErrorMapping
+from .objects.album import AlbumData, SimpleAlbumData
+from .objects.artist import ArtistData
+from .objects.base import PagingObjectData, AlternativePagingObjectData
+from .objects.category import CategoryData
+from .objects.credentials import ClientCredentials, UserCredentials
+from .objects.enums import IncludeGroup, SearchType, TimeRange, RepeatMode
+from .objects.episode import EpisodeData
+from .objects.image import ImageData
+from .objects.playback import PlaybackStateData, CurrentlyPlayingData
+from .objects.playlist import PlaylistData, PlaylistSnapshotID, SimplePlaylistData
+from .objects.recommendation import RecommendationData
+from .objects.search import SearchResultData
+from .objects.show import ShowData
+from .objects.track import SimpleTrackData, TrackData, AudioFeaturesData, PlaylistTrackData
+from .objects.user import UserData
+from .types.common import AnyCredentials
 from .types.http import (
-    HTTPMethod, Query, Body, Headers, Data, MultipleAlbumsData, NewReleasesData,
-    MultipleArtistsData, ArtistTopTracksData, ArtistRelatedArtistsData, MultipleShowsData,
-    MultipleEpisodesData, MultipleTracksData, SeveralAudioFeaturesData, FeaturedPlaylistsData,
-    CategoryPlaylistsData, MultipleCategoriesData, RecommendationGenresData, MultipleDevicesData,
-    AvailableMarketsData,
+    HTTPMethod, Headers, MultipleAlbumsData, NewReleasesData, MultipleArtistsData,
+    ArtistTopTracksData, ArtistRelatedArtistsData, MultipleShowsData, MultipleEpisodesData,
+    MultipleTracksData, SeveralAudioFeaturesData, FeaturedPlaylistsData, CategoryPlaylistsData,
+    MultipleCategoriesData, RecommendationGenresData, MultipleDevicesData, AvailableMarketsData,
 )
 from .utilities import to_json, limit_value, json_or_text
 from .values import VALID_SEED_KWARGS
@@ -77,7 +81,10 @@ class HTTPClient:
         self._client_secret: str = client_secret
         self._session: aiohttp.ClientSession | None = session
 
-        self._client_credentials: ClientCredentials | None = None
+        self._credentials: ClientCredentials | None = None
+
+        # self._request_lock: asyncio.Event = asyncio.Event()
+        # self._request_lock.set()
 
     def __repr__(self) -> str:
         return "<spotipy.HTTPClient>"
@@ -91,23 +98,19 @@ class HTTPClient:
 
         return self._session
 
-    async def _get_credentials(
-        self,
-        _credentials: ClientCredentials | UserCredentials | None, /
-    ) -> ClientCredentials | UserCredentials:
+    async def _get_credentials(self, credentials: AnyCredentials | None) -> AnyCredentials:
 
         session = await self._get_session()
 
-        if not self._client_credentials:
-            self._client_credentials = await ClientCredentials.from_client_secret(
-                self._client_id,
-                self._client_secret,
+        if not self._credentials:
+            self._credentials = await ClientCredentials.from_client_secret(
+                self._client_id, self._client_secret,
                 session=session
             )
 
-        credentials = _credentials or self._client_credentials
+        credentials = credentials or self._credentials
         if credentials.is_expired():
-            await credentials.refresh(session=session)
+            await credentials.refresh(session)
 
         return credentials
 
@@ -124,10 +127,10 @@ class HTTPClient:
         self,
         route: Route,
         /, *,
-        credentials: ClientCredentials | UserCredentials | None = None,
-        query: Query | None = None,
+        credentials: AnyCredentials | None = None,
+        query: dict[str, Any] | None = None,
         body: str | None = None,
-        json: Body | None = None,
+        json: dict[str, Any] | None = None,
     ) -> Any:
 
         session = await self._get_session()
@@ -136,76 +139,67 @@ class HTTPClient:
         headers: Headers = {
             "Authorization": f"Bearer {credentials.access_token}"
         }
-
         if json is not None:
             headers["Content-Type"] = "application/json"
             body = to_json(json)
 
+        # if self._request_lock.is_set() is False:
+        #     await self._request_lock.wait()
+
         response: aiohttp.ClientResponse | None = None
-        data: Data | str | None = None
+        data: dict[str, Any] | str | None = None
 
-        for tries in range(3):
-
+        for tries in range(4):
             try:
-
                 async with session.request(
-                        method=route.method,
-                        url=route.url,
-                        headers=headers,
-                        params=query,
-                        data=body
+                        route.method, route.url, headers=headers, params=query, data=body
                 ) as response:
 
+                    status = response.status
                     data = await json_or_text(response)
 
-                    match response.status:
+                    if 200 <= status < 300:
+                        return data
 
-                        case 200 | 201 | 202 | 204:
-                            return data
+                    if status in {400, 401, 403, 404}:
+                        raise HTTPErrorMapping[status](response, data)  # type: ignore
 
-                        case 400:
-                            assert isinstance(data, dict)
-                            raise BadRequest(response, data=data)
-                        case 401:
-                            assert isinstance(data, dict)
-                            raise Unauthorized(response, data=data)
-                        case 403:
-                            assert isinstance(data, dict)
-                            raise Forbidden(response, data=data)
-                        case 404:
-                            assert isinstance(data, dict)
-                            raise NotFound(response, data=data)
-                        case 413:
-                            raise RequestEntityTooLarge(
-                                response,
-                                data={"error": {"status": 413, "message": "Image was too large."}}
-                            )
+                    elif status == 413:
+                        # special case handler for playlist image uploads.
+                        raise RequestEntityTooLarge(
+                            response,
+                            data={"error": {"status": 413, "message": "Playlist image was too large."}}
+                        )
 
-                        case 429:
-                            await asyncio.sleep(float(response.headers["Retry-After"]))
-                            continue
+                    elif status == 429:
+                        # self._request_lock.clear()
+                        await asyncio.sleep(float(response.headers["Retry-After"]))
+                        # self._request_lock.set()
+                        continue
 
-                        case 500 | 502 | 503:
-                            await asyncio.sleep(1 + tries * 2)
-                            continue
+                    elif status in {500, 502, 503}:
+                        # retry request for specific 5xx status codes.
+                        await asyncio.sleep(1 + tries * 2)
+                        continue
 
-                        case _:
-                            raise SpotifyException()
+                    elif status >= 500:
+                        # raise an exception for any other 5xx status code.
+                        raise SpotifyServerError(response, data)  # type: ignore
+
+                    raise HTTPError(response, data)  # type: ignore
 
             except OSError as error:
-                if tries < 2 and error.errno in (54, 10054):
+                # retry request for the 'connection reset by peer' error.
+                if tries < 3 and error.errno in (54, 10054):
                     await asyncio.sleep(1 + tries * 2)
                     continue
                 raise
 
-        if response:
-
+        if response is not None:
+            # raise an exception when we run out of retries.
             if response.status >= 500:
-                assert isinstance(data, dict)
-                raise SpotifyServerError(response, data=data)
-
-            assert isinstance(data, dict)
-            raise HTTPError(response, data=data)
+                raise SpotifyServerError(response, data)  # type: ignore
+            raise HTTPError(response, data)  # type: ignore
 
         raise RuntimeError("This shouldn't happen.")
 
@@ -216,10 +210,10 @@ class HTTPClient:
         _id: str,
         /, *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> AlbumData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
 
@@ -234,13 +228,13 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> MultipleAlbumsData:
 
         if len(ids) > 20:
             raise ValueError("'ids' can not contain more than 20 ids.")
 
-        query: Query = {"ids": ",".join(ids)}
+        query: dict[str, Any] = {"ids": ",".join(ids)}
         if market:
             query["market"] = market
 
@@ -257,10 +251,10 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> PagingObjectData[SimpleTrackData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
         if limit:
@@ -284,7 +278,7 @@ class HTTPClient:
         credentials: UserCredentials,
     ) -> PagingObjectData[AlbumData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
         if limit:
@@ -309,7 +303,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -328,7 +322,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -347,7 +341,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -362,10 +356,10 @@ class HTTPClient:
         country: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> NewReleasesData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if country:
             query["country"] = country
         if limit:
@@ -387,10 +381,10 @@ class HTTPClient:
         _id: str,
         /, *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> ArtistData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
 
@@ -405,13 +399,13 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> MultipleArtistsData:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         if market:
@@ -431,10 +425,10 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         include_groups: list[IncludeGroup] | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> PagingObjectData[SimpleAlbumData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
         if limit:
@@ -456,10 +450,10 @@ class HTTPClient:
         _id: str,
         /, *,
         market: str,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> ArtistTopTracksData:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "market": market
         }
         return await self.request(
@@ -473,10 +467,10 @@ class HTTPClient:
         _id: str,
         /, *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> ArtistRelatedArtistsData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
 
@@ -493,10 +487,10 @@ class HTTPClient:
         _id: str,
         /, *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> ShowData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
 
@@ -511,13 +505,13 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> MultipleShowsData:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         if market:
@@ -536,10 +530,10 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> PagingObjectData[EpisodeData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
         if limit:
@@ -562,7 +556,7 @@ class HTTPClient:
         credentials: UserCredentials,
     ) -> PagingObjectData[ShowData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
@@ -585,7 +579,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -604,7 +598,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -623,7 +617,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -639,10 +633,10 @@ class HTTPClient:
         _id: str,
         /, *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> EpisodeData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
 
@@ -657,13 +651,13 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> MultipleEpisodesData:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         if market:
@@ -684,7 +678,7 @@ class HTTPClient:
         credentials: UserCredentials,
     ) -> PagingObjectData[EpisodeData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
         if limit:
@@ -709,7 +703,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -728,7 +722,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -747,7 +741,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -763,10 +757,10 @@ class HTTPClient:
         _id: str,
         /, *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> TrackData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
 
@@ -781,13 +775,13 @@ class HTTPClient:
         ids: Sequence[str],
         *,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> MultipleTracksData:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         if market:
@@ -808,7 +802,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> PagingObjectData[TrackData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
         if limit:
@@ -833,7 +827,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -852,7 +846,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -871,7 +865,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -884,7 +878,7 @@ class HTTPClient:
         self,
         _id: str,
         /, *,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> AudioFeaturesData:
         return await self.request(
             Route("GET", "/audio-features/{id}", id=_id),
@@ -895,13 +889,13 @@ class HTTPClient:
         self,
         ids: Sequence[str],
         *,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> SeveralAudioFeaturesData:
 
         if len(ids) > 100:
             raise ValueError("'ids' can not contain more than 100 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(ids)
         }
         return await self.request(
@@ -914,7 +908,7 @@ class HTTPClient:
         self,
         _id: str,
         /, *,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> dict[str, Any]:
         # TODO: create TypedDict for this
         return await self.request(
@@ -930,7 +924,7 @@ class HTTPClient:
         seed_track_ids: list[str] | None,
         limit: int | None,
         market: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None,
+        credentials: AnyCredentials | None = None,
         **kwargs: int
     ) -> RecommendationData:
 
@@ -940,7 +934,7 @@ class HTTPClient:
         if seeds < 1 or seeds > 5:
             raise ValueError("too many or no seed values provided. min 1, max 5.")
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if seed_artist_ids:
             query["seed_artists"] = ",".join(seed_artist_ids)
         if seed_genres:
@@ -976,10 +970,10 @@ class HTTPClient:
         market: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> SearchResultData:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "q":    _query.replace(" ", "+"),
             "type": ",".join(search_type.value for search_type in search_types)
         }
@@ -1020,7 +1014,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> PagingObjectData[ArtistData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
@@ -1044,7 +1038,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> PagingObjectData[TrackData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
@@ -1063,7 +1057,7 @@ class HTTPClient:
         self,
         _id: str,
         /, *,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> UserData:
         return await self.request(
             Route("GET", "/users/{id}", id=_id),
@@ -1078,7 +1072,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        body: Body = {}
+        body: dict[str, Any] = {}
         if public:
             body["public"] = public
 
@@ -1104,13 +1098,13 @@ class HTTPClient:
         playlist_id: str,
         /, *,
         user_ids: list[str],
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> None:
 
         if len(user_ids) > 5:
             raise ValueError("'ids' can not contain more than 5 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "ids": ",".join(user_ids)
         }
         return await self.request(
@@ -1123,7 +1117,7 @@ class HTTPClient:
         self,
     ) -> None:
         # TODO: Why is this here.
-        raise SpotifyException("This operation is not yet implemented in the spotify api.")
+        raise SpotipyError("This operation is not yet implemented in the spotify api.")
 
     async def get_followed_artists(
         self,
@@ -1133,7 +1127,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> AlternativePagingObjectData[ArtistData]:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "type": "artist"
         }
         if limit:
@@ -1158,7 +1152,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "type": "user",
             "ids":  ",".join(ids)
         }
@@ -1178,7 +1172,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "type": "artist",
             "ids":  ",".join(ids)
         }
@@ -1198,7 +1192,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "type": "user",
             "ids":  ",".join(ids)
         }
@@ -1218,7 +1212,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "type": "artist",
             "ids":  ",".join(ids)
         }
@@ -1238,7 +1232,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "type": "user",
             "ids":  ",".join(ids)
         }
@@ -1258,7 +1252,7 @@ class HTTPClient:
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
 
-        query: Query = {
+        query: dict[str, Any] = {
             "type": "artist",
             "ids":  ",".join(ids)
         }
@@ -1276,10 +1270,10 @@ class HTTPClient:
         /, *,
         market: str | None,
         fields: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> PlaylistData:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "additional_types": "track"
         }
         # TODO: Support all additional types
@@ -1308,7 +1302,7 @@ class HTTPClient:
         if collaborative and public:
             raise ValueError("collaborative playlists can not be public.")
 
-        body: Body = {}
+        body: dict[str, Any] = {}
         if name:
             body["name"] = name
         if public:
@@ -1332,10 +1326,10 @@ class HTTPClient:
         fields: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> PagingObjectData[PlaylistTrackData]:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "additional_types": "track"
         }
         # TODO: Support all additional types
@@ -1367,7 +1361,7 @@ class HTTPClient:
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")
 
-        body: Body = {
+        body: dict[str, Any] = {
             "uris": uris
         }
         if position:
@@ -1390,7 +1384,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> PlaylistSnapshotID:
 
-        body: Body = {
+        body: dict[str, Any] = {
             "range_start":   range_start,
             "insert_before": insert_before
         }
@@ -1416,7 +1410,7 @@ class HTTPClient:
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")
 
-        body: Body = {
+        body: dict[str, Any] = {
             "uris": uris
         }
         return await self.request(
@@ -1437,7 +1431,7 @@ class HTTPClient:
         if len(uris) > 100:
             raise ValueError("'uris' can not contain more than 100 URI's.")
 
-        body: Body = {
+        body: dict[str, Any] = {
             "tracks": [{"uri": uri} for uri in uris]
         }
         if snapshot_id:
@@ -1457,7 +1451,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> PagingObjectData[SimplePlaylistData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
@@ -1476,10 +1470,10 @@ class HTTPClient:
         /, *,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> PagingObjectData[SimplePlaylistData]:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
@@ -1506,7 +1500,7 @@ class HTTPClient:
         if collaborative and public:
             raise ValueError("collaborative playlists can not be public.")
 
-        body: Body = {
+        body: dict[str, Any] = {
             "name": name
         }
         if public:
@@ -1530,10 +1524,10 @@ class HTTPClient:
         timestamp: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> FeaturedPlaylistsData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if country:
             query["country"] = country
         if locale:
@@ -1559,10 +1553,10 @@ class HTTPClient:
         country: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> CategoryPlaylistsData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if country:
             query["country"] = country
         if limit:
@@ -1581,7 +1575,7 @@ class HTTPClient:
         self,
         _id: str,
         /, *,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> list[ImageData]:
         return await self.request(
             Route("GET", "/playlists/{id}/images", id=_id),
@@ -1600,7 +1594,7 @@ class HTTPClient:
         async with session.get(url) as request:
 
             if request.status != 200:
-                raise SpotifyException("There was a problem while uploading that image.")
+                raise SpotipyError("There was a problem while uploading that image.")
 
             image_bytes = await request.read()
             body = base64.b64encode(image_bytes).decode("utf-8")
@@ -1620,10 +1614,10 @@ class HTTPClient:
         locale: str | None,
         limit: int | None,
         offset: int | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> MultipleCategoriesData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if country:
             query["country"] = country
         if locale:
@@ -1646,10 +1640,10 @@ class HTTPClient:
         /, *,
         country: str | None,
         locale: str | None,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> CategoryData:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if country:
             query["country"] = country
         if locale:
@@ -1666,7 +1660,7 @@ class HTTPClient:
     async def get_available_genre_seeds(
         self,
         *,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> RecommendationGenresData:
         return await self.request(
             Route("GET", "/recommendations/available-genre-seeds"),
@@ -1682,7 +1676,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> PlaybackStateData:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "additional_types": "track"
         }
         # TODO: Support all additional types
@@ -1703,7 +1697,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        body: Body = {
+        body: dict[str, Any] = {
             "device_ids": [device_id]
         }
         if ensure_playback:
@@ -1732,7 +1726,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> CurrentlyPlayingData:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "additional_types": "track"
         }
         # TODO: Support all additional types
@@ -1759,11 +1753,11 @@ class HTTPClient:
         if context_uri and uris:
             raise ValueError("'context_uri' and 'uris' can not both be specified.")
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if device_id:
             query["device_id"] = device_id
 
-        body: Body = {}
+        body: dict[str, Any] = {}
 
         if context_uri or uris:
             if context_uri:
@@ -1813,7 +1807,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if device_id:
             query["device_id"] = device_id
 
@@ -1830,7 +1824,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if device_id:
             query["device_id"] = device_id
 
@@ -1847,7 +1841,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if device_id:
             query["device_id"] = device_id
 
@@ -1865,7 +1859,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "position_ms": position_ms
         }
         if device_id:
@@ -1885,7 +1879,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "state": repeat_mode.value
         }
         if device_id:
@@ -1907,7 +1901,7 @@ class HTTPClient:
 
         limit_value("volume_percent", volume_percent, 0, 100)
 
-        query: Query = {
+        query: dict[str, Any] = {
             "volume_percent": volume_percent
         }
         if device_id:
@@ -1927,7 +1921,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "state": "true" if state else "false"
         }
         if device_id:
@@ -1951,7 +1945,7 @@ class HTTPClient:
         if before and after:
             raise ValueError("'before' and 'after' can not both be specified.")
 
-        query: Query = {}
+        query: dict[str, Any] = {}
         if limit:
             query["limit"] = limit
         if before:
@@ -1973,7 +1967,7 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> None:
 
-        query: Query = {
+        query: dict[str, Any] = {
             "uri": uri
         }
         if device_id:
@@ -1990,7 +1984,7 @@ class HTTPClient:
     async def get_available_markets(
         self,
         *,
-        credentials: ClientCredentials | UserCredentials | None = None
+        credentials: AnyCredentials | None = None
     ) -> AvailableMarketsData:
         return await self.request(
             Route("GET", "/markets"),
