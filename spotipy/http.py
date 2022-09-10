@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import logging
 from collections.abc import Sequence
 from typing import ClassVar, Any
 from urllib.parse import quote
@@ -39,6 +40,9 @@ __all__ = (
     "Route",
     "HTTPClient"
 )
+
+
+LOG: logging.Logger = logging.getLogger("spotipy.http")
 
 
 class Route:
@@ -83,8 +87,8 @@ class HTTPClient:
 
         self._credentials: ClientCredentials | None = None
 
-        # self._request_lock: asyncio.Event = asyncio.Event()
-        # self._request_lock.set()
+        self._request_lock: asyncio.Event = asyncio.Event()
+        self._request_lock.set()
 
     def __repr__(self) -> str:
         return "<spotipy.HTTPClient>"
@@ -143,8 +147,8 @@ class HTTPClient:
             headers["Content-Type"] = "application/json"
             body = to_json(json)
 
-        # if self._request_lock.is_set() is False:
-        #     await self._request_lock.wait()
+        if self._request_lock.is_set() is False:
+            await self._request_lock.wait()
 
         response: aiohttp.ClientResponse | None = None
         data: dict[str, Any] | str | None = None
@@ -156,6 +160,8 @@ class HTTPClient:
                 ) as response:
 
                     status = response.status
+                    LOG.debug(f"'{route.method}' @ '{response.url}' -> '{status}'.")
+
                     data = await json_or_text(response)
 
                     if 200 <= status < 300:
@@ -172,9 +178,10 @@ class HTTPClient:
                         )
 
                     elif status == 429:
-                        # self._request_lock.clear()
-                        await asyncio.sleep(float(response.headers["Retry-After"]))
-                        # self._request_lock.set()
+                        # sleep for 'Retry-After' seconds before making new requests.
+                        self._request_lock.clear()
+                        await asyncio.sleep(int(response.headers["Retry-After"]))
+                        self._request_lock.set()
                         continue
 
                     elif status in {500, 502, 503}:
