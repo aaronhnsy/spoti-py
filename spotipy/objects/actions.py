@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+from typing_extensions import NotRequired
+
 
 __all__ = (
     "ActionsData",
@@ -10,16 +12,16 @@ __all__ = (
 
 
 class ActionsData(TypedDict):
-    interrupting_playback: bool
-    pausing: bool
-    resuming: bool
-    seeking: bool
-    skipping_next: bool
-    skipping_prev: bool
-    toggling_repeat_context: bool
-    toggling_repeat_track: bool
-    toggling_shuffle: bool
-    transferring_playback: bool
+    interrupting_playback: NotRequired[bool]
+    pausing: NotRequired[bool]
+    resuming: NotRequired[bool]
+    seeking: NotRequired[bool]
+    skipping_next: NotRequired[bool]
+    skipping_prev: NotRequired[bool]
+    toggling_repeat_context: NotRequired[bool]
+    toggling_repeat_track: NotRequired[bool]
+    toggling_shuffle: NotRequired[bool]
+    transferring_playback: NotRequired[bool]
 
 
 class Actions:

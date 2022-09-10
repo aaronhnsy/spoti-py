@@ -493,7 +493,7 @@ class HTTPClient:
         self,
         _id: str,
         /, *,
-        market: str | None,
+        market: str,
         credentials: AnyCredentials | None = None
     ) -> ShowData:
 
@@ -511,7 +511,7 @@ class HTTPClient:
         self,
         ids: Sequence[str],
         *,
-        market: str | None,
+        market: str,
         credentials: AnyCredentials | None = None
     ) -> MultipleShowsData:
 
@@ -534,7 +534,7 @@ class HTTPClient:
         self,
         _id: str,
         /, *,
-        market: str | None,
+        market: str,
         limit: int | None,
         offset: int | None,
         credentials: AnyCredentials | None = None

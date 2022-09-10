@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+from typing_extensions import NotRequired
+
 from .base import BaseObject, BaseObjectData
 from .common import ExternalURLs
+from .enums import ReleaseDatePrecision, RestrictionReason
 from .image import Image, ImageData
 from .show import ShowData, Show
-from .enums import ReleaseDatePrecision
 
 
 __all__ = (
@@ -28,7 +30,7 @@ class EpisodeRestrictionData(TypedDict):
 class EpisodeRestriction:
 
     def __init__(self, data: EpisodeRestrictionData) -> None:
-        self.reason: str = data["reason"]
+        self.reason: RestrictionReason = RestrictionReason(data["reason"])
 
     def __repr__(self) -> str:
         return f"<spotipy.EpisodeRestriction reason='{self.reason}'>"
@@ -63,8 +65,8 @@ class SimpleEpisodeData(BaseObjectData):
     languages: list[str]
     release_date: str
     release_date_precision: str
-    restrictions: EpisodeRestrictionData
-    resume_point: EpisodeResumePointData
+    restrictions: NotRequired[EpisodeRestrictionData]
+    resume_point: NotRequired[EpisodeResumePointData]
 
 
 class SimpleEpisode(BaseObject):
@@ -84,13 +86,12 @@ class SimpleEpisode(BaseObject):
         self.languages: list[str] = data["languages"]
         self.release_date: str = data["release_date"]
         self.release_data_precision: ReleaseDatePrecision = ReleaseDatePrecision(data["release_date_precision"])
+
         self.restriction: EpisodeRestriction | None = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.resume_point: EpisodeResumePoint | None = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
 
     def __repr__(self) -> str:
         return f"<spotipy.SimpleEpisode id='{self.id}', name='{self.name}'>"
-
-    #
 
     @property
     def url(self) -> str | None:
@@ -110,9 +111,9 @@ class EpisodeData(BaseObjectData):
     languages: list[str]
     release_date: str
     release_date_precision: str
-    restrictions: EpisodeRestrictionData
-    resume_point: EpisodeResumePointData
     show: ShowData
+    restrictions: NotRequired[EpisodeRestrictionData]
+    resume_point: NotRequired[EpisodeResumePointData]
 
 
 class Episode(BaseObject):
@@ -132,14 +133,13 @@ class Episode(BaseObject):
         self.languages: list[str] = data["languages"]
         self.release_date: str = data["release_date"]
         self.release_data_precision: ReleaseDatePrecision = ReleaseDatePrecision(data["release_date_precision"])
+        self.show: Show = Show(data["show"])
+
         self.restriction: EpisodeRestriction | None = EpisodeRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.resume_point: EpisodeResumePoint | None = EpisodeResumePoint(resume_point) if (resume_point := data.get("resume_point")) else None
-        self.show: Show = Show(data["show"])
 
     def __repr__(self) -> str:
         return f"<spotipy.Episode id='{self.id}', name='{self.name}'>"
-
-    #
 
     @property
     def url(self) -> str | None:

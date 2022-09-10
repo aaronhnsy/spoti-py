@@ -11,7 +11,8 @@ __all__ = (
     "CopyrightType",
     "RepeatMode",
     "TimeRange",
-    "ReleaseDatePrecision"
+    "ReleaseDatePrecision",
+    "RestrictionReason"
 )
 
 
@@ -74,3 +75,9 @@ class ReleaseDatePrecision(enum.Enum):
     Year = "year"
     Month = "month"
     Day = "day"
+
+
+class RestrictionReason(enum.Enum):
+    Market = "market"
+    Product = "product"
+    Explicit = "Explicit"

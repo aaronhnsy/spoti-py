@@ -292,7 +292,7 @@ class Client:
         self,
         _id: str,
         /, *,
-        market: str | None = "GB",
+        market: str,
         credentials: AnyCredentials | None = None,
     ) -> Show:
 
@@ -303,7 +303,7 @@ class Client:
         self,
         ids: Sequence[ID],
         *,
-        market: str | None = "GB",
+        market: str,
         credentials: AnyCredentials | None = None,
     ) -> dict[ID, Show | None]:
 
@@ -314,7 +314,7 @@ class Client:
         self,
         _id: str,
         /, *,
-        market: str | None = "GB",
+        market: str,
         limit: int | None = None,
         offset: int | None = None,
         credentials: AnyCredentials | None = None,
@@ -333,7 +333,7 @@ class Client:
         self,
         _id: str,
         /, *,
-        market: str | None = "GB",
+        market: str,
         credentials: AnyCredentials | None = None,
     ) -> list[SimpleEpisode]:
 

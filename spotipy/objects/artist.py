@@ -28,8 +28,6 @@ class SimpleArtist(BaseObject):
     def __repr__(self) -> str:
         return f"<spotipy.SimpleArtist id='{self.id}', name='{self.name}'>"
 
-    #
-
     @property
     def url(self) -> str | None:
         return self.external_urls.get("spotify")

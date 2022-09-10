@@ -2,17 +2,21 @@ from __future__ import annotations
 
 from typing import TypedDict, Any
 
+from typing_extensions import NotRequired
+
 from . import album
 from .artist import SimpleArtist, SimpleArtistData
 from .base import BaseObject, BaseObjectData
 from .common import ExternalURLs, ExternalIDs
-from .enums import Key, Mode
+from .enums import Key, Mode, RestrictionReason
 from .user import User, UserData
 
 
 __all__ = (
     "AudioFeaturesData",
     "AudioFeatures",
+    "TrackLinkData",
+    "TrackLink",
     "TrackRestrictionData",
     "TrackRestriction",
     "SimpleTrackData",
@@ -71,6 +75,25 @@ class AudioFeatures:
         return f"<spotipy.AudioFeatures id='{self.id}'>"
 
 
+class TrackLinkData(BaseObjectData):
+    external_urls: ExternalURLs
+
+
+class TrackLink(BaseObject):
+
+    def __init__(self, data: TrackLinkData) -> None:
+        super().__init__(data)
+
+        self.external_urls: ExternalURLs = data["external_urls"]
+
+    def __repr__(self) -> str:
+        return f"<spotipy.TrackLink id='{self.id}'>"
+
+    @property
+    def url(self) -> str | None:
+        return self.external_urls.get("spotify")
+
+
 class TrackRestrictionData(TypedDict):
     reason: str
 
@@ -78,7 +101,7 @@ class TrackRestrictionData(TypedDict):
 class TrackRestriction:
 
     def __init__(self, data: TrackRestrictionData) -> None:
-        self.reason: str = data["reason"]
+        self.reason: RestrictionReason = RestrictionReason(data["reason"])
 
     def __repr__(self) -> str:
         return f"<spotipy.TrackRestriction reason='{self.reason}'>"
@@ -86,15 +109,17 @@ class TrackRestriction:
 
 class SimpleTrackData(BaseObjectData):
     artists: list[SimpleArtistData]
-    available_markets: list[str]
     disc_number: int
     duration_ms: int
     explicit: bool
     external_urls: ExternalURLs
     is_local: bool
     preview_url: str
-    restrictions: TrackRestrictionData
     track_number: int
+    available_markets: NotRequired[list[str]]
+    is_playable: NotRequired[bool]
+    linked_from: NotRequired[TrackLinkData]
+    restrictions: NotRequired[TrackRestrictionData]
 
 
 class SimpleTrack(BaseObject):
@@ -103,20 +128,21 @@ class SimpleTrack(BaseObject):
         super().__init__(data)
 
         self.artists: list[SimpleArtist] = [SimpleArtist(artist_data) for artist_data in data["artists"]]
-        self.available_markets: list[str] = data["available_markets"]
         self.disc_number: int = data["disc_number"]
         self.duration_ms: int = data["duration_ms"]
         self.explicit: bool = data["explicit"]
         self.external_urls: ExternalURLs = data["external_urls"]
         self.is_local: bool = data["is_local"]
         self.preview_url: str = data["preview_url"]
-        self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.track_number: int = data["track_number"]
+
+        self.available_markets: list[str] | None = data.get("available_markets")
+        self.is_playable: bool | None = data.get("is_playable")
+        self.linked_from: TrackLink | None = TrackLink(linked_from) if (linked_from := data.get("linked_from")) else None
+        self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := data.get("restrictions")) else None
 
     def __repr__(self) -> str:
         return f"<spotipy.SimpleTrack id='{self.id}', name='{self.name}'>"
-
-    #
 
     @property
     def url(self) -> str | None:
@@ -126,7 +152,6 @@ class SimpleTrack(BaseObject):
 class TrackData(BaseObjectData):
     album: album.SimpleAlbumData
     artists: list[SimpleArtistData]
-    available_markets: list[str]
     disc_number: int
     duration_ms: int
     explicit: bool
@@ -135,8 +160,11 @@ class TrackData(BaseObjectData):
     is_local: bool
     popularity: int
     preview_url: str
-    restrictions: TrackRestrictionData
     track_number: int
+    available_markets: NotRequired[list[str]]
+    is_playable: NotRequired[bool]
+    linked_from: NotRequired[TrackLinkData]
+    restrictions: NotRequired[TrackRestrictionData]
 
 
 class Track(BaseObject):
@@ -146,7 +174,6 @@ class Track(BaseObject):
 
         self.album: album.SimpleAlbum = album.SimpleAlbum(data["album"])
         self.artists: list[SimpleArtist] = [SimpleArtist(artist_data) for artist_data in data["artists"]]
-        self.available_markets: list[str] = data["available_markets"]
         self.disc_number: int = data["disc_number"]
         self.duration_ms: int = data["duration_ms"]
         self.explicit: bool = data["explicit"]
@@ -155,13 +182,15 @@ class Track(BaseObject):
         self.is_local: bool = data["is_local"]
         self.popularity: int = data["popularity"]
         self.preview_url: str = data["preview_url"]
-        self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := data.get("restrictions")) else None
         self.track_number: int = data["track_number"]
+
+        self.available_markets: list[str] | None = data.get("available_markets")
+        self.is_playable: bool | None = data.get("is_playable")
+        self.linked_from: TrackLink | None = TrackLink(linked_from) if (linked_from := data.get("linked_from")) else None
+        self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := data.get("restrictions")) else None
 
     def __repr__(self) -> str:
         return f"<spotipy.Track id='{self.id}', name='{self.name}'>"
-
-    #
 
     @property
     def url(self) -> str | None:
@@ -191,7 +220,6 @@ class PlaylistTrack(BaseObject):
         track = data["track"]
         self.album: album.SimpleAlbum = album.SimpleAlbum(track["album"])
         self.artists: list[SimpleArtist] = [SimpleArtist(artist_data) for artist_data in track["artists"]]
-        self.available_markets: list[str] = track["available_markets"]
         self.disc_number: int = track["disc_number"]
         self.duration_ms: int = track["duration_ms"]
         self.explicit: bool = track["explicit"]
@@ -200,13 +228,15 @@ class PlaylistTrack(BaseObject):
         self.is_local: bool = track["is_local"]
         self.popularity: int = track["popularity"]
         self.preview_url: str = track["preview_url"]
-        self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := track.get("restrictions")) else None
         self.track_number: int = track["track_number"]
+
+        self.available_markets: list[str] | None = track.get("available_markets")
+        self.is_playable: bool | None = track.get("is_playable")
+        self.linked_from: TrackLink | None = TrackLink(linked_from) if (linked_from := track.get("linked_from")) else None
+        self.restriction: TrackRestriction | None = TrackRestriction(restriction) if (restriction := track.get("restrictions")) else None
 
     def __repr__(self) -> str:
         return f"<spotipy.PlaylistTrack id='{self.id}', name='{self.name}'>"
-
-    #
 
     @property
     def url(self) -> str | None:

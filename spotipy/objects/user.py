@@ -62,8 +62,6 @@ class User(BaseObject):
     def __repr__(self) -> str:
         return f"<spotipy.User id='{self.id}', name='{self.display_name}'>"
 
-    #
-
     @property
     def url(self) -> str | None:
         return self.external_urls.get("spotify")

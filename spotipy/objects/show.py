@@ -32,7 +32,7 @@ class Show(BaseObject):
     def __init__(self, data: ShowData) -> None:
         super().__init__(data)
 
-        self.available_markets: list[str] = data.get("available_markets")
+        self.available_markets: list[str] = data["available_markets"]
         self.copyrights: list[Copyright] = [Copyright(copyright) for copyright in data["copyrights"]]
         self.description: str = data["description"]
         self.explicit: bool = data["explicit"]
@@ -47,8 +47,6 @@ class Show(BaseObject):
 
     def __repr__(self) -> str:
         return f"<spotipy.Show id='{self.id}', name='{self.name}'>"
-
-    #
 
     @property
     def url(self) -> str | None:

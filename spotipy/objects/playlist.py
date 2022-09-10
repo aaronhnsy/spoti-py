@@ -60,8 +60,6 @@ class SimplePlaylist(BaseObject):
     def __repr__(self) -> str:
         return f"<spotipy.SimplePlaylist id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
 
-    #
-
     @property
     def url(self) -> str | None:
         return self.external_urls.get("spotify")
@@ -101,8 +99,6 @@ class Playlist(BaseObject):
 
     def __repr__(self) -> str:
         return f"<spotipy.Playlist id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
-
-    #
 
     @property
     def url(self) -> str | None:
