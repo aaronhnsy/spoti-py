@@ -21,4 +21,4 @@ class Followers:
         self.total: int = data["total"]
 
     def __repr__(self) -> str:
-        return f"<spotipy.Followers total={self.total}>"
+        return f"<spotipy.{self.__class__.__name__}: total={self.total}>"

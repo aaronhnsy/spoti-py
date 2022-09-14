@@ -31,4 +31,4 @@ class Device:
         self.volume_percent: int = data["volume_percent"]
 
     def __repr__(self) -> str:
-        return f"<spotipy.Device id='{self.id}' name='{self.name}'>"
+        return f"<spotipy.{self.__class__.__name__}: id='{self.id}', name='{self.name}'>"

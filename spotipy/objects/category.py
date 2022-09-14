@@ -27,4 +27,4 @@ class Category:
         self.name: str = data["name"]
 
     def __repr__(self) -> str:
-        return f"<spotipy.Category id='{self.id}' name='{self.name}'>"
+        return f"<spotipy.{self.__class__.__name__}: id='{self.id}', name='{self.name}'>"

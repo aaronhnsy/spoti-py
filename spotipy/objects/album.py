@@ -1,39 +1,23 @@
 from __future__ import annotations
 
-from typing import TypedDict
-
 from typing_extensions import NotRequired
 
 from .artist import SimpleArtistData, SimpleArtist
 from .base import BaseObjectData, BaseObject, PagingObjectData, PagingObject
 from .common import ExternalURLs, ExternalIDs
 from .copyright import CopyrightData, Copyright
-from .enums import ReleaseDatePrecision, RestrictionReason
+from .enums import ReleaseDatePrecision
 from .image import ImageData, Image
 from .track import SimpleTrack, SimpleTrackData
+from .restrictions import RestrictionsData, Restrictions
 
 
 __all__ = (
-    "AlbumRestrictionData",
-    "AlbumRestriction",
     "SimpleAlbumData",
     "SimpleAlbum",
     "AlbumData",
     "Album"
 )
-
-
-class AlbumRestrictionData(TypedDict):
-    reason: str
-
-
-class AlbumRestriction:
-
-    def __init__(self, data: AlbumRestrictionData) -> None:
-        self.reason: RestrictionReason = RestrictionReason(data["reason"])
-
-    def __repr__(self) -> str:
-        return f"<spotipy.AlbumRestriction reason='{self.reason}'>"
 
 
 class SimpleAlbumData(BaseObjectData):
@@ -45,7 +29,7 @@ class SimpleAlbumData(BaseObjectData):
     release_date_precision: str
     total_tracks: NotRequired[int]
     available_markets: NotRequired[list[str]]
-    restrictions: NotRequired[AlbumRestrictionData]
+    restrictions: NotRequired[RestrictionsData]
 
 
 class SimpleAlbum(BaseObject):
@@ -62,10 +46,7 @@ class SimpleAlbum(BaseObject):
         self.total_tracks: int = data.get("total_tracks", -1)
 
         self.available_markets: list[str] | None = data.get("available_markets")
-        self.restriction: AlbumRestriction | None = AlbumRestriction(restriction) if (restriction := data.get("restrictions")) else None
-
-    def __repr__(self) -> str:
-        return f"<spotipy.SimpleAlbum id='{self.id}', name='{self.name}', artists={self.artists}, total_tracks={self.total_tracks}>"
+        self.restriction: Restrictions | None = Restrictions(restriction) if (restriction := data.get("restrictions")) else None
 
     @property
     def url(self) -> str | None:
@@ -87,7 +68,7 @@ class AlbumData(BaseObjectData):
     total_tracks: int
     tracks: PagingObjectData[SimpleTrackData]
     available_markets: NotRequired[list[str]]
-    restrictions: NotRequired[AlbumRestrictionData]
+    restrictions: NotRequired[RestrictionsData]
 
 
 class Album(BaseObject):
@@ -109,13 +90,10 @@ class Album(BaseObject):
         self.total_tracks: int = data["total_tracks"]
 
         self.available_markets: list[str] | None = data.get("available_markets")
-        self.restriction: AlbumRestriction | None = AlbumRestriction(restriction) if (restriction := data.get("restrictions")) else None
+        self.restriction: Restrictions | None = Restrictions(restriction) if (restriction := data.get("restrictions")) else None
 
         self._tracks_paging = PagingObject(data["tracks"])
         self.tracks: list[SimpleTrack] = [SimpleTrack(track) for track in self._tracks_paging.items]
-
-    def __repr__(self) -> str:
-        return f"<spotipy.Album id='{self.id}', name='{self.name}', artists={self.artists}, total_tracks={self.total_tracks}>"
 
     @property
     def url(self) -> str | None:

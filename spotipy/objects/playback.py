@@ -34,7 +34,7 @@ class Context:
         self.uri: str = data["uri"]
 
     def __repr__(self) -> str:
-        return "<spotipy.Context"
+        return f"<spotipy.{self.__class__.__name__}>"
 
 
 class PlaybackStateData(TypedDict):
@@ -65,7 +65,7 @@ class PlaybackState:
         self.timestamp: int = data["timestamp"]
 
     def __repr__(self) -> str:
-        return "<spotipy.CurrentlyPlayingContext>"
+        return f"<spotipy.{self.__class__.__name__}>"
 
 
 class CurrentlyPlayingData(TypedDict):
@@ -88,4 +88,4 @@ class CurrentlyPlaying:
         self.timestamp: int = data["timestamp"]
 
     def __repr__(self) -> str:
-        return "<spotipy.CurrentlyPlaying>"
+        return f"<spotipy.{self.__class__.__name__}>"

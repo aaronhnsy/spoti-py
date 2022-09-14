@@ -16,7 +16,7 @@ from .objects.enums import IncludeGroup, SearchType, TimeRange
 from .objects.episode import SimpleEpisode, Episode
 from .objects.image import Image
 from .objects.playlist import Playlist, SimplePlaylist
-from .objects.recommendation import Recommendation
+from .objects.recommendation import Recommendations
 from .objects.search import SearchResult
 from .objects.show import Show
 from .objects.track import SimpleTrack, Track, AudioFeatures, PlaylistTrack
@@ -52,7 +52,7 @@ class Client:
         )
 
     def __repr__(self) -> str:
-        return "<spotipy.Client>"
+        return f"<spotipy.{self.__class__.__name__}>"
 
     # ALBUMS API
 
@@ -73,7 +73,7 @@ class Client:
         market: str | None = None,
         credentials: AnyCredentials | None = None,
     ) -> dict[ID, Album | None]:
-        response = await self.http.get_albums(ids=ids, market=market, credentials=credentials)
+        response = await self.http.get_multiple_albums(ids, market=market, credentials=credentials)
         return dict(zip(ids, [Album(data) if data else None for data in response["albums"]]))
 
     async def get_album_tracks(
@@ -197,7 +197,7 @@ class Client:
         credentials: AnyCredentials | None = None,
     ) -> dict[ID, Artist | None]:
 
-        response = await self.http.get_artists(ids=ids, market=market, credentials=credentials)
+        response = await self.http.get_multiple_artists(ids, market=market, credentials=credentials)
         return dict(zip(ids, [Artist(data) if data else None for data in response["artists"]]))
 
     async def get_artist_albums(
@@ -212,7 +212,7 @@ class Client:
     ) -> list[SimpleAlbum]:
 
         if include_groups is None:
-            include_groups = [IncludeGroup.Album]
+            include_groups = [IncludeGroup.ALBUM]
 
         response = await self.http.get_artist_albums(
             _id,
@@ -234,7 +234,7 @@ class Client:
     ) -> list[SimpleAlbum]:
 
         if include_groups is None:
-            include_groups = [IncludeGroup.Album]
+            include_groups = [IncludeGroup.ALBUM]
 
         response = await self.http.get_artist_albums(
             _id,
@@ -268,7 +268,7 @@ class Client:
         self,
         _id: str,
         /, *,
-        market: str = "GB",
+        market: str,
         credentials: AnyCredentials | None = None,
     ) -> list[Track]:
 
@@ -279,11 +279,10 @@ class Client:
         self,
         _id: str,
         /, *,
-        market: str | None = None,
         credentials: AnyCredentials | None = None,
     ) -> list[Artist]:
 
-        response = await self.http.get_related_artists(_id, market=market, credentials=credentials)
+        response = await self.http.get_related_artists(_id, credentials=credentials)
         return [Artist(data) for data in response["artists"]]
 
     # SHOWS API
@@ -307,7 +306,7 @@ class Client:
         credentials: AnyCredentials | None = None,
     ) -> dict[ID, Show | None]:
 
-        response = await self.http.get_shows(ids, market=market, credentials=credentials)
+        response = await self.http.get_multiple_shows(ids, market=market, credentials=credentials)
         return dict(zip(ids, [Show(data) if data else None for data in response["shows"]]))
 
     async def get_show_episodes(
@@ -390,7 +389,7 @@ class Client:
         credentials: AnyCredentials | None = None,
     ) -> dict[ID, Episode | None]:
 
-        response = await self.http.get_episodes(ids=ids, market=market, credentials=credentials)
+        response = await self.http.get_multiple_episodes(ids, market=market, credentials=credentials)
         return dict(zip(ids, [Episode(data) if data else None for data in response["episodes"]]))
 
     async def get_saved_episodes(self) -> ...:
@@ -426,7 +425,7 @@ class Client:
         credentials: AnyCredentials | None = None,
     ) -> dict[ID, Track | None]:
 
-        response = await self.http.get_tracks(ids=ids, market=market, credentials=credentials)
+        response = await self.http.get_multiple_tracks(ids=ids, market=market, credentials=credentials)
         return dict(zip(ids, [Track(data) if data else None for data in response["tracks"]]))
 
     async def get_saved_tracks(self) -> ...:
@@ -441,14 +440,14 @@ class Client:
     async def check_saved_tracks(self) -> ...:
         raise NotImplementedError
 
-    async def get_several_tracks_audio_features(
+    async def get_multiple_tracks_audio_features(
         self,
         ids: Sequence[ID],
         *,
         credentials: AnyCredentials | None = None,
     ) -> dict[ID, AudioFeatures | None]:
 
-        response = await self.http.get_several_tracks_audio_features(ids, credentials=credentials)
+        response = await self.http.get_multiple_tracks_audio_features(ids, credentials=credentials)
         return dict(zip(ids, [AudioFeatures(data) if data else None for data in response["audio_features"]]))
 
     async def get_track_audio_features(
@@ -468,24 +467,24 @@ class Client:
         self,
         *,
         seed_artist_ids: list[str] | None = None,
-        seed_genres: list[str] | None = None,
         seed_track_ids: list[str] | None = None,
+        seed_genres: list[str] | None = None,
         limit: int | None = None,
         market: str | None = None,
         credentials: AnyCredentials | None = None,
         **kwargs: int
-    ) -> Recommendation:
+    ) -> Recommendations:
 
         response = await self.http.get_recommendations(
             seed_artist_ids=seed_artist_ids,
-            seed_genres=seed_genres,
             seed_track_ids=seed_track_ids,
+            seed_genres=seed_genres,
             limit=limit,
             market=market,
             credentials=credentials,
             **kwargs
         )
-        return Recommendation(response)
+        return Recommendations(response)
 
     # SEARCH API
 

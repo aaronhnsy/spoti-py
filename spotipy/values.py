@@ -3,7 +3,7 @@ from __future__ import annotations
 
 __all__ = (
     "SCOPES",
-    "VALID_SEED_KWARGS",
+    "VALID_RECOMMENDATION_SEED_KWARGS",
 )
 
 
@@ -36,7 +36,7 @@ SCOPES: list[str] = [
     "user-follow-read",
 ]
 
-VALID_SEED_KWARGS: list[str] = [
+VALID_RECOMMENDATION_SEED_KWARGS: list[str] = [
     "min_acousticness",
     "max_acousticness",
     "target_acousticness",

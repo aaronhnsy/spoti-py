@@ -30,13 +30,13 @@ class ExplicitContentSettings:
         self.filter_locked: bool = data["filter_locked"]
 
     def __repr__(self) -> str:
-        return f"<spotipy.ExplicitContentSettings filter_enabled={self.filter_enabled}, filter_locked=" \
+        return f"<spotipy.{self.__class__.__name__}: filter_enabled={self.filter_enabled}, filter_locked=" \
                f"{self.filter_locked}"
 
 
 class UserData(BaseObjectData):
     country: NotRequired[str]
-    display_name: str
+    display_name: NotRequired[str]
     email: NotRequired[str]
     explicit_content: NotRequired[ExplicitContentSettingsData]
     external_urls: ExternalURLs
@@ -51,7 +51,7 @@ class User(BaseObject):
         super().__init__(data)
 
         self.country: str | None = data.get("country")
-        self.display_name: str | None = data["display_name"]
+        self.display_name: str | None = data.get("display_name")
         self.email: str | None = data.get("email")
         self.explicit_content_settings: ExplicitContentSettings | None = ExplicitContentSettings(explicit_content) if (explicit_content := data.get("explicit_content")) else None
         self.external_urls: ExternalURLs = data["external_urls"]
@@ -60,7 +60,7 @@ class User(BaseObject):
         self.product: str | None = data.get("product")
 
     def __repr__(self) -> str:
-        return f"<spotipy.User id='{self.id}', name='{self.display_name}'>"
+        return f"<spotipy.{self.__class__.__name__}: id='{self.id}', name='{self.display_name}'>"
 
     @property
     def url(self) -> str | None:

@@ -4,7 +4,7 @@ import asyncio
 import base64
 import logging
 from collections.abc import Sequence
-from typing import ClassVar, Any
+from typing import ClassVar, Any, Literal
 from urllib.parse import quote
 
 import aiohttp
@@ -20,27 +20,25 @@ from .objects.episode import EpisodeData
 from .objects.image import ImageData
 from .objects.playback import PlaybackStateData, CurrentlyPlayingData
 from .objects.playlist import PlaylistData, PlaylistSnapshotID, SimplePlaylistData
-from .objects.recommendation import RecommendationData
+from .objects.recommendation import RecommendationsData
 from .objects.search import SearchResultData
 from .objects.show import ShowData
 from .objects.track import SimpleTrackData, TrackData, AudioFeaturesData, PlaylistTrackData
 from .objects.user import UserData
 from .types.common import AnyCredentials
 from .types.http import (
-    HTTPMethod, Headers, MultipleAlbumsData, NewReleasesData, MultipleArtistsData,
-    ArtistTopTracksData, ArtistRelatedArtistsData, MultipleShowsData, MultipleEpisodesData,
-    MultipleTracksData, SeveralAudioFeaturesData, FeaturedPlaylistsData, CategoryPlaylistsData,
+    HTTPMethod, Headers,
+    FeaturedPlaylistsData, CategoryPlaylistsData,
     MultipleCategoriesData, RecommendationGenresData, MultipleDevicesData, AvailableMarketsData,
 )
 from .utilities import to_json, limit_value, json_or_text
-from .values import VALID_SEED_KWARGS
+from .values import VALID_RECOMMENDATION_SEED_KWARGS
 
 
 __all__ = (
     "Route",
     "HTTPClient"
 )
-
 
 LOG: logging.Logger = logging.getLogger("spotipy.http")
 
@@ -68,7 +66,7 @@ class Route:
         self.url: str = url
 
     def __repr__(self) -> str:
-        return f"<spotipy.Route method='{self.method}', url='{self.url}'>"
+        return f"<spotipy.{self.__class__.__name__}: method='{self.method}', url='{self.url}'>"
 
 
 class HTTPClient:
@@ -91,7 +89,7 @@ class HTTPClient:
         self._request_lock.set()
 
     def __repr__(self) -> str:
-        return "<spotipy.HTTPClient>"
+        return f"<spotipy.{self.__class__.__name__}>"
 
     # internal methods
 
@@ -226,84 +224,82 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/albums/{id}", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
-    async def get_albums(
+    async def get_multiple_albums(
         self,
         ids: Sequence[str],
-        *,
+        /, *,
         market: str | None,
         credentials: AnyCredentials | None = None
-    ) -> MultipleAlbumsData:
+    ) -> dict[Literal["albums"], list[AlbumData | None]]:
 
         if len(ids) > 20:
             raise ValueError("'ids' can not contain more than 20 ids.")
 
-        query: dict[str, Any] = {"ids": ",".join(ids)}
+        query: dict[str, Any] = {
+            "ids": ",".join(ids)
+        }
         if market:
             query["market"] = market
 
         return await self.request(
             Route("GET", "/albums"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_album_tracks(
         self,
         _id: str,
         /, *,
-        market: str | None,
         limit: int | None,
         offset: int | None,
+        market: str | None,
         credentials: AnyCredentials | None = None
     ) -> PagingObjectData[SimpleTrackData]:
 
         query: dict[str, Any] = {}
-        if market:
-            query["market"] = market
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/albums/{id}/tracks", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_saved_albums(
         self,
         *,
-        market: str | None,
         limit: int | None,
         offset: int | None,
+        market: str | None,
         credentials: UserCredentials,
     ) -> PagingObjectData[AlbumData]:
 
         query: dict[str, Any] = {}
-        if market:
-            query["market"] = market
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/me/albums"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def save_albums(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials,
     ) -> None:
 
@@ -315,14 +311,13 @@ class HTTPClient:
         }
         return await self.request(
             Route("PUT", "/me/albums"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def remove_albums(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials,
     ) -> None:
 
@@ -334,14 +329,13 @@ class HTTPClient:
         }
         return await self.request(
             Route("DELETE", "/me/albums"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def check_saved_albums(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials,
     ) -> list[bool]:
 
@@ -353,8 +347,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("GET", "/me/albums/contains"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_new_releases(
@@ -364,7 +357,7 @@ class HTTPClient:
         limit: int | None,
         offset: int | None,
         credentials: AnyCredentials | None = None
-    ) -> NewReleasesData:
+    ) -> dict[Literal["albums"], PagingObjectData[SimpleAlbumData]]:
 
         query: dict[str, Any] = {}
         if country:
@@ -377,8 +370,7 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/browse/new-releases"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     # ARTISTS API
@@ -397,17 +389,16 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/artists/{id}", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
-    async def get_artists(
+    async def get_multiple_artists(
         self,
         ids: Sequence[str],
-        *,
+        /, *,
         market: str | None,
         credentials: AnyCredentials | None = None
-    ) -> MultipleArtistsData:
+    ) -> dict[Literal["artists"], list[ArtistData | None]]:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
@@ -420,36 +411,34 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/artists"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_artist_albums(
         self,
         _id: str,
         /, *,
-        market: str | None,
+        include_groups: list[IncludeGroup] | None,
         limit: int | None,
         offset: int | None,
-        include_groups: list[IncludeGroup] | None,
+        market: str | None,
         credentials: AnyCredentials | None = None
     ) -> PagingObjectData[SimpleAlbumData]:
 
         query: dict[str, Any] = {}
-        if market:
-            query["market"] = market
+        if include_groups:
+            query["include_groups"] = ",".join(include_group.value for include_group in include_groups)
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
-        if include_groups:
-            query["include_groups"] = ",".join(include_group.value for include_group in include_groups)
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/artists/{id}/albums", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_artist_top_tracks(
@@ -458,32 +447,24 @@ class HTTPClient:
         /, *,
         market: str,
         credentials: AnyCredentials | None = None
-    ) -> ArtistTopTracksData:
+    ) -> dict[Literal["tracks"], list[TrackData]]:
 
         query: dict[str, Any] = {
             "market": market
         }
         return await self.request(
             Route("GET", "/artists/{id}/top-tracks", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_related_artists(
         self,
         _id: str,
         /, *,
-        market: str | None,
         credentials: AnyCredentials | None = None
-    ) -> ArtistRelatedArtistsData:
-
-        query: dict[str, Any] = {}
-        if market:
-            query["market"] = market
-
+    ) -> dict[Literal["artists"], list[ArtistData]]:
         return await self.request(
             Route("GET", "/artists/{id}/related-artists", id=_id),
-            query=query,
             credentials=credentials
         )
 
@@ -503,17 +484,16 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/shows/{id}", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
-    async def get_shows(
+    async def get_multiple_shows(
         self,
         ids: Sequence[str],
-        *,
+        /, *,
         market: str,
         credentials: AnyCredentials | None = None
-    ) -> MultipleShowsData:
+    ) -> dict[Literal["shows"], list[ShowData | None]]:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
@@ -526,33 +506,31 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/shows"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_show_episodes(
         self,
         _id: str,
         /, *,
-        market: str,
         limit: int | None,
         offset: int | None,
+        market: str,
         credentials: AnyCredentials | None = None
     ) -> PagingObjectData[EpisodeData]:
 
         query: dict[str, Any] = {}
-        if market:
-            query["market"] = market
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/shows/{id}/episodes", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_saved_shows(
@@ -572,14 +550,13 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/me/shows"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def save_shows(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials,
     ) -> None:
 
@@ -591,14 +568,13 @@ class HTTPClient:
         }
         return await self.request(
             Route("PUT", "/me/shows"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def remove_shows(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials,
     ) -> None:
 
@@ -610,14 +586,13 @@ class HTTPClient:
         }
         return await self.request(
             Route("DELETE", "/me/shows"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def check_saved_shows(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials,
     ) -> list[bool]:
 
@@ -629,8 +604,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("GET", "/me/shows/contains"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     # EPISODE API
@@ -649,17 +623,16 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/episodes/{id}", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
-    async def get_episodes(
+    async def get_multiple_episodes(
         self,
         ids: Sequence[str],
-        *,
+        /, *,
         market: str | None,
         credentials: AnyCredentials | None = None
-    ) -> MultipleEpisodesData:
+    ) -> dict[Literal["episodes"], list[EpisodeData | None]]:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
@@ -672,38 +645,36 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/episodes"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_saved_episodes(
         self,
         *,
-        market: str | None,
         limit: int | None,
         offset: int | None,
+        market: str | None,
         credentials: UserCredentials,
     ) -> PagingObjectData[EpisodeData]:
 
         query: dict[str, Any] = {}
-        if market:
-            query["market"] = market
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/me/episodes"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def save_episodes(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials
     ) -> None:
 
@@ -715,8 +686,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("PUT", "/me/episodes"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def remove_episodes(
@@ -734,14 +704,13 @@ class HTTPClient:
         }
         return await self.request(
             Route("DELETE", "/me/episodes"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def check_saved_episodes(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials
     ) -> list[bool]:
 
@@ -753,8 +722,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("GET", "/me/episodes/contains"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     # TRACKS API
@@ -773,17 +741,16 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/tracks/{id}", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
-    async def get_tracks(
+    async def get_multiple_tracks(
         self,
         ids: Sequence[str],
         *,
         market: str | None,
         credentials: AnyCredentials | None = None
-    ) -> MultipleTracksData:
+    ) -> dict[Literal["tracks"], list[TrackData | None]]:
 
         if len(ids) > 50:
             raise ValueError("'ids' can not contain more than 50 ids.")
@@ -796,38 +763,36 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/tracks"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_saved_tracks(
         self,
         *,
-        market: str | None,
         limit: int | None,
         offset: int | None,
+        market: str | None,
         credentials: UserCredentials
     ) -> PagingObjectData[TrackData]:
 
         query: dict[str, Any] = {}
-        if market:
-            query["market"] = market
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/me/tracks"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def save_tracks(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials
     ) -> None:
 
@@ -839,8 +804,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("PUT", "/me/tracks"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def remove_tracks(
@@ -858,8 +822,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("DELETE", "/me/tracks"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def check_saved_tracks(
@@ -877,8 +840,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("GET", "/me/tracks/contains"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_track_audio_features(
@@ -892,12 +854,12 @@ class HTTPClient:
             credentials=credentials
         )
 
-    async def get_several_tracks_audio_features(
+    async def get_multiple_tracks_audio_features(
         self,
         ids: Sequence[str],
-        *,
+        /, *,
         credentials: AnyCredentials | None = None
-    ) -> SeveralAudioFeaturesData:
+    ) -> dict[Literal["audio_features"], list[AudioFeaturesData | None]]:
 
         if len(ids) > 100:
             raise ValueError("'ids' can not contain more than 100 ids.")
@@ -907,8 +869,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("GET", "/audio-features"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_track_audio_analysis(
@@ -916,8 +877,7 @@ class HTTPClient:
         _id: str,
         /, *,
         credentials: AnyCredentials | None = None
-    ) -> dict[str, Any]:
-        # TODO: create TypedDict for this
+    ) -> dict[str, Any]:  # TODO: create TypedDict for this monstrosity
         return await self.request(
             Route("GET", "/audio-analysis/{id}", id=_id),
             credentials=credentials
@@ -927,31 +887,29 @@ class HTTPClient:
         self,
         *,
         seed_artist_ids: list[str] | None,
-        seed_genres: list[str] | None,
         seed_track_ids: list[str] | None,
+        seed_genres: list[str] | None,
         limit: int | None,
         market: str | None,
         credentials: AnyCredentials | None = None,
         **kwargs: int
-    ) -> RecommendationData:
+    ) -> RecommendationsData:
 
-        seeds = len(
-            [seed for seeds in [seed_artist_ids or [], seed_genres or [], seed_track_ids or []] for seed in seeds]
-        )
-        if seeds < 1 or seeds > 5:
-            raise ValueError("too many or no seed values provided. min 1, max 5.")
+        count = len(seed_artist_ids or []) + len(seed_track_ids or []) + len(seed_genres or [])
+        if count < 1 or count > 5:
+            raise ValueError("too many or not enough seed values provided. minimum 1, maximum 5.")
 
         query: dict[str, Any] = {}
         if seed_artist_ids:
             query["seed_artists"] = ",".join(seed_artist_ids)
-        if seed_genres:
-            query["seed_genres"] = ",".join(seed_genres)
         if seed_track_ids:
             query["seed_tracks"] = ",".join(seed_track_ids)
+        if seed_genres:
+            query["seed_genres"] = ",".join(seed_genres)
 
         for key, value in kwargs.items():
-            if key not in VALID_SEED_KWARGS:
-                raise ValueError(f"'{key}' is not a valid kwarg.")
+            if key not in VALID_RECOMMENDATION_SEED_KWARGS:
+                raise ValueError(f"'{key}' is not a valid keyword argument for this method.")
             query[key] = value
 
         if limit:
@@ -962,8 +920,7 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/recommendations"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     # SEARCH API
@@ -973,10 +930,10 @@ class HTTPClient:
         _query: str,
         /, *,
         search_types: list[SearchType],
-        include_external: bool = False,
-        market: str | None,
+        include_external: bool,
         limit: int | None,
         offset: int | None,
+        market: str | None,
         credentials: AnyCredentials | None = None
     ) -> SearchResultData:
 
@@ -986,18 +943,17 @@ class HTTPClient:
         }
         if include_external:
             query["include_external"] = "audio"
-        if market:
-            query["market"] = market
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/search"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     # USERS API
@@ -1032,8 +988,7 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/me/top/artists"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_current_user_top_tracks(
@@ -1056,8 +1011,7 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/me/top/tracks"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_user_profile(
@@ -1075,7 +1029,7 @@ class HTTPClient:
         self,
         _id: str,
         /, *,
-        public: bool | None,
+        public: bool,
         credentials: UserCredentials
     ) -> None:
 
@@ -1085,8 +1039,7 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "playlists/{id}/followers", id=_id),
-            json=body,
-            credentials=credentials
+            json=body, credentials=credentials
         )
 
     async def unfollow_playlist(
@@ -1100,31 +1053,24 @@ class HTTPClient:
             credentials=credentials
         )
 
-    async def check_if_users_follow_playlists(
+    async def check_if_users_follow_playlist(
         self,
-        playlist_id: str,
+        _id: str,
         /, *,
         user_ids: list[str],
         credentials: AnyCredentials | None = None
     ) -> None:
 
         if len(user_ids) > 5:
-            raise ValueError("'ids' can not contain more than 5 ids.")
+            raise ValueError("'user_ids' can not contain more than 5 ids.")
 
         query: dict[str, Any] = {
             "ids": ",".join(user_ids)
         }
         return await self.request(
-            Route("GET", "/playlists/{playlist_id}/followers/contains", playlist_id=playlist_id),
-            query=query,
-            credentials=credentials
+            Route("GET", "/playlists/{id}/followers/contains", id=_id),
+            query=query, credentials=credentials
         )
-
-    async def get_followed_users(
-        self,
-    ) -> None:
-        # TODO: Why is this here.
-        raise SpotipyError("This operation is not yet implemented in the spotify api.")
 
     async def get_followed_artists(
         self,
@@ -1145,34 +1091,13 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/me/following"),
-            query=query,
-            credentials=credentials
-        )
-
-    async def follow_users(
-        self,
-        ids: list[str],
-        *,
-        credentials: UserCredentials
-    ) -> None:
-
-        if len(ids) > 50:
-            raise ValueError("'ids' can not contain more than 50 ids.")
-
-        query: dict[str, Any] = {
-            "type": "user",
-            "ids":  ",".join(ids)
-        }
-        return await self.request(
-            Route("PUT", "/me/following"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def follow_artists(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials
     ) -> None:
 
@@ -1185,34 +1110,13 @@ class HTTPClient:
         }
         return await self.request(
             Route("PUT", "/me/following"),
-            query=query,
-            credentials=credentials
-        )
-
-    async def unfollow_users(
-        self,
-        ids: list[str],
-        *,
-        credentials: UserCredentials
-    ) -> None:
-
-        if len(ids) > 50:
-            raise ValueError("'ids' can not contain more than 50 ids.")
-
-        query: dict[str, Any] = {
-            "type": "user",
-            "ids":  ",".join(ids)
-        }
-        return await self.request(
-            Route("DELETE", "/me/following"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def unfollow_artists(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials
     ) -> None:
 
@@ -1225,34 +1129,13 @@ class HTTPClient:
         }
         return await self.request(
             Route("DELETE", "/me/following"),
-            query=query,
-            credentials=credentials
-        )
-
-    async def check_followed_users(
-        self,
-        ids: list[str],
-        *,
-        credentials: UserCredentials
-    ) -> list[bool]:
-
-        if len(ids) > 50:
-            raise ValueError("'ids' can not contain more than 50 ids.")
-
-        query: dict[str, Any] = {
-            "type": "user",
-            "ids":  ",".join(ids)
-        }
-        return await self.request(
-            Route("GET", "/me/following/contains"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def check_followed_artists(
         self,
         ids: list[str],
-        *,
+        /, *,
         credentials: UserCredentials
     ) -> list[bool]:
 
@@ -1265,11 +1148,68 @@ class HTTPClient:
         }
         return await self.request(
             Route("GET", "/me/following/contains"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
+        )
+
+    async def follow_users(
+        self,
+        ids: list[str],
+        /, *,
+        credentials: UserCredentials
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        query: dict[str, Any] = {
+            "type": "user",
+            "ids":  ",".join(ids)
+        }
+        return await self.request(
+            Route("PUT", "/me/following"),
+            query=query, credentials=credentials
+        )
+
+    async def unfollow_users(
+        self,
+        ids: list[str],
+        /, *,
+        credentials: UserCredentials
+    ) -> None:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        query: dict[str, Any] = {
+            "type": "user",
+            "ids":  ",".join(ids)
+        }
+        return await self.request(
+            Route("DELETE", "/me/following"),
+            query=query, credentials=credentials
+        )
+
+    async def check_followed_users(
+        self,
+        ids: list[str],
+        /, *,
+        credentials: UserCredentials
+    ) -> list[bool]:
+
+        if len(ids) > 50:
+            raise ValueError("'ids' can not contain more than 50 ids.")
+
+        query: dict[str, Any] = {
+            "type": "user",
+            "ids":  ",".join(ids)
+        }
+        return await self.request(
+            Route("GET", "/me/following/contains"),
+            query=query, credentials=credentials
         )
 
     # PLAYLISTS API
+    # TODO: Check through docs to make sure every parameter is accounted for
 
     async def get_playlist(
         self,

@@ -23,4 +23,4 @@ class Image:
         self.height: int = data["height"]
 
     def __repr__(self) -> str:
-        return f"<spotipy.Image url='<{self.url}>', width={self.width}, height={self.height}>"
+        return f"<spotipy.{self.__class__.__name__}: url='<{self.url}>', width={self.width}, height={self.height}>"

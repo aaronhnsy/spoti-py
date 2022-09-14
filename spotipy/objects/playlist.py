@@ -57,9 +57,6 @@ class SimplePlaylist(BaseObject):
         self.tracks_href: str = data["tracks"]["href"]
         self.total_tracks: int = data["tracks"]["total"]
 
-    def __repr__(self) -> str:
-        return f"<spotipy.SimplePlaylist id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
-
     @property
     def url(self) -> str | None:
         return self.external_urls.get("spotify")
@@ -96,9 +93,6 @@ class Playlist(BaseObject):
 
         self._tracks_paging = PagingObject(data["tracks"])
         self.tracks: list[PlaylistTrack] = [PlaylistTrack(track) for track in self._tracks_paging.items]
-
-    def __repr__(self) -> str:
-        return f"<spotipy.Playlist id='{self.id}', name='{self.name}', total_tracks={self.total_tracks}>"
 
     @property
     def url(self) -> str | None:

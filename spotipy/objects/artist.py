@@ -22,11 +22,7 @@ class SimpleArtist(BaseObject):
 
     def __init__(self, data: SimpleArtistData) -> None:
         super().__init__(data)
-
         self.external_urls: ExternalURLs = data["external_urls"]
-
-    def __repr__(self) -> str:
-        return f"<spotipy.SimpleArtist id='{self.id}', name='{self.name}'>"
 
     @property
     def url(self) -> str | None:
@@ -50,6 +46,3 @@ class Artist(SimpleArtist):
         self.genres: list[str] = data["genres"]
         self.images: list[Image] = [Image(image) for image in data["images"]]
         self.popularity: int = data["popularity"]
-
-    def __repr__(self) -> str:
-        return f"<spotipy.Artist id='{self.id}', name='{self.name}'>"

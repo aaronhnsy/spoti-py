@@ -38,7 +38,7 @@ class ClientCredentials:
         self._last_authorized_time: float = time.time()
 
     def __repr__(self) -> str:
-        return "<spotipy.ClientCredentials>"
+        return f"<spotipy.{self.__class__.__name__}>"
 
     # properties
 
@@ -129,7 +129,7 @@ class UserCredentials:
         self._last_authorized_time: float = time.time()
 
     def __repr__(self) -> str:
-        return "<spotipy.UserCredentials>"
+        return f"<spotipy.{self.__class__.__name__}>"
 
     # properties
 

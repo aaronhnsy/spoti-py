@@ -45,9 +45,6 @@ class Show(BaseObject):
         self.publisher: str = data["publisher"]
         self.total_episodes: int = data["total_episodes"]
 
-    def __repr__(self) -> str:
-        return f"<spotipy.Show id='{self.id}', name='{self.name}'>"
-
     @property
     def url(self) -> str | None:
         return self.external_urls.get("spotify")

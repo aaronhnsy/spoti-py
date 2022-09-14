@@ -30,37 +30,14 @@ class SearchResult:
 
     def __init__(self, data: SearchResultData) -> None:
 
-        self._albums_paging: PagingObject[SimpleAlbumData] | None = PagingObject(paging) if (paging := data["albums"]) else None
-        self._artists_paging: PagingObject[ArtistData] | None = PagingObject(paging) if (paging := data["artists"]) else None
-        self._playlists_paging: PagingObject[SimplePlaylistData] | None = PagingObject(paging) if (paging := data["playlists"]) else None
-        self._tracks_paging: PagingObject[TrackData] | None = PagingObject(paging) if (paging := data["tracks"]) else None
-        self._shows_paging: PagingObject[ShowData] | None = PagingObject(paging) if (paging := data["shows"]) else None
-        self._episodes_paging: PagingObject[SimpleEpisodeData] | None = PagingObject(paging) if (paging := data["episodes"]) else None
-
-        self.albums: list[SimpleAlbum] = [
-            SimpleAlbum(album) for album in self._albums_paging.items
-        ] if self._albums_paging else []
-
-        self.artists: list[Artist] = [
-            Artist(artist) for artist in self._artists_paging.items
-        ] if self._artists_paging else []
-
-        self.playlists: list[SimplePlaylist] = [
-            SimplePlaylist(playlist) for playlist in self._playlists_paging.items
-        ] if self._playlists_paging else []
-
-        self.tracks: list[Track] = [
-            Track(track) for track in self._tracks_paging.items
-        ] if self._tracks_paging else []
-
-        self.shows: list[Show] = [
-            Show(show) for show in self._shows_paging.items
-        ] if self._shows_paging else []
-
-        self.episodes: list[SimpleEpisode] = [
-            SimpleEpisode(episode) for episode in self._episodes_paging.items
-        ] if self._episodes_paging else []
+        self.albums: list[SimpleAlbum] = [SimpleAlbum(album) for album in PagingObject(data["albums"]).items]
+        self.artists: list[Artist] = [Artist(artist) for artist in PagingObject(data["artists"]).items]
+        self.playlists: list[SimplePlaylist] = [SimplePlaylist(playlist) for playlist in PagingObject(data["playlists"]).items]
+        self.tracks: list[Track] = [Track(track) for track in PagingObject(data["tracks"]).items]
+        self.shows: list[Show] = [Show(show) for show in PagingObject(data["shows"]).items]
+        self.episodes: list[SimpleEpisode] = [SimpleEpisode(episode) for episode in PagingObject(data["episodes"]).items]
 
     def __repr__(self) -> str:
-        return f"<spotipy.SearchResult albums={len(self.albums)}, artists={len(self.artists)}, playlists=" \
-               f"{len(self.playlists)}, tracks={len(self.tracks)}>"
+        return f"<spotipy.{self.__class__.__name__}: " \
+               f"albums={len(self.albums)}, artists={len(self.artists)}, playlists={len(self.playlists)}, " \
+               f"tracks={len(self.tracks)}, shows={len(self.shows)}, episodes={len(self.episodes)}>"

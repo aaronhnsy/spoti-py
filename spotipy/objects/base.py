@@ -36,7 +36,7 @@ class BaseObject:
         self.uri: str = data["uri"]
 
     def __repr__(self) -> str:
-        return f"<spotipy.BaseObject id='{self.id}', name='{self.name}'>"
+        return f"<spotipy.{self.__class__.__name__}: id='{self.id}', name='{self.name}'>"
 
 
 class PagingObjectData(TypedDict, Generic[T]):
@@ -61,7 +61,7 @@ class PagingObject(Generic[T]):
         self.total: int = data["total"]
 
     def __repr__(self) -> str:
-        return f"<spotify.PagingObject total={self.total}, limit={self.limit}, offset={self.offset}>"
+        return f"<spotipy.{self.__class__.__name__}: total={self.total}, limit={self.limit}, offset={self.offset}>"
 
 
 class AlternativePagingObjectData(TypedDict, Generic[T]):
@@ -84,4 +84,4 @@ class AlternativePagingObject(Generic[T]):
         self.after: str = data["after"]
 
     def __repr__(self) -> str:
-        return f"<spotify.AlternativePagingObject limit={self.limit}, before={self.before}, after={self.after}>"
+        return f"<spotipy.{self.__class__.__name__}: limit={self.limit}, before={self.before}, after={self.after}>"

@@ -17,6 +17,7 @@ from .image import *
 from .playback import *
 from .playlist import *
 from .recommendation import *
+from .restrictions import *
 from .search import *
 from .show import *
 from .track import *
