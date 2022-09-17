@@ -10,14 +10,14 @@ __all__ = (
 
 
 class FollowersData(TypedDict):
-    href: str | None
+    href: None
     total: int
 
 
 class Followers:
 
     def __init__(self, data: FollowersData) -> None:
-        self.href: str | None = data["href"]
+        self.href: None = data["href"]
         self.total: int = data["total"]
 
     def __repr__(self) -> str:

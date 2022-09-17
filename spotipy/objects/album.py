@@ -4,12 +4,11 @@ from typing_extensions import NotRequired
 
 from .artist import SimpleArtistData, SimpleArtist
 from .base import BaseObjectData, BaseObject, PagingObjectData, PagingObject
-from .common import ExternalURLs, ExternalIDs
+from .common import ExternalURLs, ExternalIDs, ReleaseDatePrecision
 from .copyright import CopyrightData, Copyright
-from .enums import ReleaseDatePrecision
 from .image import ImageData, Image
-from .track import SimpleTrack, SimpleTrackData
 from .restrictions import RestrictionsData, Restrictions
+from .track import SimpleTrack, SimpleTrackData
 
 
 __all__ = (

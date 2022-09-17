@@ -6,13 +6,13 @@ from typing import TypeVar
 
 import aiohttp
 
+from .enums import IncludeGroup, SearchType, TimeRange
 from .http import HTTPClient
 from .objects.album import Album, SimpleAlbum
 from .objects.artist import Artist
 from .objects.base import PagingObject
 from .objects.category import Category
 from .objects.credentials import UserCredentials
-from .objects.enums import IncludeGroup, SearchType, TimeRange
 from .objects.episode import SimpleEpisode, Episode
 from .objects.image import Image
 from .objects.playlist import Playlist, SimplePlaylist

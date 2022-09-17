@@ -8,7 +8,6 @@ __all__ = (
     "SearchType",
     "RepeatMode",
     "TimeRange",
-    "ReleaseDatePrecision",
 )
 
 
@@ -40,9 +39,3 @@ class TimeRange(enum.Enum):
     LONG_TERM = "long_term"
     MEDIUM_TERM = "medium_term"
     SHORT_TERM = "short_term"
-
-
-class ReleaseDatePrecision(enum.Enum):
-    YEAR = "year"
-    MONTH = "month"
-    DAY = "day"

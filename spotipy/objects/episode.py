@@ -5,11 +5,10 @@ from typing import TypedDict
 from typing_extensions import NotRequired
 
 from .base import BaseObject, BaseObjectData
-from .common import ExternalURLs
-from .enums import ReleaseDatePrecision
+from .common import ExternalURLs, ReleaseDatePrecision
 from .image import Image, ImageData
-from .show import ShowData, Show
 from .restrictions import Restrictions, RestrictionsData
+from .show import ShowData, Show
 
 
 __all__ = (

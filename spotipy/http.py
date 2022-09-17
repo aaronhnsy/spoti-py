@@ -9,13 +9,14 @@ from urllib.parse import quote
 
 import aiohttp
 
+from . import DeviceData
+from .enums import IncludeGroup, SearchType, TimeRange, RepeatMode
 from .errors import RequestEntityTooLarge, HTTPError, SpotipyError, SpotifyServerError, HTTPErrorMapping
 from .objects.album import AlbumData, SimpleAlbumData
 from .objects.artist import ArtistData
 from .objects.base import PagingObjectData, AlternativePagingObjectData
 from .objects.category import CategoryData
 from .objects.credentials import ClientCredentials, UserCredentials
-from .objects.enums import IncludeGroup, SearchType, TimeRange, RepeatMode
 from .objects.episode import EpisodeData
 from .objects.image import ImageData
 from .objects.playback import PlaybackStateData, CurrentlyPlayingData
@@ -26,11 +27,7 @@ from .objects.show import ShowData
 from .objects.track import SimpleTrackData, TrackData, AudioFeaturesData, PlaylistTrackData
 from .objects.user import UserData
 from .types.common import AnyCredentials
-from .types.http import (
-    HTTPMethod, Headers,
-    FeaturedPlaylistsData, CategoryPlaylistsData,
-    MultipleCategoriesData, RecommendationGenresData, MultipleDevicesData, AvailableMarketsData,
-)
+from .types.http import HTTPMethod, Headers, FeaturedPlaylistsData
 from .utilities import to_json, limit_value, json_or_text
 from .values import VALID_RECOMMENDATION_SEED_KWARGS
 
@@ -39,6 +36,7 @@ __all__ = (
     "Route",
     "HTTPClient"
 )
+
 
 LOG: logging.Logger = logging.getLogger("spotipy.http")
 
@@ -1215,24 +1213,20 @@ class HTTPClient:
         self,
         _id: str,
         /, *,
-        market: str | None,
         fields: str | None,
+        market: str | None,
         credentials: AnyCredentials | None = None
     ) -> PlaylistData:
 
-        query: dict[str, Any] = {
-            "additional_types": "track"
-        }
-        # TODO: Support all additional types
-        if market:
-            query["market"] = market
+        query: dict[str, Any] = {}
         if fields:
             query["fields"] = fields
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/playlists/{id}", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def change_playlist_details(
@@ -1261,27 +1255,22 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/playlists/{id}", id=_id),
-            json=body,
-            credentials=credentials
+            json=body, credentials=credentials
         )
 
     async def get_playlist_items(
         self,
         _id: str,
         /, *,
-        market: str | None,
         fields: str | None,
         limit: int | None,
         offset: int | None,
+        market: str | None,
         credentials: AnyCredentials | None = None
     ) -> PagingObjectData[PlaylistTrackData]:
 
-        query: dict[str, Any] = {
-            "additional_types": "track"
-        }
-        # TODO: Support all additional types
-        if market:
-            query["market"] = market
+        query: dict[str, Any] = {}
+
         if fields:
             query["fields"] = fields
         if limit:
@@ -1289,11 +1278,12 @@ class HTTPClient:
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if market:
+            query["market"] = market
 
         return await self.request(
             Route("GET", "/playlists/{id}/tracks", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def add_items_to_playlist(
@@ -1316,8 +1306,7 @@ class HTTPClient:
 
         return await self.request(
             Route("POST", "/playlists/{id}/tracks", id=_id),
-            json=body,
-            credentials=credentials
+            json=body, credentials=credentials
         )
 
     async def reorder_playlist_items(
@@ -1325,25 +1314,23 @@ class HTTPClient:
         _id: str,
         /, *,
         range_start: int,
+        range_length: int,
         insert_before: int,
-        range_length: int | None,
         snapshot_id: str | None,
         credentials: UserCredentials
     ) -> PlaylistSnapshotID:
 
         body: dict[str, Any] = {
             "range_start":   range_start,
+            "range_length":  range_length,
             "insert_before": insert_before
         }
-        if range_length:
-            body["range_length"] = range_length
         if snapshot_id:
             body["snapshot_id"] = snapshot_id
 
         return await self.request(
             Route("PUT", "/playlists/{id}/tracks", id=_id),
-            json=body,
-            credentials=credentials
+            json=body, credentials=credentials
         )
 
     async def replace_playlist_items(
@@ -1362,8 +1349,7 @@ class HTTPClient:
         }
         return await self.request(
             Route("PUT", "/playlists/{id}/tracks", id=_id),
-            json=body,
-            credentials=credentials
+            json=body, credentials=credentials
         )
 
     async def remove_items_from_playlist(
@@ -1386,8 +1372,7 @@ class HTTPClient:
 
         return await self.request(
             Route("DELETE", "/playlists/{id}/tracks", id=_id),
-            json=body,
-            credentials=credentials
+            json=body, credentials=credentials
         )
 
     async def get_current_user_playlists(
@@ -1407,8 +1392,7 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/me/playlists"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_user_playlists(
@@ -1429,8 +1413,7 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/users/{id}/playlists", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def create_playlist(
@@ -1459,8 +1442,7 @@ class HTTPClient:
 
         return await self.request(
             Route("POST", "/users/{user_id}/playlists", user_id=user_id),
-            json=body,
-            credentials=credentials
+            json=body, credentials=credentials
         )
 
     async def get_featured_playlists(
@@ -1489,33 +1471,31 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/browse/featured-playlists"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_category_playlists(
         self,
         _id: str,
         /, *,
-        country: str | None,
         limit: int | None,
         offset: int | None,
+        country: str | None,
         credentials: AnyCredentials | None = None
-    ) -> CategoryPlaylistsData:
+    ) -> dict[Literal["playlists"], PagingObjectData[SimplePlaylistData]]:
 
         query: dict[str, Any] = {}
-        if country:
-            query["country"] = country
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if country:
+            query["country"] = country
 
         return await self.request(
             Route("GET", "/browse/categories/{id}/playlists", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_playlist_cover_image(
@@ -1548,8 +1528,7 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/playlists/{id}/images", id=_id),
-            body=body,
-            credentials=credentials
+            body=body, credentials=credentials
         )
 
     # CATEGORY API
@@ -1557,49 +1536,47 @@ class HTTPClient:
     async def get_categories(
         self,
         *,
-        country: str | None,
-        locale: str | None,
         limit: int | None,
         offset: int | None,
+        locale: str | None,
+        country: str | None,
         credentials: AnyCredentials | None = None
-    ) -> MultipleCategoriesData:
+    ) -> dict[Literal["categories"], PagingObjectData[CategoryData]]:
 
         query: dict[str, Any] = {}
-        if country:
-            query["country"] = country
-        if locale:
-            query["locale"] = locale
         if limit:
             limit_value("limit", limit, 1, 50)
             query["limit"] = limit
         if offset:
             query["offset"] = offset
+        if locale:
+            query["locale"] = locale
+        if country:
+            query["country"] = country
 
         return await self.request(
             Route("GET", "/browse/categories"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_category(
         self,
         _id: str,
         /, *,
-        country: str | None,
         locale: str | None,
+        country: str | None,
         credentials: AnyCredentials | None = None
     ) -> CategoryData:
 
         query: dict[str, Any] = {}
-        if country:
-            query["country"] = country
         if locale:
             query["locale"] = locale
+        if country:
+            query["country"] = country
 
         return await self.request(
             Route("GET", "/browse/categories/{id}", id=_id),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     # GENRE API
@@ -1608,7 +1585,7 @@ class HTTPClient:
         self,
         *,
         credentials: AnyCredentials | None = None
-    ) -> RecommendationGenresData:
+    ) -> dict[Literal["genres"], list[str]]:
         return await self.request(
             Route("GET", "/recommendations/available-genre-seeds"),
             credentials=credentials
@@ -1623,17 +1600,13 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> PlaybackStateData:
 
-        query: dict[str, Any] = {
-            "additional_types": "track"
-        }
-        # TODO: Support all additional types
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
 
         return await self.request(
             Route("GET", "/me/player"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def transfer_playback(
@@ -1652,15 +1625,14 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/me/player"),
-            json=body,
-            credentials=credentials
+            json=body, credentials=credentials
         )
 
     async def get_available_devices(
         self,
         *,
         credentials: UserCredentials
-    ) -> MultipleDevicesData:
+    ) -> dict[Literal["devices"], list[DeviceData]]:
         return await self.request(
             Route("GET", "/me/player/devices"),
             credentials=credentials
@@ -1673,17 +1645,13 @@ class HTTPClient:
         credentials: UserCredentials
     ) -> CurrentlyPlayingData:
 
-        query: dict[str, Any] = {
-            "additional_types": "track"
-        }
-        # TODO: Support all additional types
+        query: dict[str, Any] = {}
         if market:
             query["market"] = market
 
         return await self.request(
             Route("GET", "/me/player/currently-playing"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def start_playback(
@@ -1722,9 +1690,7 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/me/player/play"),
-            query=query,
-            json=body,
-            credentials=credentials
+            query=query, json=body, credentials=credentials
         )
 
     async def resume_playback(
@@ -1760,8 +1726,7 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/me/player/pause"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def skip_to_next(
@@ -1777,8 +1742,7 @@ class HTTPClient:
 
         return await self.request(
             Route("POST", "/me/player/next"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def skip_to_previous(
@@ -1794,8 +1758,7 @@ class HTTPClient:
 
         return await self.request(
             Route("POST", "/me/player/previous"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def seek_to_position(
@@ -1814,8 +1777,7 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/me/player/seek"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def set_repeat_mode(
@@ -1834,8 +1796,7 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/me/player/repeat"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def set_playback_volume(
@@ -1856,8 +1817,7 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/me/player/volume"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def toggle_playback_shuffle(
@@ -1876,8 +1836,7 @@ class HTTPClient:
 
         return await self.request(
             Route("PUT", "/me/player/shuffle"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def get_recently_played_tracks(
@@ -1902,8 +1861,7 @@ class HTTPClient:
 
         return await self.request(
             Route("GET", "/me/player/recently-played"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     async def add_item_to_playback_queue(
@@ -1922,8 +1880,7 @@ class HTTPClient:
 
         return await self.request(
             Route("POST", "/me/player/queue"),
-            query=query,
-            credentials=credentials
+            query=query, credentials=credentials
         )
 
     # MARKETS API
@@ -1932,7 +1889,7 @@ class HTTPClient:
         self,
         *,
         credentials: AnyCredentials | None = None
-    ) -> AvailableMarketsData:
+    ) -> dict[Literal["markets"], list[str]]:
         return await self.request(
             Route("GET", "/markets"),
             credentials=credentials
