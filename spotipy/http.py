@@ -9,7 +9,6 @@ from urllib.parse import quote
 
 import aiohttp
 
-from . import DeviceData
 from .enums import IncludeGroup, SearchType, TimeRange, RepeatMode
 from .errors import RequestEntityTooLarge, HTTPError, SpotipyError, SpotifyServerError, HTTPErrorMapping
 from .objects.album import AlbumData, SimpleAlbumData
@@ -17,6 +16,7 @@ from .objects.artist import ArtistData
 from .objects.base import PagingObjectData, AlternativePagingObjectData
 from .objects.category import CategoryData
 from .objects.credentials import ClientCredentials, UserCredentials
+from .objects.device import DeviceData
 from .objects.episode import EpisodeData
 from .objects.image import ImageData
 from .objects.playback import PlaybackStateData, CurrentlyPlayingData
